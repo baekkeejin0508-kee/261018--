@@ -919,24 +919,65 @@ def find_diseases_in_text(text: str) -> list:
     found = []
     seen_keys = set()
 
-    # 1. 주요 감염병 별칭 매핑
+    # 1. 50여 종 법정감염병 통칭 및 구어체 별칭 매핑
     alias_map = {
-        "독감": "인플루엔자",
-        "플루": "인플루엔자",
-        "신종플루": "인플루엔자",
+        "에볼라": "에볼라바이러스병",
+        "ebola": "에볼라바이러스병",
+        "마버그": "마버그열",
+        "라싸": "라싸열",
         "사스": "사스(SARS)",
         "sars": "사스(SARS)",
         "메르스": "중동호흡기증후군(MERS)",
         "mers": "중동호흡기증후군(MERS)",
         "코로나": "코로나19",
         "covid": "코로나19",
-        "볼거리": "유행성이하선염",
+        "코로나19": "코로나19",
+        "독감": "인플루엔자",
+        "인플루엔자": "인플루엔자",
+        "플루": "인플루엔자",
+        "신종플루": "인플루엔자",
+        "수족구": "수족구병",
+        "아구창": "아구창(칸디다증)",
+        "결핵": "결핵",
+        "백일해": "백일해",
+        "홍역": "홍역",
+        "수두": "수두",
+        "콜레라": "콜레라",
+        "장티푸스": "장티푸스",
+        "파라티푸스": "파라티푸스",
+        "이질": "세균성이질",
+        "대장균": "장출혈성대장균감염증",
+        "성홍열": "성홍열",
+        "폴리오": "폴리오",
         "소아마비": "폴리오",
+        "볼거리": "유행성이하선염",
+        "풍진": "풍진",
+        "파상풍": "파상풍",
+        "말라리아": "말라리아",
+        "일본뇌염": "일본뇌염",
+        "비브리오": "비브리오패혈증",
+        "레지오넬라": "레지오넬라증",
+        "쯔쯔가무시": "쯔쯔가무시증",
+        "렙토스피라": "렙토스피라증",
+        "브루셀라": "브루셀라증",
+        "공수병": "공수병",
+        "광견병": "공수병",
+        "유행성출혈열": "신증후군출혈열",
+        "신증후군출혈열": "신증후군출혈열",
         "에이즈": "AIDS(후천성면역결핍증)",
         "hiv": "AIDS(후천성면역결핍증)",
+        "뎅기": "뎅기열",
+        "지카": "지카바이러스감염증",
+        "황열": "황열",
+        "노로": "노로바이러스감염증",
+        "로타": "로타바이러스감염증",
+        "탄저": "탄저",
+        "페스트": "페스트",
         "흑사병": "페스트",
-        "수족구": "수족구병",
-        "아구창": "아구창(칸디다증)"
+        "보툴리눔": "보툴리눔독소증",
+        "야토": "야토병",
+        "엠폭스": "엠폭스",
+        "원숭이두창": "엠폭스"
     }
 
     for alias, target_key in alias_map.items():
@@ -948,13 +989,23 @@ def find_diseases_in_text(text: str) -> list:
                         found.append((db_k, db_k.split("(")[0].strip(), db_v))
                     break
 
-    # 2. DISEASE_INFO_DB 전체 검색 (한글명 및 영문명)
+    # 2. DISEASE_INFO_DB 전체 검색 (한글명, 영문명 및 핵심 어근 추출 매칭)
     for k, v in DISEASE_INFO_DB.items():
         if k in seen_keys:
             continue
         k_clean = k.split("(")[0].strip()
         k_eng = k.split("(")[1].replace(")", "").strip().lower() if "(" in k else ""
-        if (len(k_clean) >= 2 and k_clean.lower() in t_lower) or (len(k_eng) >= 2 and k_eng in t_lower):
+
+        # 의학 접미사 제거 어근 추출 (예: "에볼라바이러스병" -> "에볼라", "마버그열" -> "마버그")
+        root = k_clean
+        for suffix in ["바이러스감염증", "바이러스병", "출혈열", "독소증", "증후군", "패혈증", "감염증", "균감염증", "열", "병", "증"]:
+            if root.endswith(suffix) and len(root) - len(suffix) >= 2:
+                root = root[:-len(suffix)]
+                break
+
+        if (len(k_clean) >= 2 and k_clean.lower() in t_lower) or \
+           (len(k_eng) >= 2 and k_eng in t_lower) or \
+           (len(root) >= 2 and root.lower() in t_lower):
             seen_keys.add(k)
             found.append((k, k_clean, v))
 
@@ -1102,7 +1153,7 @@ def query_gemini_ai(api_key: str, prompt: str, disease_name: str = "") -> str:
     )
 
     # [1순위] 표준 라이브러리 HTTPS REST API 호출 (외부 의존성 없음, No module named 오류 원천 차단)
-    models_to_try = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
+    models_to_try = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash", "gemini-pro"]
     for m in models_to_try:
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent?key={cleaned_key}"
         payload = {
@@ -1131,8 +1182,17 @@ def query_gemini_ai(api_key: str, prompt: str, disease_name: str = "") -> str:
                     if parts and "text" in parts[0]:
                         ans = parts[0]["text"].strip()
                         if ans:
+                            st.session_state["gemini_last_error"] = ""
                             return ans
-        except Exception:
+        except urllib.error.HTTPError as he:
+            try:
+                err_text = he.read().decode("utf-8", errors="ignore")
+                st.session_state["gemini_last_error"] = f"HTTP {he.code}: {err_text[:120]}"
+            except Exception:
+                st.session_state["gemini_last_error"] = f"HTTP {he.code}"
+            continue
+        except Exception as e:
+            st.session_state["gemini_last_error"] = str(e)[:120]
             continue
 
     # [2순위] google-genai 신규 SDK 시도
