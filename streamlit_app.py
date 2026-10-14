@@ -1419,12 +1419,13 @@ with st.sidebar:
             "3. 지역/감염병 비교 심층 탐구",
             "4. 학교 집단감염 예방 시뮬레이터",
             "5. AI 보건 튜터(Q&A)"
-        ]
+        ],
+        key="main_nav_menu"
     )
 
     st.divider()
     st.subheader("📂 데이터 소스 관리")
-    data_mode = st.radio("데이터 소스 선택", ["질병관리청 표준 데이터 (2019~2025)", "내 CSV 파일 직접 업로드"])
+    data_mode = st.radio("데이터 소스 선택", ["질병관리청 표준 데이터 (2019~2025)", "내 CSV 파일 직접 업로드"], key="data_source_mode")
     if data_mode == "내 CSV 파일 직접 업로드":
         up_file = st.file_uploader("CSV 파일 업로드 (질병관리청 형식)", type=["csv"])
         if up_file:
@@ -1459,18 +1460,23 @@ with st.sidebar:
 
     # 교사용 잠금 해제 (학생들에게 힌트가 일절 노출되지 않는 보안 잠금)
     with st.expander("🔒 교사용 잠금 해제 (방과 후/시연용)", expanded=False):
-        teacher_input = st.text_input("교사 인증 암호", type="password", placeholder="비밀번호 입력", key="teacher_pw_box")
-        if teacher_input:
-            if clean_api_key(teacher_input) in ["1018", "보건", "0508"]:
-                st.session_state["teacher_code"] = teacher_input
-                st.success("✅ 교사 인증 완료!")
-                st.rerun()
-            else:
-                st.error("암호가 올바르지 않습니다.")
-        if is_teacher_unlocked:
-            if st.button("인증 해제 (학생 모드로 복귀)", use_container_width=True):
+        if not is_teacher_unlocked:
+            teacher_input = st.text_input("교사 인증 암호", type="password", placeholder="비밀번호 입력", key="teacher_pw_box")
+            if st.button("인증 확인", use_container_width=True, key="btn_teacher_verify"):
+                if clean_api_key(teacher_input) in ["1018", "보건", "0508"]:
+                    st.session_state["teacher_code"] = teacher_input
+                    st.success("✅ 교사 인증 완료!")
+                    st.rerun()
+                else:
+                    st.error("암호가 올바르지 않습니다.")
+        else:
+            st.success("✅ 교사 권한이 승인되었습니다 (전 시간 사용 가능).")
+            if st.button("인증 해제 (학생 모드로 복귀)", use_container_width=True, key="btn_teacher_logout"):
                 st.session_state["teacher_code"] = ""
+                if "teacher_pw_box" in st.session_state:
+                    st.session_state["teacher_pw_box"] = ""
                 st.rerun()
+
 
 
 
