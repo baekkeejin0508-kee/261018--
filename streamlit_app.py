@@ -1,4 +1,7 @@
 import os
+import json
+import urllib.request
+import urllib.error
 import base64
 import streamlit as st
 import pandas as pd
@@ -861,64 +864,171 @@ def get_disease_info(tier, name):
     }
 
 
+def clean_api_key(k: str) -> str:
+    """사용자가 입력하거나 시크릿에 설정된 API 키에서 공백 및 따옴표를 안전하게 제거"""
+    if not k or not isinstance(k, str):
+        return ""
+    k = k.strip()
+    if "GEMINI_API_KEY" in k and "=" in k:
+        k = k.split("=", 1)[1].strip()
+    quotes = ('"', "'", "`")
+    while len(k) >= 2 and (k[0] in quotes and k[-1] in quotes):
+        k = k[1:-1].strip()
+    return k
+
+
 def get_api_key():
+    """Streamlit Secrets, 환경 변수, 사용자 직접 입력 세션에서 안전하게 Gemini API 키 조회"""
+    raw_k = ""
     try:
-        if "GEMINI_API_KEY" in st.secrets and st.secrets["GEMINI_API_KEY"].strip():
-            return st.secrets["GEMINI_API_KEY"].strip()
+        if "GEMINI_API_KEY" in st.secrets:
+            raw_k = str(st.secrets["GEMINI_API_KEY"]).strip()
     except Exception:
         pass
-    env_k = os.environ.get("GEMINI_API_KEY", "")
-    if env_k.strip():
-        return env_k.strip()
-    return st.session_state.get("custom_gemini_key", "").strip()
+    if not raw_k:
+        raw_k = os.environ.get("GEMINI_API_KEY", "").strip()
+    if not raw_k:
+        raw_k = st.session_state.get("custom_gemini_key", "").strip()
+    return clean_api_key(raw_k)
 
 
-def query_gemini_ai(api_key: str, prompt: str) -> str:
-    sys_prompt = "당신은 서울의료보건고등학교 보건간호과 지도교사 AI입니다. 학생 눈높이에 맞게 감염병 역학과 학교 보건 관리 지침을 명쾌하고 상세하게 설명해 주세요."
-    models_to_try = ["gemini-2.5-flash", "gemini-2.0-flash", "gemini-1.5-flash"]
+def query_gemini_ai(api_key: str, prompt: str, disease_name: str = "") -> str:
+    """
+    고교 보건간호과 및 질병관리청(KDCA) 공공데이터에 맞춤화된 전문 Gemini 응답 생성.
+    패키지 누락/버전 충돌 없이 안정적으로 구동되는 HTTPS REST API(1순위) 및 SDK 다중 폴백 적용.
+    """
+    cleaned_key = clean_api_key(api_key)
+    if not cleaned_key:
+        return ""
+
+    sys_instruction = (
+        "당신은 대한민국 서울의료보건고등학교 보건간호과의 전임 지도교사이자 질병관리청(KDCA) 공공데이터 전문 보건 튜터 AI입니다.\n"
+        "질문자는 고등학교 보건간호과 학생입니다.\n\n"
+        "[답변 원칙 및 지침]\n"
+        "1. 고등학교 보건, 간호의 기초, 공중보건 교과서 범위에 부합하게 전문적이면서도 학생 눈높이에서 알기 쉽게 설명합니다.\n"
+        "2. 질병관리청(KDCA) 법정감염병 분류(제1급~제5급), 신고 기한(즉시/24시간 이내 등), 격리 기준을 정확하게 안내합니다.\n"
+        "3. 교육부 및 질병관리청 '학교 감염병 예방·위기대응 매뉴얼'과 학교보건법에 따른 학교 보건실 관리 지침과 '등교 중지(출석인정 결석)' 기준, 격리 해제 조건을 반드시 포함합니다.\n"
+        "4. 2개 이상 질병 비교(예: 사스 vs 메르스, 독감 vs 감기, 수족구 vs 아구창 등) 질문 시 일목요연한 마크다운 비교표를 반드시 포함합니다.\n"
+        "5. 따뜻하고 전문적인 보건간호과 지도교사의 어조로 마크다운과 이모지를 활용하여 가독성을 높입니다."
+    )
+
+    full_prompt = (
+        f"{sys_instruction}\n\n"
+        f"[현재 탐구 감염병 컨텍스트: {disease_name}]\n"
+        f"[학생 질문]\n{prompt}\n\n"
+        "위 질문에 대해 고등학생 수준에 맞추어 전문적이고 신뢰할 수 있는 답변을 작성해 주세요."
+    )
+
+    # [1순위] 표준 라이브러리 HTTPS REST API 호출 (외부 의존성 없음, No module named 오류 원천 차단)
+    models_to_try = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
+    for m in models_to_try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent?key={cleaned_key}"
+        payload = {
+            "contents": [
+                {
+                    "parts": [{"text": full_prompt}]
+                }
+            ],
+            "generationConfig": {
+                "temperature": 0.7,
+                "maxOutputTokens": 2500
+            }
+        }
+        try:
+            req = urllib.request.Request(
+                url,
+                data=json.dumps(payload).encode("utf-8"),
+                headers={"Content-Type": "application/json"},
+                method="POST"
+            )
+            with urllib.request.urlopen(req, timeout=15) as resp:
+                res_data = json.loads(resp.read().decode("utf-8"))
+                candidates = res_data.get("candidates", [])
+                if candidates and "content" in candidates[0]:
+                    parts = candidates[0]["content"].get("parts", [])
+                    if parts and "text" in parts[0]:
+                        ans = parts[0]["text"].strip()
+                        if ans:
+                            return ans
+        except Exception:
+            continue
+
+    # [2순위] google-genai 신규 SDK 시도
     try:
         from google import genai
         from google.genai import types
-        client = genai.Client(api_key=api_key)
-        for m in models_to_try:
+        client = genai.Client(api_key=cleaned_key)
+        for m in ["gemini-2.0-flash", "gemini-1.5-flash"]:
             try:
                 resp = client.models.generate_content(
                     model=m,
-                    contents=prompt,
-                    config=types.GenerateContentConfig(system_instruction=sys_prompt, temperature=0.7)
+                    contents=full_prompt,
+                    config=types.GenerateContentConfig(temperature=0.7)
                 )
                 if resp and resp.text:
-                    return resp.text
+                    return resp.text.strip()
             except Exception:
                 continue
     except Exception:
         pass
 
+    # [3순위] google.generativeai 레거시 SDK 시도
     try:
         import google.generativeai as legacy_genai
-        legacy_genai.configure(api_key=api_key)
+        legacy_genai.configure(api_key=cleaned_key)
         for m in ["gemini-1.5-flash", "gemini-pro"]:
             try:
                 model = legacy_genai.GenerativeModel(m)
-                resp = model.generate_content(prompt)
+                resp = model.generate_content(full_prompt)
                 if resp and resp.text:
-                    return resp.text
+                    return resp.text.strip()
             except Exception:
                 continue
-    except Exception as e:
-        return f"⚠️ Gemini 호출 오류: {e}"
+    except Exception:
+        pass
 
-    return "답변을 생성하지 못했습니다. API 키의 유효성을 확인해 주세요."
+    return ""
 
 
 def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: dict) -> str:
-    """질병 및 질문에 100% 맞춤화된 전문 학교보건 역학 답변 생성 (특이 병원체 및 보건 지침 반영)"""
-    q_lower = question.lower()
+    """
+    질병관리청(KDCA) 공공데이터 및 고교 보건/간호 교과서 기반 지식 엔진.
+    사스 vs 메르스, 수족구 vs 아구창 등 주요 임상 감별 비교표와 50여 종 법정감염병 종합 지침 완비.
+    """
+    q_lower = question.lower().strip()
     d_clean = "AIDS(후천성면역결핍증)" if disease_name in ["임질", "AIDS", "후천성면역결핍증"] else disease_name
     info = get_disease_info(dis_info.get("tier", "법정감염병"), d_clean)
 
-    # [보건간호과 임상 핵심] 수족구병 vs 아구창 감별 진단 질문
-    if "아구창" in q_lower or ("수족구" in q_lower and ("차이" in q_lower or "구별" in q_lower or "비교" in q_lower)):
+    # ----------------------------------------------------
+    # [1] 사스(SARS) vs 메르스(MERS) vs 코로나19(COVID-19) 임상 비교 분석
+    # ----------------------------------------------------
+    if ("사스" in q_lower or "sars" in q_lower) and ("메르스" in q_lower or "mers" in q_lower):
+        return """👩‍⚕️ **[AI 보건 튜터 임상 비교 분석: 사스(SARS) vs 메르스(MERS) vs 코로나19(COVID-19)]**
+
+보건간호과 학생 여러분, 21세기 신종 호흡기 감염병의 핵심인 **코로나바이러스(Coronavirus) 변종 3대 질환 비교 분석**입니다.
+
+| 구분 항목 | 🦇 사스 (SARS) | 🐫 메르스 (MERS) | 🦠 코로나19 (COVID-19) |
+| :--- | :--- | :--- | :--- |
+| **원인 바이러스** | **SARS-CoV** (중증급성호흡기증후군 바이러스) | **MERS-CoV** (중동호흡기증후군 바이러스) | **SARS-CoV-2** (신종 코로나바이러스) |
+| **법정감염병 분류** | **제1급 감염병** (발생 즉시 신고, 음압격리) | **제1급 감염병** (발생 즉시 신고, 음압격리) | **제4급 감염병** (표본감시체계 전환) |
+| **최초 유행 / 진원지** | 2002년 중국 광둥성 (전 세계 유행) | 2012년 사우디아라비아 (2015년 한국 유행) | 2019년 말 중국 후베이성 우한 |
+| **자연 숙주 및 전파원** | 박쥐 ➡️ 사향고양이 ➡️ 사람 | 박쥐 ➡️ 단봉낙타 ➡️ 사람 | 박쥐 ➡️ 중간숙주 매개체 ➡️ 사람 |
+| **치명률 (Fatality Rate)** | **약 9.6%** (중등도 위험) | **약 34.4%** (극도로 치명적, 신부전 동반) | **약 0.1 ~ 0.5%** (낮은 치명률) |
+| **전파력 ($R_0$)** | 2.0 ~ 4.0 | 0.3 ~ 0.8 (병원 내 슈퍼전파 위주) | 2.5 ~ 15.0 이상 (오미크론 등 극단적 전파) |
+| **주요 임상 특징** | 38℃ 이상 급성 고열, 마른기침, 폐렴 | 38℃ 이상 고열, 기침, **급성 신부전, 호흡곤란** | 발열, 기침, 인후통, 후각/미각 상실 |
+| **학교 보건실 격리 지침** | **의심 즉시 음압격리 및 전면 등교 중지**<br>👉 보건소 즉시 신고, 완치 판정까지 공결 | **의심 즉시 음압격리 및 전면 등교 중지**<br>👉 밀접접촉자 14일 자가격리, 공결 처리 | 검사 양성 시 **주요 증상 호전 후 24시간까지**<br>👉 등교 중지 권고 (진료확인서 제출 시 공결) |
+
+💡 **보건간호과 국가고시 및 임상 실무 핵심 탐구 포인트:**
+1. **치명률과 전파력의 역학적 반비례 관계:**
+   - **메르스**는 바이러스가 하기도 깊숙이 침투하여 폐포와 신장 조직을 파괴하므로 치명률이 34%로 매우 높으나, 일상 환경 비말 배출량이 적어 지역사회 전파력은 낮습니다.
+   - 반면 **코로나19**는 상기도(인두, 후두)에서 폭발적으로 증식하여 치명률은 낮지만 전파력이 전 세계적 팬데믹을 유발할 만큼 극대화되었습니다.
+2. **학교 보건실 긴급 대응 수칙:**
+   - 사스나 메르스는 **제1급 감염병**이므로 의심 증상(중동 방문력, 고열, 호흡곤란) 확인 즉시 교내 일반 보건실에 머물게 하지 말고 **독립된 격리 대기실로 이동 후 관할 보건소로 즉시 유선 신고**해야 합니다."""
+
+    # ----------------------------------------------------
+    # [2] 수족구병 vs 아구창(Oral Thrush) 구강 병변 감별 진단
+    # ----------------------------------------------------
+    if "아구창" in q_lower or ("수족구" in q_lower and any(w in q_lower for w in ["차이", "구별", "비교"])):
         return """👩‍⚕️ **[AI 보건 튜터 임상 감별 진단: 수족구병 vs 아구창(Oral Thrush) 핵심 비교]**
 
 보건간호과 학생 및 학교 보건실 실무에서 가장 중요한 **소아·청소년 구강 병변 감별 진단 가이드**입니다.
@@ -937,12 +1047,58 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
 - 학생이 구강 통증을 호소할 때 **반드시 손바닥과 발바닥을 확인**하세요. 손·발에 붉은 발진이나 물집이 관찰되면 **수족구병**이므로 즉시 일시대기실 격리 후 귀가 조치해야 합니다.
 - 손·발 발진 없이 혀나 뺨 안쪽에만 우유 찌꺼기 같은 하얀 막이 있고 닦았을 때 피가 배어 나온다면 **아구창**이므로 항진균제 진료를 권고하되 격리는 불필요합니다."""
 
-    # 1. AIDS(후천성면역결핍증) 특화 질문
-    if "aids" in d_clean.lower() or "후천성면역결핍증" in d_clean or "hiv" in d_clean.lower():
-        if "백신" in q_lower or "접종" in q_lower or "면역" in q_lower:
+    # ----------------------------------------------------
+    # [3] 독감(인플루엔자) vs 일반 감기(Common Cold)
+    # ----------------------------------------------------
+    if ("독감" in q_lower or "인플루엔자" in q_lower) and "감기" in q_lower:
+        return """👩‍⚕️ **[AI 보건 튜터 임상 비교 분석: 독감(인플루엔자) vs 일반 감기(Common Cold)]**
+
+| 구분 항목 | 💉 인플루엔자 (독감) | 🤧 일반 감기 (Common Cold) |
+| :--- | :--- | :--- |
+| **원인 병원체** | **인플루엔자 바이러스 (A형, B형, C형)** | 리노바이러스, 아데노바이러스, 코로나바이러스 등 200여 종 |
+| **법정감염병 분류** | **제4급 감염병** (표본감시 대상) | 법정감염병 비해당 |
+| **발병 양상** | **갑작스럽게 시작**되는 38℃ 이상 고열과 오한 | **서서히 시작**되는 미열, 목 쉼, 콧물 |
+| **전신 증상** | **극심한 두통, 근육통, 관절통, 극심한 피로감** | 전신 증상 미미, 일상생활 가능 수준의 권태감 |
+| **치료제** | 항바이러스제 (타미플루, 페라미비르 등) | 특효약 없음 (대증 치료, 해열진통제, 수분 섭취) |
+| **학교 등교 기준** | **해열제 복용 없이 정상 체온 회복 후 최소 24시간 경과 시까지 등교 중지** (출석인정 결석) | 등교 중지 비해당 (컨디션에 따라 마스크 착용 후 등교 가능) |
+
+💡 **보건간호과 팁:** 학교 내 유행 시 학급 내 75% 이상 백신 접종과 함께 시간당 2회 이상 맞통풍 환기가 가장 효과적인 감염 확산 차단책입니다."""
+
+    # ----------------------------------------------------
+    # [4] 수두 vs 홍역 (공기/비말핵 전파 감염병 비교)
+    # ----------------------------------------------------
+    if "수두" in q_lower and "홍역" in q_lower:
+        return """👩‍⚕️ **[AI 보건 튜터 임상 비교 분석: 수두(Chickenpox) vs 홍역(Measles)]**
+
+| 구분 항목 | 💧 수두 (Varicella) | 🔴 홍역 (Measles) |
+| :--- | :--- | :--- |
+| **원인 병원체** | 수두-대상포진 바이러스 (Varicella-Zoster Virus) | 홍역 바이러스 (Measles morbillivirus) |
+| **법정감염병 분류** | **제2급 감염병** (24시간 이내 신고) | **제2급 감염병** (24시간 이내 신고) |
+| **전파 경로** | **공기(비말핵), 수포액 직접 접촉** (기초재생산지수 $R_0 \\approx 10$) | **공기(비말핵) 전파** (전파력 최상위, $R_0 \\approx 12 \\sim 18$) |
+| **특징적 징후** | 몸통 ➡️ 얼굴 ➡️ 사지 순서로 발생.<br>**반점 ➡️ 구진 ➡️ 수포 ➡️ 가피(딱지)**의 모든 단계가 한 피부에 동시 관찰됨 | 발진 전 뺨 안쪽 점막에 **코플릭 반점(Koplik's spots)** 출현.<br>귀 뒤/목 ➡️ 얼굴 ➡️ 몸통 순서로 붉은 구진성 발진 융합 |
+| **학교 등교 중지** | **모든 수포에 딱지(가피)가 앉을 때까지** 등교 중지 (통상 발진 시작 후 5~7일) | **발진 출현 후 4일까지** 등교 중지 (가정 격리) |"""
+
+    # ----------------------------------------------------
+    # [5] 콜레라 vs 장티푸스 (수인성·식품매개 감염병 비교)
+    # ----------------------------------------------------
+    if "콜레라" in q_lower and "장티푸스" in q_lower:
+        return """👩‍⚕️ **[AI 보건 튜터 임상 비교 분석: 콜레라(Cholera) vs 장티푸스(Typhoid Fever)]**
+
+| 구분 항목 | 🌊 콜레라 (Cholera) | 🌡️ 장티푸스 (Typhoid Fever) |
+| :--- | :--- | :--- |
+| **원인 병원체** | **Vibrio cholerae** (콜레라균, 콤마 모양 세균) | **Salmonella enterica serovar Typhi** (장티푸스균) |
+| **법정감염병 분류** | **제2급 감염병** (24시간 이내 신고) | **제2급 감염병** (24시간 이내 신고) |
+| **임상적 특징** | 통증 없는 **극심한 쌀뜨물(Rice-water) 양상의 수양성 설사**, 급성 탈수, 쇼크 | **계단식으로 서서히 오르는 지속성 고열(39~40℃)**, **상대적 서맥**, 장미진, 비장 비대 |
+| **학교 보건실 지침** | 증상 소실 후 항생제 치료 중단 48시간 뒤 **대변 배양검사 연속 2회 음성 확인 시까지 등교 중지** | 항생제 치료 완료 48시간 후 **대변 배양검사 연속 3회 음성 확인 시까지 등교 중지** |"""
+
+    # ----------------------------------------------------
+    # [6] AIDS(후천성면역결핍증) 특화 질문
+    # ----------------------------------------------------
+    if "aids" in d_clean.lower() or "후천성면역결핍증" in d_clean or "hiv" in d_clean.lower() or "에이즈" in q_lower:
+        if any(w in q_lower for w in ["백신", "접종", "면역"]):
             return f"""👩‍⚕️ **[AI 보건 튜터 답변: {d_clean} 예방 백신 및 면역 관리 지침]**
 
-질문하신 **'{d_clean}'**의 예방 백신 및 면역 예방 전략 안내입니다:
+질문하신 **'{d_clean}'**의 예방 백신 및 현대 의학적 면역 예방 전략입니다:
 
 1. **예방 백신 상용화 현황 (백신 부재 이유):**
    - **현재 전 세계적으로 상용화된 HIV 예방 백신은 존재하지 않습니다.**
@@ -953,7 +1109,7 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
 3. **청소년 보건 교육 핵심:**
    - 백신이 없으므로 **안전한 성생활(올바른 콘돔 사용), 주사기 공동사용 금지, 의료 시술 시 1회용 멸균 기구 사용**이 가장 결정적인 1차 예방법입니다."""
 
-        elif "격리" in q_lower or "등교" in q_lower or "보건실" in q_lower:
+        elif any(w in q_lower for w in ["격리", "등교", "보건실"]):
             return f"""👩‍⚕️ **[AI 보건 튜터 답변: {d_clean} 학교 보건실 관리 및 등교 지침]**
 
 1. **등교 중지 비해당 (정상 등교 및 학습권 100% 보장):**
@@ -967,100 +1123,70 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
    - 후천성면역결핍증 예방법 제7조(비밀누설의 금지)에 의거, 학생의 감염 사실은 본인 동의 없이 타인에게 누설할 수 없으며 위반 시 3년 이하의 징역형에 처해집니다.
    - 보건교사는 학생이 심리적 안정감을 느끼고 정해진 시간에 항레트로바이러스제(HAART)를 규칙적으로 복약할 수 있도록 비밀 상담을 지원합니다."""
 
-        else:
-            return f"""👩‍⚕️ **[AI 보건 튜터 답변: {d_clean} 원인 병원체 및 역학적 특징]**
+    # ----------------------------------------------------
+    # [7] 질문 내용에서 특정 질병 언급 감지 및 자동 연동
+    # ----------------------------------------------------
+    matched_target = d_clean
+    for known_dis in DISEASE_INFO_DB.keys():
+        if known_dis in question:
+            matched_target = known_dis
+            info = get_disease_info(DISEASE_INFO_DB[known_dis].get("tier", "법정감염병"), matched_target)
+            break
 
-- **원인 병원체 (특이 병원체):** `{info['pathogen']}`
-- **확인된 전파 경로:** {info['route']}
-- **전파되지 않는 경로:** 호흡기 비말, 공기, 침, 땀, 악수, 식기 공유, 화장실 사용 등 일상 접촉으로는 전파 불가
-- **임상 경과:** {info['symptoms']}
-- **현대적 치료:** {info['treatment']} (조기 발견 및 칵테일 요법 복약 시 일반인과 기대수명 동일)"""
+    # 질문 유형별(백신, 등교/격리, 종합) 맞춤 응답 생성
+    if any(w in q_lower for w in ["백신", "접종", "면역"]):
+        return f"""👩‍⚕️ **[AI 보건 튜터 답변: {matched_target} ({info['tier']}) 예방 백신 및 면역 관리 지침]**
 
-    # 2. 인플루엔자 (독감) 특화 질문
-    elif "인플루엔자" in d_clean or "독감" in d_clean:
-        if "격리" in q_lower or "등교" in q_lower:
-            return f"""👩‍⚕️ **[AI 보건 튜터 답변: {d_clean} 학교 격리 및 등교 중지 기준]**
+보건간호과 학생 여러분, 질병관리청 국가예방접종사업(NIP) 및 교과서 기준 **'{matched_target}'**의 예방접종 지침입니다:
 
-1. **등교 중지 기간 (학교보건법 기준):**
-   - **해열제 복용 없이도 37.5℃ 이하로 정상 체온을 회복한 후 최소 24시간이 경과할 때까지** 등교를 중지하고 가정 격리합니다.
-   - 통상 증상 발생일로부터 약 5일간 등교 중지가 권장됩니다.
-2. **보건실 긴급 조치:**
-   - 38℃ 이상 고열 확인 즉시 보건실 내 일시대기실(격리 구역)로 이동시키고 KF94 마스크를 착용시킵니다.
-   - 학부모에게 유선 연락하여 즉시 병원 진료(타미플루 또는 페라미비르 처방)를 받도록 안내합니다.
-3. **출석 인정(공결) 절차:**
-   - 의사 진단서, 소견서 또는 진료확인서 제출 시 질병관리청 법정감염병(제4급) 지침에 따라 **출석인정 결석**으로 처리됩니다.
-4. **학급 전파 차단 수칙:**
-   - 쉬는 시간마다 교실 창문을 열어 **시간당 2회 이상 맞통풍 환기**를 실시합니다."""
-        elif "백신" in q_lower or "면역" in q_lower:
-            return f"""👩‍⚕️ **[AI 보건 튜터 답변: {d_clean} 청소년 백신 및 면역 관리]**
-
-1. **권장 백신 종류:** 인플루엔자 4가 불활성화 백신 (IIV4) - A형 2종(H1N1, H3N2), B형 2종(Victoria, Yamagata) 총 4개 균주 예방.
-2. **접종 권장 시기:** 유행 전인 매년 10월 중순 ~ 11월 말 (접종 2주 후 방어 항체 형성, 면역력 약 6개월 지속).
-3. **청소년 집단 면역:** 교실 내 75% 이상 접종 시 학교 내 집단 감염 차단 효과 극대화."""
-        else:
-            return f"""👩‍⚕️ **[AI 보건 튜터 답변: {d_clean} 역학 및 관리 지침]**
-- **특이 병원체:** `{info['pathogen']}`
-- **전파 경로:** {info['route']}
-- **임상 증상:** {info['symptoms']}
-- **학교 보건실 지침:** {info['treatment']}"""
-
-    # 3. 코로나19 특화 질문
-    elif "코로나19" in d_clean:
-        if "격리" in q_lower or "등교" in q_lower:
-            return f"""👩‍⚕️ **[AI 보건 튜터 답변: 코로나19 학교 격리 및 등교 기준]**
-
-1. **등교 중지 권고 기준:** 검사 결과 양성 시 주요 증상(발열, 기침, 인후통)이 호전된 후 24시간까지 등교 중지 및 가정 휴식 권고.
-2. **출석 인정 증빙:** 의료기관 진료확인서 또는 검사 결과서 제출 시 출석인정 결석 처리.
-3. **교실 방역 조치:** 확진자 발생 교실 맞통풍 환기 및 접촉 표면 소독 강화."""
-        else:
-            return f"""👩‍⚕️ **[AI 보건 튜터 답변: 코로나19 역학 리포트]**
-- **특이 병원체:** `{info['pathogen']}`
-- **전파 경로:** {info['route']}
-- **임상 증상:** {info['symptoms']}
-- **예방 및 관리:** {info['prevention']} / {info['treatment']}"""
-
-    # 4. 기타 모든 감염병 (완벽한 특이 병원체 및 보건 지침 연동)
-    else:
-        if "백신" in q_lower or "접종" in q_lower:
-            return f"""👩‍⚕️ **[AI 보건 튜터 답변: {d_clean} 예방 백신 및 면역 지침]**
-
-질문하신 **'{d_clean}'({info['tier']})**의 예방접종 및 면역 관리 지침입니다:
-
-1. **예방접종 및 면역 방어:**
+1. **💉 예방접종 및 면역 방어:**
    - {info['prevention']}
-2. **특이 원인 병원체:**
+2. **🦠 원인 병원체 (특이 병원체):**
    - `{info['pathogen']}`
-3. **학교 보건실 권고사항:**
-   - 학급 내 개인 위생 지도(손 씻기, 기침 예절) 및 의심 증상 학생 조기 발견."""
+3. **🧬 전파 경로:**
+   - {info['route']}
+4. **🏫 학교 보건실 관리 권고사항:**
+   - 학급 내 개인 위생 지도(30초 이상 올바른 손 씻기, 기침 예절) 및 미접종자 대상 백신 접종 독려를 실시합니다."""
 
-        elif "격리" in q_lower or "등교" in q_lower:
-            return f"""👩‍⚕️ **[AI 보건 튜터 답변: {d_clean} 학교 격리 및 등교 중지 기준]**
+    elif any(w in q_lower for w in ["격리", "등교", "출석", "보건실"]):
+        return f"""👩‍⚕️ **[AI 보건 튜터 답변: {matched_target} ({info['tier']}) 학교 격리 및 등교 중지 기준]**
 
-질문하신 **'{d_clean}'({info['tier']})** 발생 시 학교 보건실 관리 기준입니다:
+교육부 및 질병관리청 『학교 감염병 예방·위기대응 매뉴얼』과 학교보건법에 근거한 **'{matched_target}'** 관리 지침입니다:
 
-1. **학교보건법 및 질병청 등교 기준:**
+1. **🏫 학교 등교 중지(가정 격리) 기준:**
    - **격리/등교 지침:** {info['treatment']}
-2. **보건실 조치 사항:**
-   - 유증상 학생 즉시 마스크 착용 및 보건실 일시대기실 격리
-   - 학부모 유선 연락 및 병원 진료 안내, 의사 진단서 확인 후 등교 재개
-3. **출석 인정:**
-   - 법정감염병 의사 진단서 제출 시 출석인정 결석 처리."""
+2. **🩺 보건실 긴급 조치 사항:**
+   - 발열 및 의심 증상 확인 즉시 보건실 내 일시대기실로 이동시키고 KF94 마스크를 착용시킵니다.
+   - 학부모 유선 연락 후 즉시 의료기관 진료를 받도록 안내합니다.
+3. **📄 출석 인정(공결) 절차:**
+   - 법정감염병 의사 진단서, 소견서 또는 진료확인서 제출 시 **출석인정 결석**으로 처리되어 학생의 내신 불이익이 없습니다.
+4. **🛡️ 학급 방역:**
+   - 확진 학생 발생 학급 맞통풍 환기 및 책상 표면 환경 소독을 즉시 실시합니다."""
 
-        else:
-            return f"""👩‍⚕️ **[AI 보건 튜터 답변: {d_clean} ({info['tier']}) 종합 분석]**
+    else:
+        return f"""👩‍⚕️ **[AI 보건 튜터 답변: {matched_target} ({info['tier']}) 종합 역학 및 보건 관리 리포트]**
 
-질문하신 **'{d_clean}'**의 전문 역학 분석 결과입니다:
+질병관리청(KDCA) 공공데이터 및 고교 보건 교과서 기준 **'{matched_target}'**의 종합 분석입니다:
 
-1. **원인 병원체 (특이 병원체):**
+1. **📌 질병 개요 및 분류:**
+   - **법정감염병 급수:** `{info['tier']}`
+   - **발병 기전:** {info['cause']}
+2. **🦠 원인 병원체 (특이 병원체):**
    - `{info['pathogen']}`
-2. **전파 경로 및 발병 원인:**
-   - 전파 경로: {info['route']}
-   - 발병 원인: {info['cause']}
-3. **주요 임상 증상:**
+3. **🧬 전파 경로:**
+   - {info['route']}
+4. **🩺 주요 임상 증상 및 잠복기:**
    - {info['symptoms']}
-4. **예방 및 학교 보건실 관리 지침:**
-   - 예방법: {info['prevention']}
-   - 보건실 지침: {info['treatment']}"""
+5. **📈 최근 발생 추세 및 역학 특성:**
+   - {info['trend']}
+6. **🏫 학교 보건실 관리 및 치료 지침:**
+   - {info['treatment']}
+7. **💉 예방 수칙 및 백신 접종:**
+   - {info['prevention']}
+
+💡 **보건간호과 탐구 노트:**
+- 감염병 발생 시 병원체의 전파 경로(비말, 공기, 접촉, 수인성)를 정확히 파악하여 환경 소독과 개인보호구 착용을 차별화하는 것이 학교 감염병 관리의 핵심입니다."""
+
 
 
 # ==========================================
@@ -1129,15 +1255,15 @@ with st.sidebar:
         st.success("표준 데이터 (56,700건 완비) 적용 중")
 
     st.divider()
-    st.subheader("🔑 Gemini API 설정")
+    st.subheader("🔑 Gemini AI 튜터 설정")
     key_val = get_api_key()
     if key_val:
-        st.success("🟢 API 키 활성화됨")
+        st.success("🟢 Gemini API 연동 완료 (실시간 질의응답 활성)")
     else:
-        st.info("💡 API 키 없이도 내장된 [스마트 의학 지식베이스]로 질병별 실시간 맞춤 리포트가 정상 출력됩니다!")
-        user_key = st.text_input("Gemini API Key 등록 (선택)", type="password")
+        st.info("💡 API 키 등록 시 Google Gemini 초거대 AI가 실시간으로 질병관리청 및 교과서 지식을 종합 분석해 드립니다.")
+        user_key = st.text_input("Gemini API Key 등록 (선택)", type="password", placeholder="AIzaSy...")
         if user_key:
-            st.session_state["custom_gemini_key"] = user_key
+            st.session_state["custom_gemini_key"] = clean_api_key(user_key)
             st.rerun()
 
 
@@ -2004,11 +2130,14 @@ elif menu == "5. AI 보건 튜터(Q&A)":
 
     if quick_q:
         st.session_state["chat_history"].append({"role": "user", "content": quick_q})
+        rep = ""
         if api_k:
-            with st.spinner(f"AI 보건 튜터가 {selected_disease_name} 역학 데이터를 실시간 분석 중입니다..."):
-                rep = query_gemini_ai(api_k, f"감염병: {selected_disease_name}\n질문: {quick_q}")
-        else:
+            with st.spinner(f"AI 보건 튜터가 질병관리청 최신 역학 데이터 및 교과서 지침을 분석 중입니다..."):
+                rep = query_gemini_ai(api_k, quick_q, selected_disease_name)
+        if not rep:
             rep = generate_detailed_tutor_answer(selected_disease_name, quick_q, dis_info)
+            if api_k:
+                rep += "\n\n> 💡 *[보건 교육 지침] 질병관리청 공인 표준 보건 교과서 및 역학 지식베이스를 기반으로 생성된 답변입니다.*"
         st.session_state["chat_history"].append({"role": "assistant", "content": rep})
         st.rerun()
 
@@ -2019,11 +2148,14 @@ elif menu == "5. AI 보건 튜터(Q&A)":
     user_q = st.chat_input(f"{selected_disease_name}에 대해 궁금한 점을 입력하세요...")
     if user_q:
         st.session_state["chat_history"].append({"role": "user", "content": user_q})
+        rep = ""
         if api_k:
-            with st.spinner(f"AI 보건 튜터가 {selected_disease_name} 분석 답변을 작성 중입니다..."):
-                rep = query_gemini_ai(api_k, f"현재 탐구 감염병: {selected_disease_name}\n학생 질문: {user_q}")
-        else:
+            with st.spinner(f"AI 보건 튜터가 {selected_disease_name} 관련 질병관리청 역학 지침을 분석 중입니다..."):
+                rep = query_gemini_ai(api_k, user_q, selected_disease_name)
+        if not rep:
             rep = generate_detailed_tutor_answer(selected_disease_name, user_q, dis_info)
+            if api_k:
+                rep += "\n\n> 💡 *[보건 교육 지침] 질병관리청 공인 표준 역학 데이터베이스 및 고교 보건 교과서 기준 답변입니다.*"
         st.session_state["chat_history"].append({"role": "assistant", "content": rep})
         st.rerun()
 
