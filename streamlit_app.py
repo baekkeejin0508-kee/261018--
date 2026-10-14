@@ -9,12 +9,48 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 import matplotlib.pyplot as plt
+import matplotlib.font_manager as fm
 import seaborn as sns
 from pathlib import Path
 
-# 한글 폰트 설정 (Windows 기본 맑은 고딕 지원)
-plt.rcParams['font.family'] = 'Malgun Gothic'
-plt.rcParams['axes.unicode_minus'] = False
+# ==========================================
+# 한글 폰트 설정 (Streamlit Cloud Linux & Windows 동시 완벽 지원)
+# ==========================================
+BASE_DIR = Path(__file__).parent
+ASSETS_DIR = BASE_DIR / "assets"
+
+def setup_korean_font():
+    font_candidates = [
+        ASSETS_DIR / "NanumGothic.ttf",
+        Path("assets/NanumGothic.ttf"),
+        Path("/usr/share/fonts/truetype/nanum/NanumGothic.ttf"),
+        Path("/usr/share/fonts/truetype/nanum/NanumBarunGothic.ttf"),
+        Path("C:/Windows/Fonts/malgun.ttf"),
+    ]
+    font_loaded = False
+    for fpath in font_candidates:
+        if fpath.exists():
+            try:
+                fm.fontManager.addfont(str(fpath))
+                font_prop = fm.FontProperties(fname=str(fpath))
+                plt.rcParams['font.family'] = font_prop.get_name()
+                font_loaded = True
+                break
+            except Exception:
+                continue
+
+    if not font_loaded:
+        available_fonts = [f.name for f in fm.fontManager.ttflist]
+        for candidate in ['NanumGothic', 'NanumBarunGothic', 'Malgun Gothic', 'AppleGothic', 'Noto Sans CJK KR']:
+            if candidate in available_fonts:
+                plt.rcParams['font.family'] = candidate
+                font_loaded = True
+                break
+
+    plt.rcParams['axes.unicode_minus'] = False
+
+setup_korean_font()
+
 
 # ==========================================
 # 1. 페이지 기본 설정 및 눈이 편안한 다크 테마 스타일
