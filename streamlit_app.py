@@ -853,6 +853,18 @@ def get_disease_info(tier, name):
         if tier and tier != "전체 급수 보기":
             info["tier"] = tier
         return info
+
+    # 괄호 제거 및 별칭 스마트 매칭 (예: "사스" -> "사스(SARS)")
+    n_lower = name.lower().strip()
+    for k, v in DISEASE_INFO_DB.items():
+        k_clean = k.split("(")[0].strip().lower()
+        k_eng = k.split("(")[1].replace(")", "").strip().lower() if "(" in k else ""
+        if n_lower == k_clean or (k_eng and n_lower == k_eng) or (n_lower in k_clean) or (k_clean in n_lower):
+            info = dict(v)
+            if tier and tier != "전체 급수 보기":
+                info["tier"] = tier
+            return info
+
     return {
         "tier": tier if tier and tier != "전체 급수 보기" else "법정감염병",
         "pathogen": f"{name} 특이 병원체",
@@ -863,6 +875,55 @@ def get_disease_info(tier, name):
         "prevention": "손 씻기, 마스크 착용, 환경 소독",
         "treatment": "대증 치료 및 전문의 처방"
     }
+
+
+def find_diseases_in_text(text: str) -> list:
+    """텍스트에서 언급된 법정감염병들을 감지하여 (DB_key, clean_name, info) 리스트 반환"""
+    t_lower = text.lower().strip()
+    found = []
+    seen_keys = set()
+
+    # 1. 주요 감염병 별칭 매핑
+    alias_map = {
+        "독감": "인플루엔자",
+        "플루": "인플루엔자",
+        "신종플루": "인플루엔자",
+        "사스": "사스(SARS)",
+        "sars": "사스(SARS)",
+        "메르스": "중동호흡기증후군(MERS)",
+        "mers": "중동호흡기증후군(MERS)",
+        "코로나": "코로나19",
+        "covid": "코로나19",
+        "볼거리": "유행성이하선염",
+        "소아마비": "폴리오",
+        "에이즈": "AIDS(후천성면역결핍증)",
+        "hiv": "AIDS(후천성면역결핍증)",
+        "흑사병": "페스트",
+        "수족구": "수족구병",
+        "아구창": "아구창(칸디다증)"
+    }
+
+    for alias, target_key in alias_map.items():
+        if alias in t_lower:
+            for db_k, db_v in DISEASE_INFO_DB.items():
+                if target_key in db_k or db_k in target_key:
+                    if db_k not in seen_keys:
+                        seen_keys.add(db_k)
+                        found.append((db_k, db_k.split("(")[0].strip(), db_v))
+                    break
+
+    # 2. DISEASE_INFO_DB 전체 검색 (한글명 및 영문명)
+    for k, v in DISEASE_INFO_DB.items():
+        if k in seen_keys:
+            continue
+        k_clean = k.split("(")[0].strip()
+        k_eng = k.split("(")[1].replace(")", "").strip().lower() if "(" in k else ""
+        if (len(k_clean) >= 2 and k_clean.lower() in t_lower) or (len(k_eng) >= 2 and k_eng in t_lower):
+            seen_keys.add(k)
+            found.append((k, k_clean, v))
+
+    return found
+
 
 
 def clean_api_key(k: str) -> str:
@@ -923,23 +984,21 @@ LEGAL_INFECTIOUS_KEYWORDS = [
 def is_legal_infectious_question(question: str, selected_disease: str) -> bool:
     """학생 질문이 법정감염병 및 학교 감염병 예방 관리 범위 내인지 엄격 판별"""
     q_lower = question.lower().strip()
-    
-    # 1. 현재 화면에서 탐구 중인 선택 질병명이 포함된 경우 통과
+
+    # 1. 감염병 DB에 등록된 질병이나 별칭(사스, 메르스, 독감 등)이 감지되면 즉시 통과
+    if find_diseases_in_text(question):
+        return True
+
+    # 2. 현재 화면에서 탐구 중인 선택 질병명이 포함된 경우 통과
     sel_clean = selected_disease.split("(")[0].strip().lower()
     if sel_clean and len(sel_clean) >= 2 and sel_clean in q_lower:
         return True
-    
-    # 2. 감염병 DB에 등록된 50여 종 질병명이 하나라도 포함된 경우 통과
-    for dis in DISEASE_INFO_DB.keys():
-        dis_clean = dis.split("(")[0].strip().lower()
-        if len(dis_clean) >= 2 and dis_clean in q_lower:
-            return True
-            
+
     # 3. 법정감염병 역학 전문 키워드가 포함된 경우 통과
     for kw in LEGAL_INFECTIOUS_KEYWORDS:
         if kw in q_lower:
             return True
-            
+
     # 그 외 비감염병 질문(무좀, 곰팡이, 여드름, 잡담, 비보건 질문 등)은 차단
     return False
 
@@ -986,21 +1045,22 @@ def query_gemini_ai(api_key: str, prompt: str, disease_name: str = "") -> str:
     sys_instruction = (
         "당신은 대한민국 서울의료보건고등학교 보건간호과의 전임 지도교사이자 질병관리청(KDCA) 공공데이터 전문 보건 튜터 AI입니다.\n"
         "질문자는 고등학교 보건간호과 학생입니다.\n\n"
-        "[수업 몰입도를 위한 핵심 규칙 (가장 중요!)]\n"
-        "학생의 질문이 대한민국 질병관리청 법정감염병(제1급~제5급) 및 학교 감염병 예방·관리와 직접적인 관련이 없는 주제(예: 무좀, 일반 피부질환, 일상 고민, 기타 잡담 등)인 경우, "
-        "절대 다른 설명을 덧붙이지 말고 정확히 아래 한 문장으로만 답변하십시오:\n"
+        "[핵심 교육 및 답변 지침 (매우 중요!)]\n"
+        "1. 사스(SARS, 제1급), 메르스(MERS, 제1급), 인플루엔자(독감, 제4급), 코로나19, 결핵, 백일해, 수두, 홍역 등 질병관리청 법정감염병 50여 종 및 감염병 간의 비교/차이점(예: 사스 vs 인플루엔자) 질문은 최우선 법정감염병 교육 주제이므로 절대 거부하지 말고 매우 상세하고 전문적으로 답변하십시오.\n"
+        "2. 학생이 '사스와 인플루엔자의 차이'를 질문할 경우, 법정감염병 급수(사스 제1급 vs 인플루엔자 제4급), 원인 바이러스(SARS-CoV vs 인플루엔자 바이러스 A/B형), 치명률(사스 약 10% vs 인플루엔자 0.1% 미만), 격리 기준(사스 발생 즉시 음압격리 vs 인플루엔자 해열 후 24시간 등교 중지), 예방 백신 유무를 일목요연한 마크다운 비교표와 함께 상세히 설명하십시오.\n"
+        "3. 오직 법정감염병과 완전히 무관한 일상 잡담, 게임, 연애, 비보건 일상 질문에 대해서만 아래 문장으로 정중히 안내하십시오:\n"
         "해당 질문은 법정감염병과 관련이 없습니다. 선생님께 요청하기 바랍니다.\n\n"
         "[답변 원칙 및 지침]\n"
         "1. 고등학교 보건, 간호의 기초, 공중보건 교과서 범위에 부합하게 전문적이면서도 학생 눈높이에서 알기 쉽게 설명합니다.\n"
         "2. 질병관리청(KDCA) 법정감염병 분류(제1급~제5급), 신고 기한(즉시/24시간 이내 등), 격리 기준을 정확하게 안내합니다.\n"
         "3. 교육부 및 질병관리청 '학교 감염병 예방·위기대응 매뉴얼'과 학교보건법에 따른 학교 보건실 관리 지침과 '등교 중지(출석인정 결석)' 기준, 격리 해제 조건을 반드시 포함합니다.\n"
-        "4. 2개 이상 질병 비교(예: 사스 vs 메르스, 독감 vs 감기, 수족구 vs 아구창 등) 질문 시 일목요연한 마크다운 비교표를 반드시 포함합니다.\n"
+        "4. 2개 이상 질병 비교 질문 시 일목요연한 마크다운 비교표를 반드시 포함합니다.\n"
         "5. 따뜻하고 전문적인 보건간호과 지도교사의 어조로 마크다운과 이모지를 활용하여 가독성을 높입니다."
     )
 
     full_prompt = (
         f"{sys_instruction}\n\n"
-        f"[현재 탐구 감염병 컨텍스트: {disease_name}]\n"
+        f"[선택된 대시보드 감염병: {disease_name} (단, 학생이 다른 감염병이나 질병 간 비교를 물어본 경우 해당 질문에 맞춰 충실히 답변할 것)]\n"
         f"[학생 질문]\n{prompt}\n\n"
         "위 질문에 대해 고등학생 수준에 맞추어 전문적이고 신뢰할 수 있는 답변을 작성해 주세요."
     )
@@ -1114,6 +1174,32 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
    - 반면 **코로나19**는 상기도(인두, 후두)에서 폭발적으로 증식하여 치명률은 낮지만 전파력이 전 세계적 팬데믹을 유발할 만큼 극대화되었습니다.
 2. **학교 보건실 긴급 대응 수칙:**
    - 사스나 메르스는 **제1급 감염병**이므로 의심 증상(중동 방문력, 고열, 호흡곤란) 확인 즉시 교내 일반 보건실에 머물게 하지 말고 **독립된 격리 대기실로 이동 후 관할 보건소로 즉시 유선 신고**해야 합니다."""
+
+    # ----------------------------------------------------
+    # [1-1] 사스(SARS) vs 인플루엔자(독감) 임상 및 법정감염병 비교 분석
+    # ----------------------------------------------------
+    if ("사스" in q_lower or "sars" in q_lower) and ("인플루엔자" in q_lower or "독감" in q_lower):
+        return """👩‍⚕️ **[AI 보건 튜터 임상 비교 분석: 사스(SARS) vs 인플루엔자(독감)]**
+
+보건간호과 학생 여러분, 질병관리청(KDCA) 및 고교 보건 교과서 기준 **'사스(SARS, 제1급)'**와 **'인플루엔자(독감, 제4급)'**의 핵심 비교 분석입니다:
+
+| 구분 항목 | 🦇 사스 (SARS / 중증급성호흡기증후군) | 💉 인플루엔자 (Influenza / 독감) |
+| :--- | :--- | :--- |
+| **법정감염병 분류** | **제1급 감염병** (발생 즉시 유선 신고, 음압격리) | **제4급 감염병** (표본감시 감염병, 7일 이내 신고) |
+| **원인 병원체** | **SARS-CoV** (코로나바이러스과 베타코로나바이러스) | **인플루엔자 바이러스 A형, B형, C형** (오르토믹소바이러스과) |
+| **치명률 (Fatality Rate)** | **약 9.6%** (중등도~고위험, 60세 이상은 50% 육박) | **0.1% 미만** (통상 0.05~0.1%, 고위험군 폐렴 합병증 주의) |
+| **전파 경로** | 호흡기 비말, 오염된 물품 접촉, 에어로졸 전파 가능 | 호흡기 비말 전파, 오염된 손/물품 접촉 |
+| **주요 임상 증상** | 38℃ 이상 급성 고열, 마른기침, 저산소증, 급속한 호흡곤란 및 폐 침윤 | 갑작스러운 38℃ 이상 고열, 오한, 두통, 전신 근육통, 맑은 콧물, 인후통 |
+| **예방 백신 및 치료제** | **상용화된 백신 없음**, 특효약 부재 (대증요법 및 중환자 치료) | **매년 4가 불활성화 백신 접종**, 타미플루/페라미비르 항바이러스제 완비 |
+| **학교 등교 중지 및 격리** | **의심 즉시 음압격리 및 전면 등교 중지**<br>👉 관할 보건소 즉시 신고, 완치/격리해제 시까지 공결 인정 | **해열제 복용 없이 정상 체온 회복 후 24시간 경과 시까지 등교 중지**<br>👉 의사 진단서 제출 시 출석인정 결석(공결) 처리 |
+
+### 💡 보건간호과 국가고시 및 학교 방역 핵심 탐구 포인트:
+1. **법정감염병 등급과 격리 수준의 차이:**
+   - **사스**는 생물테러 감염병이나 치명률이 높아 발생 즉시 격리(음압격리)가 필요한 **제1급 감염병**입니다.
+   - **인플루엔자**는 유행 여부를 조사하기 위해 표본감시활동이 필요한 **제4급 감염병**입니다.
+2. **학교 보건실 긴급 대처 프로토콜:**
+   - 독감 의심 학생은 보건실에서 체온 측정 후 보호자 연락 및 병원 진료(타미플루 처방) 후 가정 격리를 안내합니다.
+   - 반면 사스 의심 증상자(해외 위험지역 방문력 + 고열 + 호흡곤란) 발견 시에는 일반 대기실이 아닌 독립된 일시대기실에 즉시 격리(KF94 착용)하고 보건소에 즉각 신고해야 합니다."""
 
     # ----------------------------------------------------
     # [2] 수족구병 vs 아구창(Oral Thrush) 구강 병변 감별 진단
@@ -1292,38 +1378,65 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
 - **E (Elevation, 거상):** 부종 완화를 위해 손상된 다리를 심장 높이보다 높게 올려 정맥혈과 림프액의 회귀를 촉진합니다."""
 
     # ----------------------------------------------------
-    # [10] 질문 내용에서 특정 법정감염병 언급 감지 및 자동 연동
+    # [10] 질문에서 언급된 모든 법정감염병 스마트 감지 및 비교/단일 분석
     # ----------------------------------------------------
-    matched_target = None
-    for known_dis in DISEASE_INFO_DB.keys():
-        if known_dis in question:
-            matched_target = known_dis
-            info = get_disease_info(DISEASE_INFO_DB[known_dis].get("tier", "법정감염병"), matched_target)
-            break
+    found_diseases = find_diseases_in_text(question)
+    is_comparison_query = any(w in q_lower for w in ["차이", "비교", "vs", "다른점", "구분", "구별"])
 
-    # 만약 질문에 특정 감염병이 명시되어 있다면 해당 질병 리포트 출력
-    if matched_target:
+    # 10-1. 2개 이상 질병 비교 또는 1개 질병과 선택 질병 비교
+    if (len(found_diseases) >= 2) or (len(found_diseases) >= 1 and is_comparison_query):
+        if len(found_diseases) >= 2:
+            d1_key, d1_name, d1_info = found_diseases[0]
+            d2_key, d2_name, d2_info = found_diseases[1]
+        else:
+            d1_key, d1_name, d1_info = found_diseases[0]
+            d2_name = d_clean
+            d2_info = get_disease_info("", d2_name)
+
+        return f"""👩‍⚕️ **[AI 보건 튜터 임상 비교 분석: {d1_name} vs {d2_name}]**
+
+보건간호과 학생 여러분, 질병관리청(KDCA) 및 고교 보건 교과서 기준 **'{d1_name}'**와 **'{d2_name}'**의 핵심 비교 분석입니다:
+
+| 구분 항목 | 📌 {d1_name} ({d1_info['tier']}) | 📌 {d2_name} ({d2_info['tier']}) |
+| :--- | :--- | :--- |
+| **법정감염병 분류** | **`{d1_info['tier']}`** | **`{d2_info['tier']}`** |
+| **원인 병원체** | `{d1_info['pathogen']}` | `{d2_info['pathogen']}` |
+| **주요 전파 경로** | {d1_info['route']} | {d2_info['route']} |
+| **임상 증상 및 특징** | {d1_info['symptoms']} | {d2_info['symptoms']} |
+| **학교 등교중지 / 격리** | **{d1_info['treatment']}** | **{d2_info['treatment']}** |
+| **예방 백신 및 관리** | {d1_info['prevention']} | {d2_info['prevention']} |
+
+### 💡 보건간호과 국가고시 및 학교 방역 핵심 탐구 포인트
+1. **역학적 위험도 및 급수 차이:**
+   - **{d1_name}**: `{d1_info['tier']}` 분류. {d1_info['cause']}
+   - **{d2_name}**: `{d2_info['tier']}` 분류. {d2_info['cause']}
+2. **학교 보건실 관리 지침:**
+   - 감염병 발생 즉시 보건실 내 일시대기실로 격리 조치하고, 학교 감염병 매뉴얼에 따라 등교 중지(출석 인정 공결) 처리하며 학급 맞통풍 환기 및 환경 소독을 시행합니다."""
+
+    # 10-2. 감지된 법정감염병에 대한 종합 전문 리포트 (예: "사스에 대해 알려줘")
+    if found_diseases:
+        target_key, target_clean, target_info = found_diseases[0]
         if any(w in q_lower for w in ["백신", "접종", "면역"]):
-            return f"""👩‍⚕️ **[AI 보건 튜터 답변: {matched_target} ({info['tier']}) 예방 백신 및 면역 관리 지침]**
+            return f"""👩‍⚕️ **[AI 보건 튜터 답변: {target_clean} ({target_info['tier']}) 예방 백신 및 면역 관리 지침]**
 
-보건간호과 학생 여러분, 질병관리청 국가예방접종사업(NIP) 및 교과서 기준 **'{matched_target}'**의 예방접종 지침입니다:
+보건간호과 학생 여러분, 질병관리청 국가예방접종사업(NIP) 및 교과서 기준 **'{target_clean}'**의 예방접종 지침입니다:
 
 1. **💉 예방접종 및 면역 방어:**
-   - {info['prevention']}
+   - {target_info['prevention']}
 2. **🦠 원인 병원체 (특이 병원체):**
-   - `{info['pathogen']}`
+   - `{target_info['pathogen']}`
 3. **🧬 전파 경로:**
-   - {info['route']}
+   - {target_info['route']}
 4. **🏫 학교 보건실 관리 권고사항:**
    - 학급 내 개인 위생 지도(30초 이상 올바른 손 씻기, 기침 예절) 및 미접종자 대상 백신 접종 독려를 실시합니다."""
 
         elif any(w in q_lower for w in ["격리", "등교", "출석", "보건실"]):
-            return f"""👩‍⚕️ **[AI 보건 튜터 답변: {matched_target} ({info['tier']}) 학교 격리 및 등교 중지 기준]**
+            return f"""👩‍⚕️ **[AI 보건 튜터 답변: {target_clean} ({target_info['tier']}) 학교 격리 및 등교 중지 기준]**
 
-교육부 및 질병관리청 『학교 감염병 예방·위기대응 매뉴얼』과 학교보건법에 근거한 **'{matched_target}'** 관리 지침입니다:
+교육부 및 질병관리청 『학교 감염병 예방·위기대응 매뉴얼』과 학교보건법에 근거한 **'{target_clean}'** 관리 지침입니다:
 
 1. **🏫 학교 등교 중지(가정 격리) 기준:**
-   - **격리/등교 지침:** {info['treatment']}
+   - **격리/등교 지침:** {target_info['treatment']}
 2. **🩺 보건실 긴급 조치 사항:**
    - 발열 및 의심 증상 확인 즉시 보건실 내 일시대기실로 이동시키고 KF94 마스크를 착용시킵니다.
    - 학부모 유선 연락 후 즉시 의료기관 진료를 받도록 안내합니다.
@@ -1333,33 +1446,33 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
    - 확진 학생 발생 학급 맞통풍 환기 및 책상 표면 환경 소독을 즉시 실시합니다."""
 
         else:
-            return f"""👩‍⚕️ **[AI 보건 튜터 답변: {matched_target} ({info['tier']}) 종합 역학 및 보건 관리 리포트]**
+            return f"""👩‍⚕️ **[AI 보건 튜터 답변: {target_clean} ({target_info['tier']}) 종합 역학 및 보건 관리 리포트]**
 
-질병관리청(KDCA) 공공데이터 및 고교 보건 교과서 기준 **'{matched_target}'**의 종합 분석입니다:
+질병관리청(KDCA) 공공데이터 및 고교 보건 교과서 기준 **'{target_clean}'**의 종합 분석입니다:
 
 1. **📌 질병 개요 및 분류:**
-   - **법정감염병 급수:** `{info['tier']}`
-   - **발병 기전:** {info['cause']}
+   - **법정감염병 급수:** `{target_info['tier']}`
+   - **발병 기전:** {target_info['cause']}
 2. **🦠 원인 병원체 (특이 병원체):**
-   - `{info['pathogen']}`
+   - `{target_info['pathogen']}`
 3. **🧬 전파 경로:**
-   - {info['route']}
+   - {target_info['route']}
 4. **🩺 주요 임상 증상 및 잠복기:**
-   - {info['symptoms']}
+   - {target_info['symptoms']}
 5. **📈 최근 발생 추세 및 역학 특성:**
-   - {info['trend']}
+   - {target_info['trend']}
 6. **🏫 학교 보건실 관리 및 치료 지침:**
-   - {info['treatment']}
+   - {target_info['treatment']}
 7. **💉 예방 수칙 및 백신 접종:**
-   - {info['prevention']}
+   - {target_info['prevention']}
 
 💡 **보건간호과 탐구 노트:**
 - 감염병 발생 시 병원체의 전파 경로(비말, 공기, 접촉, 수인성)를 정확히 파악하여 환경 소독과 개인보호구 착용을 차별화하는 것이 학교 감염병 관리의 핵심입니다."""
 
     # ----------------------------------------------------
-    # [11] 질문에 선택된 드롭다운 질병명(또는 법정감염병)이 명시된 경우
+    # [11] 질문에 선택된 드롭다운 질병명(또는 법정감염병)이 명시되거나 일반 감염병 임상 문의인 경우
     # ----------------------------------------------------
-    if d_clean in question or any(k in question for k in ["격리", "등교", "잠복기", "증상", "병원체", "유행"]):
+    if d_clean in question or any(k in question for k in ["격리", "등교", "잠복기", "증상", "병원체", "유행", "백신", "소독", "치료", "약", "바이러스", "세균"]):
         return f"""👩‍⚕️ **[AI 보건 튜터 답변: {d_clean} ({info['tier']}) 질의응답 분석]**
 
 선택하신 감염병 **'{d_clean}'**에 대한 학교 보건 및 역학 분석입니다:
