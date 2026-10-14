@@ -342,7 +342,8 @@ TIER_DISEASE_MAP = {
     ],
     "제3급 감염병": [
         "말라리아", "엠폭스", "B형간염", "C형간염", "일본뇌염",
-        "쯔쯔가무시증", "렙토스피라증", "비브리오패혈증", "파상풍", "뎅기열"
+        "쯔쯔가무시증", "렙토스피라증", "비브리오패혈증", "파상풍", "뎅기열",
+        "지카바이러스감염증", "신증후군출혈열", "레지오넬라증", "황열", "브루셀라증", "공수병"
     ],
     "제4급 감염병": [
         "코로나19", "인플루엔자", "급성호흡기감염증", "수족구병", "클라미디아감염증",
@@ -676,6 +677,66 @@ DISEASE_INFO_DB = {
         "prevention": "동남아 여행 시 모기 기피제 철저 사용, 밝은 긴 옷 착용, 방충망 확인",
         "treatment": "특이 치료제 없음, 아스피린/이부프로펜 금기(출혈 위험), 아세트아미노펜 해열"
     },
+    "지카바이러스감염증": {
+        "tier": "제3급 감염병",
+        "pathogen": "Zika virus (지카 바이러스 / 플라비바이러스과)",
+        "route": "이집트숲모기·흰줄숲모기 흡혈 매개, 성 접촉, 모체-태아 수직감염, 수혈",
+        "cause": "바이러스 감염 후 신경 전구세포 파괴 및 태아 신경 발달 장애 유발",
+        "symptoms": "반점구진성 피부 발진, 37.5℃ 안팎 미열, 관절통, 결막염(눈 충혈), 근육통, 임신부 감염 시 태아 소두증(Microcephaly) 유발",
+        "trend": "중남미 및 동남아 유행, 모기 매개 감염병 전수 감시 대상",
+        "prevention": "모기 기피제 사용, 유행 지역 여행 자제(임신부 여행 연기 권고), 귀국 후 2개월간 안전한 성생활(콘돔)",
+        "treatment": "특이 치료제 없음, 대증 요법(충분한 휴식 및 수액 공급, 아세트아미노펜 복용, 아스피린/NSAIDs 금기)"
+    },
+    "신증후군출혈열": {
+        "tier": "제3급 감염병",
+        "pathogen": "Hantaan virus (한탄 바이러스), Seoul virus (서울 바이러스 / 한타바이러스과)",
+        "route": "감염된 등줄쥐, 집쥐 등 설치류 배설물(소변, 분변, 타액)이 건조되어 호흡기로 비말핵 흡입",
+        "cause": "전신 모세혈관 내피세포 감염으로 혈관 투과성 급증, 혈소판 감소 및 급성 신부전",
+        "symptoms": "발열기(고열, 안면 홍조, 결막 출혈) -> 저혈압기 -> 핍뇨기(소변량 급감, 단백뇨) -> 이뇨기 -> 회복기 5단계",
+        "trend": "가을철(10~12월) 야외 훈련 군인 및 농촌 야외활동자 호발",
+        "prevention": "한타박스 백신 접종(고위험군 1개월 간격 2회, 1년 후 3차), 풀밭에 눕지 않기, 돗자리 사용",
+        "treatment": "조기 리바비린 항바이러스제 투약, 철저한 수액 및 전해질 균형 유지, 핍뇨기 신대체요법(투석)"
+    },
+    "레지오넬라증": {
+        "tier": "제3급 감염병",
+        "pathogen": "Legionella pneumophila (레지오넬라 뉴모필라, 그람음성 간균)",
+        "route": "대형 건물 냉각탑수, 샤워기, 분수대 오염 비말/에어로졸 흡입 (사람 간 전파 없음)",
+        "cause": "폐포 대식세포 내 균 증식 및 파괴로 급성 폐렴 유발",
+        "symptoms": "레지오넬라 폐렴(고열, 오한, 마른 기침, 호흡곤란, 의식 혼탁) 또는 폰티악열(독감 유사 경증)",
+        "trend": "여름철 다중이용시설 냉각탑 환경수계균 검사 집중 관리",
+        "prevention": "냉각탑 및 배관 정기 청소·염소 소독, 온수 60℃ 이상 유지",
+        "treatment": "퀴놀론계(레보플록사신) 또는 아지스로마이신 항생제 투약"
+    },
+    "황열": {
+        "tier": "제3급 감염병",
+        "pathogen": "Yellow fever virus (황열 바이러스 / 플라비바이러스과)",
+        "route": "숲모기류(Aedes) 흡혈 매개",
+        "cause": "간세포 괴사 및 황달, 파종성 혈관 내 응고(DIC)",
+        "symptoms": "발열, 오한, 심한 두통 후 황달, 흑색 구토(Black vomit), 신부전, 출혈",
+        "trend": "아프리카, 중남미 유행 지역 입국 시 국제공인 예방접종 증명서(옐로카드) 필수",
+        "prevention": "황열 생백신(Stamaril) 1회 접종(평생 면역), 모기 기피제",
+        "treatment": "특이 치료제 없음, 집중 대증 요법"
+    },
+    "브루셀라증": {
+        "tier": "제3급 감염병",
+        "pathogen": "Brucella abortus, B. melitensis (브루셀라균)",
+        "route": "감염된 소, 양, 염소 등 가축의 태반/체액 접촉, 살균되지 않은 유제품 섭취",
+        "cause": "세망내피계 세포 내 증식으로 인한 만성 육아종성 감염",
+        "symptoms": "파동열(열이 올랐다 내렸다 반복), 야간 발한, 관절통, 만성 피로, 비장 비대",
+        "trend": "축산 농가, 수의사, 도축 종사자 직업병 감시",
+        "prevention": "가축 브루셀라 검진 및 도태, 유제품 반드시 저온살균, 장갑 착용",
+        "treatment": "독시사이클린 + 리팜핀 6주 이상 복합 투여"
+    },
+    "공수병": {
+        "tier": "제3급 감염병",
+        "pathogen": "Rabies virus (광견병 바이러스 / 라브도바이러스과)",
+        "route": "감염된 동물(개, 너구리, 박쥐 등)에 물림 또는 타액이 상처에 닿음",
+        "cause": "말초신경을 타고 중추신경계(뇌)로 역행 이동하여 치명적 뇌척수염 유발 (치명률 100%)",
+        "symptoms": "물린 부위 감각 이상 -> 흥분, 물을 두려워하는 공수(Hydrophobia), 연하 곤란, 경련, 호흡 마비",
+        "trend": "야생동물 미끼 백신 살포 및 접경지역 가축 예방접종",
+        "prevention": "반려동물 광견병 백신 접종, 야생동물 물림 시 비누로 15분 이상 세척 후 면역글로불린+백신 즉시 투여",
+        "treatment": "발병 후 특효약 없음(치명률 100%), 물린 직후 신속한 노출 후 예방접종(PEP) 필수"
+    },
 
     # [제4급 감염병 - 표본감시 활동 및 학교 보건관리 10종]
     "코로나19": {
@@ -922,7 +983,14 @@ def find_diseases_in_text(text: str) -> list:
     # 1. 50여 종 법정감염병 통칭 및 구어체 별칭 매핑
     alias_map = {
         "에볼라": "에볼라바이러스병",
+        "에볼라바이러스": "에볼라바이러스병",
+        "에볼라바이러스병": "에볼라바이러스병",
         "ebola": "에볼라바이러스병",
+        "지카": "지카바이러스감염증",
+        "지카바이러스": "지카바이러스감염증",
+        "지카바이러스병": "지카바이러스감염증",
+        "지카바이러스감염증": "지카바이러스감염증",
+        "zika": "지카바이러스감염증",
         "마버그": "마버그열",
         "라싸": "라싸열",
         "사스": "사스(SARS)",
@@ -964,13 +1032,15 @@ def find_diseases_in_text(text: str) -> list:
         "광견병": "공수병",
         "유행성출혈열": "신증후군출혈열",
         "신증후군출혈열": "신증후군출혈열",
+        "한타": "신증후군출혈열",
         "에이즈": "AIDS(후천성면역결핍증)",
         "hiv": "AIDS(후천성면역결핍증)",
         "뎅기": "뎅기열",
-        "지카": "지카바이러스감염증",
         "황열": "황열",
-        "노로": "노로바이러스감염증",
-        "로타": "로타바이러스감염증",
+        "노로": "노로바이러스",
+        "노로바이러스": "노로바이러스",
+        "로타": "로타바이러스",
+        "로타바이러스": "로타바이러스",
         "탄저": "탄저",
         "페스트": "페스트",
         "흑사병": "페스트",
@@ -982,12 +1052,21 @@ def find_diseases_in_text(text: str) -> list:
 
     for alias, target_key in alias_map.items():
         if alias in t_lower:
+            matched_key = None
+            matched_val = None
             for db_k, db_v in DISEASE_INFO_DB.items():
-                if target_key in db_k or db_k in target_key:
-                    if db_k not in seen_keys:
-                        seen_keys.add(db_k)
-                        found.append((db_k, db_k.split("(")[0].strip(), db_v))
+                if target_key == db_k or target_key in db_k or db_k in target_key:
+                    matched_key = db_k
+                    matched_val = db_v
                     break
+            if matched_key:
+                if matched_key not in seen_keys:
+                    seen_keys.add(matched_key)
+                    found.append((matched_key, matched_key.split("(")[0].strip(), matched_val))
+            else:
+                if target_key not in seen_keys:
+                    seen_keys.add(target_key)
+                    found.append((target_key, target_key.split("(")[0].strip(), get_disease_info("", target_key)))
 
     # 2. DISEASE_INFO_DB 전체 검색 (한글명, 영문명 및 핵심 어근 추출 매칭)
     for k, v in DISEASE_INFO_DB.items():
@@ -1477,15 +1556,23 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
     # [10] 질문에서 언급된 모든 법정감염병 스마트 감지 및 비교/단일 분석
     # ----------------------------------------------------
     found_diseases = find_diseases_in_text(question)
-    is_comparison_query = any(w in q_lower for w in ["차이", "비교", "vs", "다른점", "구분", "구별"])
+    is_comparison_query = any(w in q_lower for w in ["차이", "비교", "vs", "다른점", "구분", "구별", "와", "과", " 및 ", "이랑", "하고"])
+
+    # 중복 질병 제거 (clean_name 기준)
+    unique_found = []
+    seen_found_names = set()
+    for fk, fn, fi in found_diseases:
+        if fn not in seen_found_names:
+            seen_found_names.add(fn)
+            unique_found.append((fk, fn, fi))
 
     # 10-1. 2개 이상 질병 비교 또는 1개 질병과 선택 질병 비교
-    if (len(found_diseases) >= 2) or (len(found_diseases) >= 1 and is_comparison_query):
-        if len(found_diseases) >= 2:
-            d1_key, d1_name, d1_info = found_diseases[0]
-            d2_key, d2_name, d2_info = found_diseases[1]
+    if (len(unique_found) >= 2) or (len(unique_found) >= 1 and is_comparison_query):
+        if len(unique_found) >= 2:
+            d1_key, d1_name, d1_info = unique_found[0]
+            d2_key, d2_name, d2_info = unique_found[1]
         else:
-            d1_key, d1_name, d1_info = found_diseases[0]
+            d1_key, d1_name, d1_info = unique_found[0]
             d2_name = d_clean
             d2_info = get_disease_info("", d2_name)
 
@@ -1953,11 +2040,12 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                 if "꺾은선" in chart_style:
                     fig_p = px.line(ts, x="연도", y="신규환자수", color="감염병명", markers=True, title="연도별 감염병 환자 발생 추이 (Plotly 꺾은선)", template="plotly_dark", color_discrete_sequence=palette_colors)
                 elif "막대" in chart_style:
-                    fig_p = px.bar(ts, x="연도", y="신규환자수", color="감염병명", barmode="group", text_auto=True, title="연도별 감염병 환자 발생 비교 (Plotly 묶은 막대)", template="plotly_dark", color_discrete_sequence=palette_colors)
+                    fig_p = px.bar(ts, x="연도", y="신규환자수", color="감염병명", barmode="group", text_auto=',d', title="연도별 감염병 환자 발생 비교 (Plotly 묶은 막대)", template="plotly_dark", color_discrete_sequence=palette_colors)
                 else:
                     fig_p = px.area(ts, x="연도", y="신규환자수", color="감염병명", markers=True, title="연도별 감염병 누적 발생 분포 (Plotly 누적 영역)", template="plotly_dark", color_discrete_sequence=palette_colors)
                 fig_p.update_layout(xaxis_title="발생 연도", yaxis_title="신규 환자 수(명)", height=390, margin=dict(l=40, r=20, t=40, b=40))
                 fig_p.update_xaxes(tickangle=0, dtick=1, tickmode='linear', tickformat="d")
+                fig_p.update_yaxes(tickformat=',d')
                 st.plotly_chart(fig_p, use_container_width=True, key="plotly_v1_main")
 
             # (2) 🎨 Seaborn 탭 (사용자 요청: Plotly처럼 깔끔하고 컴팩트한 크기 유지 & 코로나 누적 에러 완벽 해결)
@@ -2090,6 +2178,7 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                 fig_p = px.bar(age_melted, x="감염병명", y="환자수", color="연령대", barmode=b_mode, title="감염병별 5개 연령대 세분화 환자 분포 (Plotly)", template="plotly_dark", color_discrete_sequence=palette_colors)
                 fig_p.update_layout(xaxis_title="감염병명", yaxis_title="환자 수(명)", height=390, margin=dict(l=40, r=20, t=40, b=40))
                 fig_p.update_xaxes(tickangle=0)
+                fig_p.update_yaxes(tickformat=',d')
                 st.plotly_chart(fig_p, use_container_width=True, key="plotly_v2_main")
 
             with tab_seaborn:
@@ -2162,6 +2251,7 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                 else:
                     fig_p = px.bar(global_df, y="지역", x="신규환자수", orientation='h', color="신규환자수", title="해외 주요 10개국 감염병 발생 현황 (Plotly)", template="plotly_dark", color_continuous_scale="Tealgrn")
                     fig_p.update_layout(xaxis_title="신규 환자 수(명)", yaxis_title="국가명", height=390, margin=dict(l=40, r=20, t=40, b=40))
+                    fig_p.update_xaxes(tickformat=',d')
                     st.plotly_chart(fig_p, use_container_width=True, key="plotly_v3_main")
 
             with tab_seaborn:
@@ -2237,6 +2327,7 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                 fig_p = px.bar(korea_df, x="지역", y="신규환자수", color="신규환자수", title="국내 17개 시도별 감염병 환자 발생 현황 (Plotly)", template="plotly_dark", color_continuous_scale="Blues")
                 fig_p.update_layout(xaxis_title="지역(시도)", yaxis_title="신규 환자 수(명)", height=390, margin=dict(l=40, r=20, t=40, b=40))
                 fig_p.update_xaxes(tickangle=0)
+                fig_p.update_yaxes(tickformat=',d')
                 st.plotly_chart(fig_p, use_container_width=True, key="plotly_v4_main")
 
             with tab_seaborn:
