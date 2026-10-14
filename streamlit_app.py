@@ -944,30 +944,34 @@ def is_legal_infectious_question(question: str, selected_disease: str) -> bool:
     return False
 
 
-def check_classroom_access(class_mode: bool, auto_time_lock: bool, teacher_code: str) -> tuple:
-    """수업 시간 및 교사 권한 기반 AI 질의응답 활성화 통제"""
+def get_current_school_time_status():
+    """현재 한국 시각(KST) 기준 수업 시간(평일 08:30~17:00) 여부 확인"""
+    kst = timezone(timedelta(hours=9))
+    now = datetime.now(kst)
+    is_weekday = (now.weekday() < 5)  # 0=월 ~ 4=금
+    curr_min = now.hour * 60 + now.minute
+    # 08:30 (510분) ~ 17:00 (1020분)
+    in_hours = is_weekday and (510 <= curr_min <= 1020)
+    day_str = ["월", "화", "수", "목", "금", "토", "일"][now.weekday()]
+    time_str = f"{day_str}요일 {now.strftime('%H:%M')} (KST)"
+    return in_hours, time_str, now
+
+
+def check_classroom_access(teacher_code: str = "", *args, **kwargs) -> tuple:
+    """수업 시간(평일 08:30~17:00) 외 자동 차단 및 교사 마스터 코드 해제"""
     # 1. 교사용 마스터 코드 확인 (수업 외 시간 긴급 승인용)
-    t_clean = clean_api_key(teacher_code)
+    code = teacher_code or st.session_state.get("teacher_code", "")
+    t_clean = clean_api_key(str(code))
     if t_clean in ["1018", "보건", "0508"]:
-        return True, "교사 마스터 코드가 승인되었습니다."
-        
-    # 2. 선생님이 수업 모드를 수동으로 OFF한 경우
-    if not class_mode:
-        return False, "선생님이 현재 AI 질의응답을 일시 중지하였습니다. 선생님의 수업 안내에 집중해 주세요."
-        
-    # 3. 평일 수업 시간(08:30~17:00) 자동 차단 모드가 켜져 있는 경우
-    if auto_time_lock:
-        kst = timezone(timedelta(hours=9))
-        now = datetime.now(kst)
-        is_weekday = (now.weekday() < 5) # 0=월 ~ 4=금
-        curr_min = now.hour * 60 + now.minute
-        # 08:30(510분) ~ 17:00(1020분)
-        is_school_time = (510 <= curr_min <= 1020)
-        if not (is_weekday and is_school_time):
-            day_str = ["월", "화", "수", "목", "금", "토", "일"][now.weekday()]
-            return False, f"현재는 정규 수업 시간이 아닙니다 ({day_str}요일 {now.strftime('%H:%M')} KST).\n평일 08:30~17:00 수업 시간에 이용 가능합니다."
-            
-    return True, "수업 모드 승인됨"
+        return True, "교사 마스터 코드가 승인되었습니다 (전 시간 사용 허용)."
+
+    # 2. 평일 정규 수업 시간(08:30~17:00) 자동 판별
+    in_hours, time_str, _ = get_current_school_time_status()
+    if not in_hours:
+        return False, f"현재 시각은 **{time_str}**로 정규 수업 시간 외입니다.\nAPI 키 보안 및 토큰 절약을 위해 **평일 08:30 ~ 17:00 수업 시간**에만 자동으로 활성화됩니다."
+
+    return True, "정규 수업 시간 AI 활성화"
+
 
 
 def query_gemini_ai(api_key: str, prompt: str, disease_name: str = "") -> str:
@@ -1439,26 +1443,35 @@ with st.sidebar:
         st.success("표준 데이터 (56,700건 완비) 적용 중")
 
     st.divider()
-    st.subheader("👩‍🏫 수업 진행 & AI 사용 통제")
-    class_mode = st.toggle("🔔 실시간 수업 모드 (학생 AI 질문 허용)", value=True, help="수업 시간에 켜두시면 학생들이 AI 튜터에게 질문할 수 있습니다. 끄면 즉시 질문이 중지됩니다.")
-    st.session_state["class_mode"] = class_mode
+    st.subheader("🏫 수업 진행 & AI 활성화 현황")
 
-    auto_time_lock = st.checkbox("⏰ 수업 시간(평일 08:30~17:00) 외 자동 차단", value=False, help="체크 시 방과 후 및 주말에 학생들의 API 사용이 자동으로 차단됩니다.")
-    st.session_state["auto_time_lock"] = auto_time_lock
+    in_hours, time_str, _ = get_current_school_time_status()
+    current_teacher_code = st.session_state.get("teacher_code", "")
+    t_clean = clean_api_key(str(current_teacher_code))
+    is_teacher_unlocked = t_clean in ["1018", "보건", "0508"]
 
-    teacher_code = st.text_input("교사용 수업 인증 암호 (선택)", type="password", placeholder="기본 암호: 1018", help="암호를 입력하면 시간 외에도 즉시 활성화됩니다.")
-    st.session_state["teacher_code"] = teacher_code
+    if is_teacher_unlocked:
+        st.success("🔓 **교사 권한 승인됨** (항시 활성화)")
+    elif in_hours:
+        st.success(f"🟢 **수업 시간 AI 가동 중**\n\n- 현재: {time_str}\n- 질문 허용: 평일 08:30 ~ 17:00")
+    else:
+        st.warning(f"🔒 **수업 시간 외 (AI 잠김)**\n\n- 현재: {time_str}\n- 평일 08:30 ~ 17:00에 자동 활성화됩니다.")
 
-    with st.expander("🔑 (선택) Google Gemini API 설정", expanded=False):
-        key_val = get_api_key()
-        if key_val and len(key_val) >= 20 and key_val.startswith("AIza") and "선생님" not in key_val:
-            st.success("🟢 Google Gemini API 연동됨")
-        else:
-            st.info("💡 API 키가 없어도 내장된 질병관리청 50여 종 법정감염병 전문 지식 엔진이 100% 정상 작동합니다.")
-        user_key = st.text_input("Gemini API Key 등록/변경", type="password", placeholder="AIzaSy...")
-        if user_key:
-            st.session_state["custom_gemini_key"] = clean_api_key(user_key)
-            st.rerun()
+    # 교사용 잠금 해제 (학생들에게 힌트가 일절 노출되지 않는 보안 잠금)
+    with st.expander("🔒 교사용 잠금 해제 (방과 후/시연용)", expanded=False):
+        teacher_input = st.text_input("교사 인증 암호", type="password", placeholder="비밀번호 입력", key="teacher_pw_box")
+        if teacher_input:
+            if clean_api_key(teacher_input) in ["1018", "보건", "0508"]:
+                st.session_state["teacher_code"] = teacher_input
+                st.success("✅ 교사 인증 완료!")
+                st.rerun()
+            else:
+                st.error("암호가 올바르지 않습니다.")
+        if is_teacher_unlocked:
+            if st.button("인증 해제 (학생 모드로 복귀)", use_container_width=True):
+                st.session_state["teacher_code"] = ""
+                st.rerun()
+
 
 
 # ==========================================
@@ -2324,8 +2337,6 @@ elif menu == "5. AI 보건 튜터(Q&A)":
 
     # 1. 수업 활성화 및 접근 권한 점검
     is_allowed, lock_reason = check_classroom_access(
-        st.session_state.get("class_mode", True),
-        st.session_state.get("auto_time_lock", False),
         st.session_state.get("teacher_code", "")
     )
 
