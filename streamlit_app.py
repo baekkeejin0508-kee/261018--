@@ -3,6 +3,7 @@ import json
 import urllib.request
 import urllib.error
 import base64
+from datetime import datetime, timezone, timedelta
 import streamlit as st
 import pandas as pd
 import plotly.express as px
@@ -892,6 +893,83 @@ def get_api_key():
     return clean_api_key(raw_k)
 
 
+# ==========================================
+# [수업 몰입도 및 접근 제어] 법정감염병 키워드 & 수업 시간 통제
+# ==========================================
+LEGAL_INFECTIOUS_KEYWORDS = [
+    # 법정감염병 공통 역학 용어
+    "법정감염병", "감염병", "전파", "격리", "등교중지", "등교 중지", "출석인정", "잠복기",
+    "병원체", "바이러스", "세균", "진균", "원충", "백신", "방역", "보건실", "음압", "치명률", "재생산지수",
+    "비말", "공기전파", "비말핵", "접촉전파", "수인성", "식품매개", "표본감시",
+    # 제1급 감염병 (17종)
+    "사스", "sars", "메르스", "mers", "에볼라", "마버그", "라싸", "크리미안콩고", "남아메리카출혈열",
+    "리프트밸리", "두창", "페스트", "탄저", "보툴리눔", "야토", "신종감염병", "동물인플루엔자", "신종인플루엔자", "디프테리아",
+    # 제2급 감염병 (23종)
+    "결핵", "수두", "홍역", "콜레라", "장티푸스", "파라티푸스", "세균성이질", "장출혈성대장균", "이질",
+    "a형간염", "백일해", "유행성이하선염", "볼거리", "풍진", "폴리오", "소아마비", "수막구균", "폐렴구균",
+    "한센병", "성홍열", "vrsa", "cre", "엠폭스", "원숭이두창",
+    # 제3급 감염병 (26종)
+    "파상풍", "b형간염", "일본뇌염", "c형간염", "말라리아", "레지오넬라", "비브리오", "비브리오패혈증",
+    "발진티푸스", "발진열", "쯔쯔가무시", "렙토스피라", "브루셀라", "공수병", "광견병", "신증후군출혈열", "유행성출혈열",
+    "aids", "hiv", "에이즈", "후천성면역결핍증", "크로이츠펠트", "cjd", "뎅기열", "지카", "황열", "치쿤구니야",
+    # 제4급 감염병 (표본감시)
+    "인플루엔자", "독감", "수족구", "아구창", "매독", "임질", "클라미디아", "연성하감", "첨규콘딜롬", "생식기단순포진",
+    "노로바이러스", "로타바이러스", "코로나", "covid", "급성호흡기감염증",
+    # 제5급/기생충 및 수인성
+    "회충", "편충", "요충", "간흡충", "폐흡충", "살모넬라", "캄필로박터", "식중독", "장관감염증"
+]
+
+
+def is_legal_infectious_question(question: str, selected_disease: str) -> bool:
+    """학생 질문이 법정감염병 및 학교 감염병 예방 관리 범위 내인지 엄격 판별"""
+    q_lower = question.lower().strip()
+    
+    # 1. 현재 화면에서 탐구 중인 선택 질병명이 포함된 경우 통과
+    sel_clean = selected_disease.split("(")[0].strip().lower()
+    if sel_clean and len(sel_clean) >= 2 and sel_clean in q_lower:
+        return True
+    
+    # 2. 감염병 DB에 등록된 50여 종 질병명이 하나라도 포함된 경우 통과
+    for dis in DISEASE_INFO_DB.keys():
+        dis_clean = dis.split("(")[0].strip().lower()
+        if len(dis_clean) >= 2 and dis_clean in q_lower:
+            return True
+            
+    # 3. 법정감염병 역학 전문 키워드가 포함된 경우 통과
+    for kw in LEGAL_INFECTIOUS_KEYWORDS:
+        if kw in q_lower:
+            return True
+            
+    # 그 외 비감염병 질문(무좀, 곰팡이, 여드름, 잡담, 비보건 질문 등)은 차단
+    return False
+
+
+def check_classroom_access(class_mode: bool, auto_time_lock: bool, teacher_code: str) -> tuple:
+    """수업 시간 및 교사 권한 기반 AI 질의응답 활성화 통제"""
+    # 1. 교사용 마스터 코드 확인 (수업 외 시간 긴급 승인용)
+    t_clean = clean_api_key(teacher_code)
+    if t_clean in ["1018", "보건", "0508"]:
+        return True, "교사 마스터 코드가 승인되었습니다."
+        
+    # 2. 선생님이 수업 모드를 수동으로 OFF한 경우
+    if not class_mode:
+        return False, "선생님이 현재 AI 질의응답을 일시 중지하였습니다. 선생님의 수업 안내에 집중해 주세요."
+        
+    # 3. 평일 수업 시간(08:30~17:00) 자동 차단 모드가 켜져 있는 경우
+    if auto_time_lock:
+        kst = timezone(timedelta(hours=9))
+        now = datetime.now(kst)
+        is_weekday = (now.weekday() < 5) # 0=월 ~ 4=금
+        curr_min = now.hour * 60 + now.minute
+        # 08:30(510분) ~ 17:00(1020분)
+        is_school_time = (510 <= curr_min <= 1020)
+        if not (is_weekday and is_school_time):
+            day_str = ["월", "화", "수", "목", "금", "토", "일"][now.weekday()]
+            return False, f"현재는 정규 수업 시간이 아닙니다 ({day_str}요일 {now.strftime('%H:%M')} KST).\n평일 08:30~17:00 수업 시간에 이용 가능합니다."
+            
+    return True, "수업 모드 승인됨"
+
+
 def query_gemini_ai(api_key: str, prompt: str, disease_name: str = "") -> str:
     """
     고교 보건간호과 및 질병관리청(KDCA) 공공데이터에 맞춤화된 전문 Gemini 응답 생성.
@@ -904,6 +982,10 @@ def query_gemini_ai(api_key: str, prompt: str, disease_name: str = "") -> str:
     sys_instruction = (
         "당신은 대한민국 서울의료보건고등학교 보건간호과의 전임 지도교사이자 질병관리청(KDCA) 공공데이터 전문 보건 튜터 AI입니다.\n"
         "질문자는 고등학교 보건간호과 학생입니다.\n\n"
+        "[수업 몰입도를 위한 핵심 규칙 (가장 중요!)]\n"
+        "학생의 질문이 대한민국 질병관리청 법정감염병(제1급~제5급) 및 학교 감염병 예방·관리와 직접적인 관련이 없는 주제(예: 무좀, 일반 피부질환, 일상 고민, 기타 잡담 등)인 경우, "
+        "절대 다른 설명을 덧붙이지 말고 정확히 아래 한 문장으로만 답변하십시오:\n"
+        "해당 질문은 법정감염병과 관련이 없습니다. 선생님께 요청하기 바랍니다.\n\n"
         "[답변 원칙 및 지침]\n"
         "1. 고등학교 보건, 간호의 기초, 공중보건 교과서 범위에 부합하게 전문적이면서도 학생 눈높이에서 알기 쉽게 설명합니다.\n"
         "2. 질병관리청(KDCA) 법정감염병 분류(제1급~제5급), 신고 기한(즉시/24시간 이내 등), 격리 기준을 정확하게 안내합니다.\n"
@@ -998,6 +1080,10 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
     q_lower = question.lower().strip()
     d_clean = "AIDS(후천성면역결핍증)" if disease_name in ["임질", "AIDS", "후천성면역결핍증"] else disease_name
     info = get_disease_info(dis_info.get("tier", "법정감염병"), d_clean)
+
+    # [수업 몰입도를 위한 핵심 필터] 법정감염병 질환과 무관한 질문은 엄격 차단
+    if not is_legal_infectious_question(question, disease_name):
+        return "해당 질문은 법정감염병과 관련이 없습니다. 선생님께 요청하기 바랍니다."
 
     # ----------------------------------------------------
     # [1] 사스(SARS) vs 메르스(MERS) vs 코로나19(COVID-19) 임상 비교 분석
@@ -1281,20 +1367,9 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
 5. **예방접종 및 감염 차단:** {info['prevention']}"""
 
     # ----------------------------------------------------
-    # [12] 감염병이 아닌 청소년 일반 보건 및 건강 관리 질문에 대한 안내
+    # [12] 법정감염병 질환과 관련 없는 모든 질문 차단
     # ----------------------------------------------------
-    return f"""👩‍⚕️ **[AI 보건 튜터: 고교 보건간호과 건강 증진 & 일반 보건 가이드]**
-
-보건간호과 학생 여러분! 질문하신 **'{question}'**에 대한 학교 보건 및 의학 교과서 가이드입니다.
-
-1. **💡 핵심 의학 원리 및 건강 이해:**
-   - 질문하신 주제는 법정감염병(1~5급) 목록 외의 **청소년 일상 보건 및 건강 관리 영역**입니다.
-   - 신체의 항상성 유지, 면역력 관리, 그리고 개인위생 수칙 실천이 청소년기 질병 예방의 핵심입니다.
-2. **🏫 학교 보건실 실무 권고사항:**
-   - 충분한 수면(하루 7~8시간), 규칙적인 영양 섭취(비타민 및 수분 보충), 정기적인 환기와 손 씻기 실천을 권장합니다.
-   - 의심 증상이 지속될 경우 보건실을 방문하여 보건교사의 1차 상담 및 전문 의료기관 진료를 받으세요.
-3. **🔬 심층 탐구 팁:**
-   - 질병관리청 법정감염병 50여 종에 대한 실시간 통계 및 시각화 비교 분석은 상단 메뉴 [2. 감염병 발생 현황 & 시각화] 및 [3. 지역/감염병 비교]를 통해 언제든지 탐구하실 수 있습니다!"""
+    return "해당 질문은 법정감염병과 관련이 없습니다. 선생님께 요청하기 바랍니다."
 
 
 
@@ -1364,20 +1439,23 @@ with st.sidebar:
         st.success("표준 데이터 (56,700건 완비) 적용 중")
 
     st.divider()
-    st.subheader("🔑 Gemini AI 튜터 설정")
-    key_val = get_api_key()
-    is_valid_format = bool(key_val and len(key_val) >= 20 and key_val.startswith("AIza") and "선생님" not in key_val)
-    if is_valid_format:
-        st.success("🟢 Gemini API 연동 완료 (Google AI 실시간 응답)")
-    elif key_val:
-        st.warning("⚠️ API 키 확인 필요: 'AIzaSy...'로 시작하는 Google AI Studio 키를 입력해 주세요.")
-        user_key = st.text_input("Gemini API Key 재등록", type="password", placeholder="AIzaSy...")
-        if user_key:
-            st.session_state["custom_gemini_key"] = clean_api_key(user_key)
-            st.rerun()
-    else:
-        st.info("💡 API 키 등록 시 Google Gemini AI가 감염병뿐만 아니라 무좀, 소독약, 응급처치 등 일상 보건 지식까지 실시간 종합 분석합니다.")
-        user_key = st.text_input("Gemini API Key 등록 (선택)", type="password", placeholder="AIzaSy...")
+    st.subheader("👩‍🏫 수업 진행 & AI 사용 통제")
+    class_mode = st.toggle("🔔 실시간 수업 모드 (학생 AI 질문 허용)", value=True, help="수업 시간에 켜두시면 학생들이 AI 튜터에게 질문할 수 있습니다. 끄면 즉시 질문이 중지됩니다.")
+    st.session_state["class_mode"] = class_mode
+
+    auto_time_lock = st.checkbox("⏰ 수업 시간(평일 08:30~17:00) 외 자동 차단", value=False, help="체크 시 방과 후 및 주말에 학생들의 API 사용이 자동으로 차단됩니다.")
+    st.session_state["auto_time_lock"] = auto_time_lock
+
+    teacher_code = st.text_input("교사용 수업 인증 암호 (선택)", type="password", placeholder="기본 암호: 1018", help="암호를 입력하면 시간 외에도 즉시 활성화됩니다.")
+    st.session_state["teacher_code"] = teacher_code
+
+    with st.expander("🔑 (선택) Google Gemini API 설정", expanded=False):
+        key_val = get_api_key()
+        if key_val and len(key_val) >= 20 and key_val.startswith("AIza") and "선생님" not in key_val:
+            st.success("🟢 Google Gemini API 연동됨")
+        else:
+            st.info("💡 API 키가 없어도 내장된 질병관리청 50여 종 법정감염병 전문 지식 엔진이 100% 정상 작동합니다.")
+        user_key = st.text_input("Gemini API Key 등록/변경", type="password", placeholder="AIzaSy...")
         if user_key:
             st.session_state["custom_gemini_key"] = clean_api_key(user_key)
             st.rerun()
@@ -2244,16 +2322,28 @@ elif menu == "5. AI 보건 튜터(Q&A)":
 
     api_k = get_api_key()
 
+    # 1. 수업 활성화 및 접근 권한 점검
+    is_allowed, lock_reason = check_classroom_access(
+        st.session_state.get("class_mode", True),
+        st.session_state.get("auto_time_lock", False),
+        st.session_state.get("teacher_code", "")
+    )
+
     if quick_q:
         st.session_state["chat_history"].append({"role": "user", "content": quick_q})
-        rep = ""
-        if api_k:
-            with st.spinner(f"AI 보건 튜터가 질병관리청 최신 역학 데이터 및 교과서 지침을 분석 중입니다..."):
-                rep = query_gemini_ai(api_k, quick_q, selected_disease_name)
-        if not rep:
-            rep = generate_detailed_tutor_answer(selected_disease_name, quick_q, dis_info)
+        if not is_allowed:
+            rep = f"🔒 **[수업 시간 외 사용 제한 안내]**\n\n{lock_reason}\n\n👉 **선생님께 요청하기 바랍니다.**"
+        elif not is_legal_infectious_question(quick_q, selected_disease_name):
+            rep = "해당 질문은 법정감염병과 관련이 없습니다. 선생님께 요청하기 바랍니다."
+        else:
+            rep = ""
             if api_k:
-                rep += "\n\n> 💡 *[보건 교육 지침] 질병관리청 공인 표준 보건 교과서 및 역학 지식베이스를 기반으로 생성된 답변입니다.*"
+                with st.spinner(f"AI 보건 튜터가 질병관리청 최신 역학 데이터 및 교과서 지침을 분석 중입니다..."):
+                    rep = query_gemini_ai(api_k, quick_q, selected_disease_name)
+            if not rep:
+                rep = generate_detailed_tutor_answer(selected_disease_name, quick_q, dis_info)
+                if api_k and "관련이 없습니다" not in rep:
+                    rep += "\n\n> 💡 *[보건 교육 지침] 질병관리청 공인 표준 보건 교과서 및 역학 지식베이스를 기반으로 생성된 답변입니다.*"
         st.session_state["chat_history"].append({"role": "assistant", "content": rep})
         st.rerun()
 
@@ -2264,14 +2354,19 @@ elif menu == "5. AI 보건 튜터(Q&A)":
     user_q = st.chat_input(f"{selected_disease_name}에 대해 궁금한 점을 입력하세요...")
     if user_q:
         st.session_state["chat_history"].append({"role": "user", "content": user_q})
-        rep = ""
-        if api_k:
-            with st.spinner(f"AI 보건 튜터가 {selected_disease_name} 관련 질병관리청 역학 지침을 분석 중입니다..."):
-                rep = query_gemini_ai(api_k, user_q, selected_disease_name)
-        if not rep:
-            rep = generate_detailed_tutor_answer(selected_disease_name, user_q, dis_info)
+        if not is_allowed:
+            rep = f"🔒 **[수업 시간 외 사용 제한 안내]**\n\n{lock_reason}\n\n👉 **선생님께 요청하기 바랍니다.**"
+        elif not is_legal_infectious_question(user_q, selected_disease_name):
+            rep = "해당 질문은 법정감염병과 관련이 없습니다. 선생님께 요청하기 바랍니다."
+        else:
+            rep = ""
             if api_k:
-                rep += "\n\n> 💡 *[보건 교육 지침] 질병관리청 공인 표준 역학 데이터베이스 및 고교 보건 교과서 기준 답변입니다.*"
+                with st.spinner(f"AI 보건 튜터가 {selected_disease_name} 관련 질병관리청 역학 지침을 분석 중입니다..."):
+                    rep = query_gemini_ai(api_k, user_q, selected_disease_name)
+            if not rep:
+                rep = generate_detailed_tutor_answer(selected_disease_name, user_q, dis_info)
+                if api_k and "관련이 없습니다" not in rep:
+                    rep += "\n\n> 💡 *[보건 교육 지침] 질병관리청 공인 표준 역학 데이터베이스 및 고교 보건 교과서 기준 답변입니다.*"
         st.session_state["chat_history"].append({"role": "assistant", "content": rep})
         st.rerun()
 
