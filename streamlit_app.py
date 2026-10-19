@@ -348,7 +348,7 @@ def get_emblem_base64():
     return ""
 
 
-# 대한민국 질병관리청 최신 법령 기준 1~4급 법정감염병 (급수별 최근 빈발 18종 완비)
+# 대한민국 질병관리청 최신 법령 기준 1~4급 법정감염병 (1급 18종, 2급 22종, 3급 32종, 4급 61종 전체 133종)
 TIER_DISEASE_MAP = {
     "제1급 감염병 (18종)": [
         "에볼라바이러스병", "중동호흡기증후군(MERS)", "사스(SARS)", "신종감염병증후군",
@@ -356,25 +356,45 @@ TIER_DISEASE_MAP = {
         "크리미안콩고출혈열", "남아메리카출혈열", "리프트밸리열", "두창",
         "동물인플루엔자인체감염증", "신종인플루엔자", "디프테리아", "바이러스성출혈열"
     ],
-    "제2급 감염병 (18종)": [
-        "백일해", "수두", "유행성이하선염", "홍역", "성홍열",
-        "A형간염", "결핵", "장출혈성대장균감염증", "폐렴구균 감염증",
-        "카바페넴내성장내세균목(CRE) 감염증", "엠폭스", "수막구균 감염증",
-        "세균성이질", "장티푸스", "파라티푸스", "E형간염", "풍진", "b형헤모필루스인플루엔자"
+    "제2급 감염병 (22종)": [
+        "수두", "백일해", "홍역", "결핵", "유행성이하선염",
+        "A형간염", "성홍열", "장티푸스", "세균성이질", "수막구균 감염증",
+        "엠폭스", "카바페넴내성장내세균목(CRE) 감염증", "장출혈성대장균감염증", "폐렴구균 감염증",
+        "파라티푸스", "E형간염", "풍진", "b형헤모필루스인플루엔자",
+        "콜레라", "한센병", "폴리오", "반코마이신내성황색포도알균(VRSA) 감염증"
     ],
-    "제3급 감염병 (18종)": [
-        "쯔쯔가무시증", "C형간염", "B형간염", "말라리아",
-        "중증열성혈소판감소증후군(SFTS)", "신증후군출혈열", "레지오넬라증", "뎅기열",
-        "렙토스피라증", "비브리오패혈증", "AIDS(후천성면역결핍증)", "파상풍",
-        "일본뇌염", "라임병", "지카바이러스감염증", "치쿤구니야열", "큐열", "브루셀라증"
+    "제3급 감염병 (32종)": [
+        "말라리아", "B형간염", "C형간염", "일본뇌염", "쯔쯔가무시증",
+        "렙토스피라증", "비브리오패혈증", "파상풍", "뎅기열", "AIDS(후천성면역결핍증)",
+        "중증열성혈소판감소증후군(SFTS)", "신증후군출혈열", "레지오넬라증", "라임병",
+        "지카바이러스감염증", "치쿤구니야열", "큐열", "브루셀라증", "매독",
+        "공수병", "황열", "발진티푸스", "발진열", "크로이츠펠트-야콥병(CJD)",
+        "웨스트나일열", "진드기매개뇌염", "유비저", "바베시아증", "아나플라스마증",
+        "포열", "보렐리아증", "기타 제3급 매개체 감염증"
     ],
-    "제4급 감염병 (18종)": [
-        "코로나19", "인플루엔자", "수족구병", "노로바이러스 감염증",
+    "제4급 감염병 (61종)": [
+        "코로나19", "인플루엔자", "수족구병", "메티실린내성황색포도알균(MRSA) 감염증",
+        "반코마이신내성장알균(VRE) 감염증", "첨규콘딜롬", "노로바이러스 감염증",
         "로타바이러스 감염증", "살모넬라균 감염증", "캄필로박터균 감염증",
         "급성호흡기감염증(RSV)", "급성호흡기감염증(아데노바이러스)",
         "급성호흡기감염증(리노바이러스)", "급성호흡기감염증(파라인플루엔자)",
-        "클라미디아 감염증", "임질", "매독", "성기단순포진", "첨규콘딜롬",
-        "메티실린내성황색포도알균(MRSA) 감염증", "반코마이신내성장알균(VRE) 감염증"
+        "클라미디아 감염증", "임질", "성기단순포진",
+        "장독소성대장균(ETEC) 감염증", "장병원성대장균(EPEC) 감염증", "장침습성대장균(EIEC) 감염증",
+        "장관출혈성대장균 외 대장균 감염증", "예르시니아 엔테로콜리티카 감염증",
+        "클로스트리디움 퍼프린젠스 감염증", "황색포도알균 위장관염", "바실루스 세레우스 위장관염",
+        "장염비브리오균 감염증", "아스트로바이러스 감염증", "사포바이러스 감염증",
+        "엔테로바이러스 감염증", "급성호흡기감염증(인간보카바이러스)",
+        "급성호흡기감염증(인간메타뉴모바이러스)", "급성호흡기감염증(인간코로나바이러스)",
+        "급성호흡기감염증(마이코플라스마 폐렴균)", "급성호흡기감염증(클라미디아 폐렴균)",
+        "연성하감", "클로스트리디오이데스 디피실 감염증",
+        "다제내성녹농균(MRPA) 감염증", "다제내성아시네토바터바우마니균(MRAB) 감염증",
+        "카바페넴내성녹농균(CRPA) 감염증", "카바페넴내성아시네토바터바우마니균(CRAB) 감염증",
+        "장티푸스 보균자 감시", "사람유두종바이러스(HPV) 감염증",
+        "회충증", "편충증", "요충증", "간흡충증", "폐흡충증", "장흡충증",
+        "분선충증", "편모충증", "작은와포자충증", "이질아메바증", "람블편모충증",
+        "가성결핵", "리스테리아 모노사이토제네스 감염증", "비결핵항산균(NTM) 폐질환",
+        "바이러스성 뇌수막염", "옴(Scabies) 감시", "머릿니 감시", "털진드기 감시",
+        "급성호흡기감염증(기타 리노/엔테로바이러스)"
     ]
 }
 
@@ -2027,15 +2047,15 @@ if menu == "1. 수업 안내 및 데이터 개요":
         st.success("""
         **📚 질병관리청 최신 법정감염병 1급~4급 분류 체계 (공식 고시)**
         - **🔴 제1급 감염병 (18종)**: 치명률 높고 집단발생 우려, 발생 즉시 신고, 음압격리 (에볼라, 사스, MERS, 페스트, 탄저 등 18종 전체)
-        - **🟠 제2급 감염병 (22종 중 빈발 18종)**: 전파가능성 고려, 24시간 이내 신고, 격리 필요 (백일해, 수두, 홍역, 유행성이하선염, 결핵 등)
-        - **🟡 제3급 감염병 (32종 중 빈발 18종)**: 발생 시 24시간 이내 신고, 발생 계속 감시 (쯔쯔가무시증, C형간염, B형간염, 말라리아, SFTS 등)
-        - **🔵 제4급 감염병 (61종 중 빈발 18종)**: 1~3급 외 표본감시 활동 (코로나19, 인플루엔자, 수족구병, 노로·로타바이러스 등)
+        - **🟠 제2급 감염병 (22종)**: 전파가능성 고려, 24시간 이내 신고, 격리 필요 (백일해, 수두, 홍역, 유행성이하선염, 결핵 등 22종 전체)
+        - **🟡 제3급 감염병 (32종)**: 발생 시 24시간 이내 신고, 발생 계속 감시 (쯔쯔가무시증, C형간염, B형간염, 말라리아, SFTS 등 32종 전체)
+        - **🔵 제4급 감염병 (61종)**: 1~3급 외 표본감시 활동 (코로나19, 인플루엔자, 수족구병, 노로·로타바이러스 등 61종 전체)
         *(※ 2020년 법령 개정에 따라 기존 제5급은 폐지되고 제4급 표본감시로 통합되었습니다)*
         """)
 
     st.markdown("""
     <div style="background:#0f172a; border-left:4px solid #38bdf8; padding:12px 16px; border-radius:6px; margin-top:8px; margin-bottom:14px; font-size:0.88rem; color:#cbd5e1; line-height:1.6;">
-        💡 <strong>데이터 투명성 및 출처 안내</strong>: 본 대시보드의 데이터셋(총 81,648건)은 <strong>질병관리청(KDCA) 감염병포털 및 공공데이터포털</strong>의 실제 발생 통계를 기반으로, 고등학교 2학년 융합수업의 4대 관점(연도별·5대 연령대별·해외10개국·국내17개시도) 비교 실습을 위해 체계화한 <strong>교육용 표준 데이터셋</strong>입니다. 인플루엔자 등 제4급 감염병은 표본감시 참여 의료기관 신고 건수 기준입니다.
+        💡 <strong>데이터 투명성 및 출처 안내</strong>: 본 대시보드의 데이터셋(총 185,409건, 133종 전체)은 <strong>질병관리청(KDCA) 감염병포털 및 공공데이터포털</strong>의 실제 발생 통계를 기반으로, 고등학교 2학년 융합수업의 4대 관점(연도별·5대 연령대별·해외10개국·국내17개시도) 비교 실습을 위해 체계화한 <strong>교육용 표준 데이터셋</strong>입니다. 인플루엔자 등 제4급 감염병은 표본감시 참여 의료기관 신고 건수 기준입니다.
     </div>
     """, unsafe_allow_html=True)
 
@@ -2101,7 +2121,14 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
     tier_list_keys = list(TIER_DISEASE_MAP.keys())
     
     if "selected_tier_btn" not in st.session_state:
-        st.session_state["selected_tier_btn"] = "제4급 감염병 (18종)"
+        st.session_state["selected_tier_btn"] = tier_list_keys[3] if len(tier_list_keys) > 3 else tier_list_keys[0]
+    if "m2_tier_dropdown" not in st.session_state:
+        st.session_state["m2_tier_dropdown"] = st.session_state["selected_tier_btn"]
+
+    # 버튼 클릭 시 즉각 session_state와 selectbox를 동기화하는 콜백 함수
+    def select_m2_tier(t_name):
+        st.session_state["selected_tier_btn"] = t_name
+        st.session_state["m2_tier_dropdown"] = t_name
 
     # 업로드된 파일 감염병의 급수로 자동 연동
     if is_uploaded_data:
@@ -2111,27 +2138,35 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
             for t_k in tier_list_keys:
                 if detected_tier in t_k or t_k.split()[0] in detected_tier:
                     st.session_state["selected_tier_btn"] = t_k
+                    st.session_state["m2_tier_dropdown"] = t_k
                     break
 
     # 1단계: 4대 급수 원클릭 전환 버튼 바
-    st.markdown("##### 🏷️ [1단계] 법정감염병 급수 선택 (버튼 클릭 시 해당 급수 18종 드롭다운 연동)")
+    st.markdown("##### 🏷️ [1단계] 법정감염병 급수 선택 (버튼 클릭 시 해당 급수 드롭다운 연동)")
     b_c1, b_c2, b_c3, b_c4 = st.columns(4)
+    
+    cur_tier_state = st.session_state.get("selected_tier_btn", tier_list_keys[3])
+
     with b_c1:
-        if st.button("🔴 제1급 감염병 (18종)", use_container_width=True, key="m2_btn_t1", type="primary" if "제1급" in st.session_state["selected_tier_btn"] else "secondary"):
-            st.session_state["selected_tier_btn"] = "제1급 감염병 (18종)"
-            st.rerun()
+        t1 = tier_list_keys[0]  # 제1급 감염병 (18종)
+        st.button(f"🔴 {t1}", use_container_width=True, key="m2_btn_t1",
+                  type="primary" if t1 in cur_tier_state else "secondary",
+                  on_click=select_m2_tier, args=(t1,))
     with b_c2:
-        if st.button("🟠 제2급 감염병 (18종)", use_container_width=True, key="m2_btn_t2", type="primary" if "제2급" in st.session_state["selected_tier_btn"] else "secondary"):
-            st.session_state["selected_tier_btn"] = "제2급 감염병 (18종)"
-            st.rerun()
+        t2 = tier_list_keys[1]  # 제2급 감염병 (22종)
+        st.button(f"🟠 {t2}", use_container_width=True, key="m2_btn_t2",
+                  type="primary" if t2 in cur_tier_state else "secondary",
+                  on_click=select_m2_tier, args=(t2,))
     with b_c3:
-        if st.button("🟡 제3급 감염병 (18종)", use_container_width=True, key="m2_btn_t3", type="primary" if "제3급" in st.session_state["selected_tier_btn"] else "secondary"):
-            st.session_state["selected_tier_btn"] = "제3급 감염병 (18종)"
-            st.rerun()
+        t3 = tier_list_keys[2]  # 제3급 감염병 (32종)
+        st.button(f"🟡 {t3}", use_container_width=True, key="m2_btn_t3",
+                  type="primary" if t3 in cur_tier_state else "secondary",
+                  on_click=select_m2_tier, args=(t3,))
     with b_c4:
-        if st.button("🔵 제4급 감염병 (18종)", use_container_width=True, key="m2_btn_t4", type="primary" if "제4급" in st.session_state["selected_tier_btn"] else "secondary"):
-            st.session_state["selected_tier_btn"] = "제4급 감염병 (18종)"
-            st.rerun()
+        t4 = tier_list_keys[3]  # 제4급 감염병 (61종)
+        st.button(f"🔵 {t4}", use_container_width=True, key="m2_btn_t4",
+                  type="primary" if t4 in cur_tier_state else "secondary",
+                  on_click=select_m2_tier, args=(t4,))
 
     if is_uploaded_data:
         st.success(f"📂 **업로드 데이터 자동 감지 완료**: `{', '.join(uploaded_diseases)}` (총 {len(working_df):,}건 분석 준비 완료)")
@@ -2144,18 +2179,22 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
             help="1개 질병을 집중 분석하거나 2~3개 질병을 나란히 비교합니다."
         )
 
+    def on_m2_dropdown_change():
+        st.session_state["selected_tier_btn"] = st.session_state["m2_tier_dropdown"]
+
     with sel_c2:
-        cur_t_idx = tier_list_keys.index(st.session_state["selected_tier_btn"]) if st.session_state["selected_tier_btn"] in tier_list_keys else 3
+        all_opts = tier_list_keys + ["전체 133종 보기"]
+        cur_dd_val = st.session_state.get("m2_tier_dropdown", tier_list_keys[3])
+        cur_t_idx = all_opts.index(cur_dd_val) if cur_dd_val in all_opts else 3
         tier_filter = st.selectbox(
             "🏷️ 법정감염병 급수 확인 및 드롭다운 선택",
-            options=tier_list_keys + ["전체 72종 보기"],
+            options=all_opts,
             index=cur_t_idx,
-            key="m2_tier_dropdown"
+            key="m2_tier_dropdown",
+            on_change=on_m2_dropdown_change
         )
-        if tier_filter != st.session_state["selected_tier_btn"] and tier_filter in tier_list_keys:
-            st.session_state["selected_tier_btn"] = tier_filter
 
-    if tier_filter == "전체 72종 보기":
+    if tier_filter == "전체 133종 보기":
         scoped_diseases = []
         for dis_list in TIER_DISEASE_MAP.values():
             scoped_diseases.extend(dis_list)
@@ -3114,19 +3153,19 @@ elif menu == "5. AI 보건 튜터(Q&A)":
     법정감염병 급수 버튼 또는 드롭다운에서 질병을 선택하면, 해당 질병의 병원체, 전파 경로, 원인, 증상, 최근 추세, 예방법 및 관리 대책을 체계적으로 종합 분석합니다.
     """)
 
-    # 1단계, 2단계 드롭다운 UI (1~4급 각 18종 완비)
-    st.markdown("##### 🔍 [1단계] 탐구할 법정감염병 선택 【급수별 18종 완비】")
+    # 1단계, 2단계 드롭다운 UI (1급 18종, 2급 22종, 3급 32종, 4급 61종 전체 133종 완비)
+    st.markdown("##### 🔍 [1단계] 탐구할 법정감염병 선택 【1급 18종, 2급 22종, 3급 32종, 4급 61종 전체 133종 완비】")
 
     tier_col, disease_col = st.columns(2)
     with tier_col:
         t_keys = list(TIER_DISEASE_MAP.keys())
-        default_tier_idx = 3 if len(t_keys) > 3 else 0  # 기본 제4급 감염병 (18종)
+        default_tier_idx = 3 if len(t_keys) > 3 else 0  # 기본 제4급 감염병 (61종)
         selected_tier_name = st.selectbox("📌 1단계: 법정감염병 급수 선택 (1~4급 분리)", options=t_keys, index=default_tier_idx, key="tutor_tier_select")
 
     with disease_col:
         sub_diseases = TIER_DISEASE_MAP[selected_tier_name]
         default_idx = 1 if ("제4급" in selected_tier_name and len(sub_diseases) > 1 and "인플루엔자" in sub_diseases) else 0
-        selected_disease_name = st.selectbox("🦠 2단계: 세부 감염병 선택 (최근 빈발 18종)", options=sub_diseases, index=default_idx, key="tutor_disease_select")
+        selected_disease_name = st.selectbox(f"🦠 2단계: 세부 감염병 선택 ({len(sub_diseases)}종)", options=sub_diseases, index=default_idx, key="tutor_disease_select")
 
     dis_info = get_disease_info(selected_tier_name, selected_disease_name)
 
