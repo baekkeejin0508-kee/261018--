@@ -2414,17 +2414,17 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     d_col1, d_col2 = st.columns(2)
                     with d_col1:
                         fig_p_donut = px.pie(active_pie_df, values="신규환자수", names=p_name, hole=0.45, title=f"{p_title} (Plotly 동적 도넛)", template="plotly_dark", color_discrete_sequence=palette_colors)
-                        fig_p_donut.update_layout(height=380, margin=dict(l=30, r=20, t=40, b=30))
+                        fig_p_donut.update_layout(height=360, margin=dict(l=15, r=15, t=35, b=25), legend=dict(font=dict(size=9.5)))
                         st.plotly_chart(fig_p_donut, use_container_width=True, key="plotly_v1_donut")
 
                     with d_col2:
-                        fig_s_donut, ax_sd = plt.subplots(figsize=(6.2, 4.0), dpi=100)
+                        fig_s_donut, ax_sd = plt.subplots(figsize=(5.0, 3.6), dpi=100)
                         apply_dark_plot_style(fig_s_donut, ax_sd)
-                        ax_sd.pie(active_pie_df["신규환자수"], labels=active_pie_df[p_name], autopct="%1.1f%%", colors=palette_colors[:len(active_pie_df)], pctdistance=0.75, textprops={'color': '#f8fafc', 'fontsize': 9})
-                        ax_sd.add_artist(plt.Circle((0,0), 0.48, fc='#0f172a'))
-                        ax_sd.set_title(f"{p_title} (Seaborn 통계 도넛)")
+                        ax_sd.pie(active_pie_df["신규환자수"], labels=active_pie_df[p_name], autopct="%1.1f%%", colors=palette_colors[:len(active_pie_df)], radius=0.78, pctdistance=0.62, textprops={'color': '#f8fafc', 'fontsize': 8.5})
+                        ax_sd.add_artist(plt.Circle((0,0), 0.45, fc='#0f172a'))
+                        ax_sd.set_title(f"{p_title} (Seaborn 통계 도넛)", fontsize=10.5, pad=8, color="#f8fafc")
                         plt.tight_layout()
-                        st.pyplot(fig_s_donut)
+                        st.pyplot(fig_s_donut, use_container_width=True)
                         plt.close(fig_s_donut)
 
         # ==================================================================
@@ -2573,16 +2573,16 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     d_col1, d_col2 = st.columns(2)
                     with d_col1:
                         fig_p_donut = px.pie(active_tot_age, values="환자수", names="연령대", hole=0.45, title="5개 연령대별 환자 점유율 (Plotly 도넛)", template="plotly_dark", color_discrete_sequence=palette_colors)
-                        fig_p_donut.update_layout(height=380, margin=dict(l=30, r=20, t=40, b=30))
+                        fig_p_donut.update_layout(height=360, margin=dict(l=15, r=15, t=35, b=25), legend=dict(font=dict(size=9.5)))
                         st.plotly_chart(fig_p_donut, use_container_width=True, key="plotly_v2_donut")
                     with d_col2:
-                        fig_s_donut, ax_sd = plt.subplots(figsize=(6.2, 4.0), dpi=100)
+                        fig_s_donut, ax_sd = plt.subplots(figsize=(5.0, 3.6), dpi=100)
                         apply_dark_plot_style(fig_s_donut, ax_sd)
-                        ax_sd.pie(active_tot_age["환자수"], labels=active_tot_age["연령대"], autopct="%1.1f%%", colors=sns.color_palette("Blues_r", len(active_tot_age)), pctdistance=0.75, textprops={'color': '#f8fafc', 'fontsize': 9})
-                        ax_sd.add_artist(plt.Circle((0,0), 0.48, fc='#0f172a'))
-                        ax_sd.set_title("5개 연령대별 환자 점유율 (Seaborn 도넛)")
+                        ax_sd.pie(active_tot_age["환자수"], labels=active_tot_age["연령대"], autopct="%1.1f%%", colors=sns.color_palette("Blues_r", len(active_tot_age)), radius=0.78, pctdistance=0.62, textprops={'color': '#f8fafc', 'fontsize': 8.5})
+                        ax_sd.add_artist(plt.Circle((0,0), 0.45, fc='#0f172a'))
+                        ax_sd.set_title("5개 연령대별 환자 점유율 (Seaborn 도넛)", fontsize=10.5, pad=8, color="#f8fafc")
                         plt.tight_layout()
-                        st.pyplot(fig_s_donut)
+                        st.pyplot(fig_s_donut, use_container_width=True)
                         plt.close(fig_s_donut)
 
         # ==================================================================
@@ -2744,16 +2744,16 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     d_col1, d_col2 = st.columns(2)
                     with d_col1:
                         fig_p_donut = px.pie(active_global_df, values="신규환자수", names="지역", hole=0.45, title="해외 주요국 발생 비중 (Plotly 도넛)", template="plotly_dark", color_discrete_sequence=palette_colors)
-                        fig_p_donut.update_layout(height=380, margin=dict(l=30, r=20, t=40, b=30))
+                        fig_p_donut.update_layout(height=360, margin=dict(l=15, r=15, t=35, b=25), legend=dict(font=dict(size=9.5)))
                         st.plotly_chart(fig_p_donut, use_container_width=True, key="plotly_v3_donut")
                     with d_col2:
-                        fig_s_donut, ax_sd = plt.subplots(figsize=(6.2, 4.0), dpi=100)
+                        fig_s_donut, ax_sd = plt.subplots(figsize=(5.0, 3.6), dpi=100)
                         apply_dark_plot_style(fig_s_donut, ax_sd)
-                        ax_sd.pie(active_global_df["신규환자수"], labels=active_global_df["지역"], autopct="%1.1f%%", colors=sns.color_palette("mako", len(active_global_df)), pctdistance=0.75, textprops={'color': '#f8fafc', 'fontsize': 8})
-                        ax_sd.add_artist(plt.Circle((0,0), 0.48, fc='#0f172a'))
-                        ax_sd.set_title("해외 주요국 발생 비중 (Seaborn 도넛)")
+                        ax_sd.pie(active_global_df["신규환자수"], labels=active_global_df["지역"], autopct="%1.1f%%", colors=sns.color_palette("mako", len(active_global_df)), radius=0.78, pctdistance=0.62, textprops={'color': '#f8fafc', 'fontsize': 8.0})
+                        ax_sd.add_artist(plt.Circle((0,0), 0.45, fc='#0f172a'))
+                        ax_sd.set_title("해외 주요국 발생 비중 (Seaborn 도넛)", fontsize=10.5, pad=8, color="#f8fafc")
                         plt.tight_layout()
-                        st.pyplot(fig_s_donut)
+                        st.pyplot(fig_s_donut, use_container_width=True)
                         plt.close(fig_s_donut)
 
         # ==================================================================
@@ -2920,16 +2920,16 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     d_col1, d_col2 = st.columns(2)
                     with d_col1:
                         fig_p_donut = px.pie(active_top6, values="신규환자수", names="지역", hole=0.45, title="국내 상위 6대 시도 점유율 (Plotly 도넛)", template="plotly_dark", color_discrete_sequence=palette_colors)
-                        fig_p_donut.update_layout(height=380, margin=dict(l=30, r=20, t=40, b=30))
+                        fig_p_donut.update_layout(height=360, margin=dict(l=15, r=15, t=35, b=25), legend=dict(font=dict(size=9.5)))
                         st.plotly_chart(fig_p_donut, use_container_width=True, key="plotly_v4_donut")
                     with d_col2:
-                        fig_s_donut, ax_sd = plt.subplots(figsize=(6.2, 4.0), dpi=100)
+                        fig_s_donut, ax_sd = plt.subplots(figsize=(5.0, 3.6), dpi=100)
                         apply_dark_plot_style(fig_s_donut, ax_sd)
-                        ax_sd.pie(active_top6["신규환자수"], labels=active_top6["지역"], autopct="%1.1f%%", colors=sns.color_palette("crest", len(active_top6)), pctdistance=0.75, textprops={'color': '#f8fafc', 'fontsize': 8})
-                        ax_sd.add_artist(plt.Circle((0,0), 0.48, fc='#0f172a'))
-                        ax_sd.set_title("국내 상위 6대 시도 점유율 (Seaborn 도넛)")
+                        ax_sd.pie(active_top6["신규환자수"], labels=active_top6["지역"], autopct="%1.1f%%", colors=sns.color_palette("crest", len(active_top6)), radius=0.78, pctdistance=0.62, textprops={'color': '#f8fafc', 'fontsize': 8.0})
+                        ax_sd.add_artist(plt.Circle((0,0), 0.45, fc='#0f172a'))
+                        ax_sd.set_title("국내 상위 6대 시도 점유율 (Seaborn 도넛)", fontsize=10.5, pad=8, color="#f8fafc")
                         plt.tight_layout()
-                        st.pyplot(fig_s_donut)
+                        st.pyplot(fig_s_donut, use_container_width=True)
                         plt.close(fig_s_donut)
 
         # ------------------------------------------------------------------
@@ -2959,35 +2959,35 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                 <thead>
                     <tr style="background:#0f172a; border-bottom:2px solid #38bdf8;">
                         <th style="padding:14px 8px; width:95px; min-width:90px; text-align:center; vertical-align:middle; color:#38bdf8; font-weight:700; line-height:1.45;">비교<br>항목</th>
-                        <th style="padding:12px 16px; width:29%; color:#f8fafc; font-weight:700; text-align:center; vertical-align:middle;" class="notranslate" translate="no">📉 Matplotlib</th>
-                        <th style="padding:12px 16px; width:29%; color:#f8fafc; font-weight:700; text-align:center; vertical-align:middle;" class="notranslate" translate="no">🎨 Seaborn</th>
                         <th style="padding:12px 16px; width:31%; color:#38bdf8; font-weight:700; text-align:center; vertical-align:middle;" class="notranslate" translate="no">⚡ Plotly</th>
+                        <th style="padding:12px 16px; width:29%; color:#f8fafc; font-weight:700; text-align:center; vertical-align:middle;" class="notranslate" translate="no">🎨 Seaborn</th>
+                        <th style="padding:12px 16px; width:29%; color:#f8fafc; font-weight:700; text-align:center; vertical-align:middle;" class="notranslate" translate="no">📉 Matplotlib</th>
                     </tr>
                 </thead>
                 <tbody>
                     <tr style="border-bottom:1px solid #334155;">
                         <td style="padding:14px 8px; width:95px; min-width:90px; font-weight:700; color:#38bdf8; text-align:center; vertical-align:middle; background:rgba(15,23,42,0.45); line-height:1.45;">주요<br>특징</td>
-                        <td style="padding:12px 16px; line-height:1.6; vertical-align:middle;">논문이나 보고서에 들어가는 전통적이고 정적인 도표를 만들 때 표준으로 쓰입니다.</td>
-                        <td style="padding:12px 16px; line-height:1.6; vertical-align:middle;">통계 분포(히스토그램, 박스플롯, 히트맵 등)를 색상 팔레트와 함께 예쁘게 나타낼 때 편리합니다.</td>
                         <td style="padding:12px 16px; line-height:1.6; color:#38bdf8; vertical-align:middle;">웹 브라우저나 대시보드(Streamlit)에서 사용자가 그래프 위 특정 지점을 클릭하고 마우스를 올려 값을 탐색할 수 있어 대시보드 제작에 가장 추천되는 라이브러리입니다.</td>
+                        <td style="padding:12px 16px; line-height:1.6; vertical-align:middle;">통계 분포(히스토그램, 박스플롯, 히트맵 등)를 색상 팔레트와 함께 예쁘게 나타낼 때 편리합니다.</td>
+                        <td style="padding:12px 16px; line-height:1.6; vertical-align:middle;">논문이나 보고서에 들어가는 전통적이고 정적인 도표를 만들 때 표준으로 쓰입니다.</td>
                     </tr>
                     <tr style="border-bottom:1px solid #334155;">
                         <td style="padding:14px 8px; width:95px; min-width:90px; font-weight:700; color:#38bdf8; text-align:center; vertical-align:middle; background:rgba(15,23,42,0.45); line-height:1.45;">상호<br>작용성</td>
-                        <td style="padding:12px 16px; vertical-align:middle;">정적 이미지 (Static Image)</td>
-                        <td style="padding:12px 16px; vertical-align:middle;">정적 이미지 (Static Image)</td>
                         <td style="padding:12px 16px; color:#38bdf8; font-weight:600; vertical-align:middle;">동적 인터랙티브 (줌, 팬, 툴팁, 범례 클릭 토글)</td>
+                        <td style="padding:12px 16px; vertical-align:middle;">정적 이미지 (Static Image)</td>
+                        <td style="padding:12px 16px; vertical-align:middle;">정적 이미지 (Static Image)</td>
                     </tr>
                     <tr style="border-bottom:1px solid #334155;">
                         <td style="padding:14px 8px; width:95px; min-width:90px; font-weight:700; color:#38bdf8; text-align:center; vertical-align:middle; background:rgba(15,23,42,0.45); line-height:1.45;">주요<br>장점</td>
-                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">픽셀 단위 축, 눈금, 폰트, 레이아웃의 완전한 제어 가능</td>
-                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">적은 코드로 미려한 통계 회귀선 및 분포 표현</td>
                         <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">마우스 호버만으로 정확한 환자 수 실시간 확인</td>
+                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">적은 코드로 미려한 통계 회귀선 및 분포 표현</td>
+                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">픽셀 단위 축, 눈금, 폰트, 레이아웃의 완전한 제어 가능</td>
                     </tr>
                     <tr>
                         <td style="padding:14px 8px; width:95px; min-width:90px; font-weight:700; color:#38bdf8; text-align:center; vertical-align:middle; background:rgba(15,23,42,0.45); line-height:1.45;">수업 활용<br>추천</td>
-                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">학술 보고서 제출, 정밀 인쇄물·연구 포스터 제작</td>
-                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">역학 상관관계 분석, 연령대별 다변량 분포 탐색</td>
                         <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">학급 웹 대시보드 발표, 학생 실시간 데이터 탐구 실습</td>
+                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">역학 상관관계 분석, 연령대별 다변량 분포 탐색</td>
+                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">학술 보고서 제출, 정밀 인쇄물·연구 포스터 제작</td>
                     </tr>
                 </tbody>
             </table>
