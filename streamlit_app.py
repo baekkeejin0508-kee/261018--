@@ -3111,45 +3111,21 @@ elif menu == "4. 학교 집단감염 예방 시뮬레이터":
 elif menu == "5. AI 보건 튜터(Q&A)":
     st.subheader("🤖 AI 보건 튜터(Q&A): 법정감염병 1급~4급 종합 탐구실")
     st.markdown("""
-    원하는 **법정감염병 급수와 질병을 버튼 또는 드롭다운에서 선택**하면, 
-    AI 보건 튜터가 해당 질병의 **병원체, 전파 경로, 원인, 증상, 최근 추세, 예방법, 치료 및 학교 보건실 관리 대책**을 체계적으로 종합 분석해 드립니다.
+    법정감염병 급수 버튼 또는 드롭다운에서 질병을 선택하면, 해당 질병의 병원체, 전파 경로, 원인, 증상, 최근 추세, 예방법 및 관리 대책을 체계적으로 종합 분석합니다.
     """)
 
-    # 1단계, 2단계 버튼 드롭다운 UI (1~4급 각 18종 완비)
-    st.markdown("##### 🔍 [1단계] 탐구할 법정감염병 급수 선택 (버튼 클릭 시 해당 급수 18종 드롭다운 연동)")
-    
-    if "tutor_tier_btn" not in st.session_state:
-        st.session_state["tutor_tier_btn"] = "제4급 감염병 (18종)"
-
-    t_b1, t_b2, t_b3, t_b4 = st.columns(4)
-    with t_b1:
-        if st.button("🔴 제1급 감염병 (18종)", use_container_width=True, key="tutor_btn_t1", type="primary" if "제1급" in st.session_state["tutor_tier_btn"] else "secondary"):
-            st.session_state["tutor_tier_btn"] = "제1급 감염병 (18종)"
-            st.rerun()
-    with t_b2:
-        if st.button("🟠 제2급 감염병 (18종)", use_container_width=True, key="tutor_btn_t2", type="primary" if "제2급" in st.session_state["tutor_tier_btn"] else "secondary"):
-            st.session_state["tutor_tier_btn"] = "제2급 감염병 (18종)"
-            st.rerun()
-    with t_b3:
-        if st.button("🟡 제3급 감염병 (18종)", use_container_width=True, key="tutor_btn_t3", type="primary" if "제3급" in st.session_state["tutor_tier_btn"] else "secondary"):
-            st.session_state["tutor_tier_btn"] = "제3급 감염병 (18종)"
-            st.rerun()
-    with t_b4:
-        if st.button("🔵 제4급 감염병 (18종)", use_container_width=True, key="tutor_btn_t4", type="primary" if "제4급" in st.session_state["tutor_tier_btn"] else "secondary"):
-            st.session_state["tutor_tier_btn"] = "제4급 감염병 (18종)"
-            st.rerun()
+    # 1단계, 2단계 드롭다운 UI (1~4급 각 18종 완비)
+    st.markdown("##### 🔍 [1단계] 탐구할 법정감염병 선택 【급수별 18종 완비】")
 
     tier_col, disease_col = st.columns(2)
     with tier_col:
         t_keys = list(TIER_DISEASE_MAP.keys())
-        cur_t_idx = t_keys.index(st.session_state["tutor_tier_btn"]) if st.session_state["tutor_tier_btn"] in t_keys else 3
-        selected_tier_name = st.selectbox("📌 1단계: 법정감염병 급수 선택 (1~4급 분리)", options=t_keys, index=cur_t_idx, key="tutor_tier_select")
-        if selected_tier_name != st.session_state["tutor_tier_btn"]:
-            st.session_state["tutor_tier_btn"] = selected_tier_name
+        default_tier_idx = 3 if len(t_keys) > 3 else 0  # 기본 제4급 감염병 (18종)
+        selected_tier_name = st.selectbox("📌 1단계: 법정감염병 급수 선택 (1~4급 분리)", options=t_keys, index=default_tier_idx, key="tutor_tier_select")
 
     with disease_col:
         sub_diseases = TIER_DISEASE_MAP[selected_tier_name]
-        default_idx = 1 if (selected_tier_name == "제4급 감염병 (18종)" and len(sub_diseases) > 1 and "인플루엔자" in sub_diseases) else 0
+        default_idx = 1 if ("제4급" in selected_tier_name and len(sub_diseases) > 1 and "인플루엔자" in sub_diseases) else 0
         selected_disease_name = st.selectbox("🦠 2단계: 세부 감염병 선택 (최근 빈발 18종)", options=sub_diseases, index=default_idx, key="tutor_disease_select")
 
     dis_info = get_disease_info(selected_tier_name, selected_disease_name)
