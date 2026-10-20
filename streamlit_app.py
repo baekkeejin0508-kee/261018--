@@ -12,6 +12,7 @@ import plotly.graph_objects as go
 import matplotlib.pyplot as plt
 import matplotlib.font_manager as fm
 import matplotlib.ticker as ticker
+import matplotlib.patheffects as pe
 import seaborn as sns
 from pathlib import Path
 
@@ -297,46 +298,73 @@ def load_total_data():
     return pd.DataFrame()
 
 
-def load_uploaded_dataframe(file_obj) -> pd.DataFrame:
-    """사용자가 업로드한 CSV 파일을 다양한 인코딩(BOM UTF-8, UTF-8, CP949 등)으로 안전하게 읽어오는 함수"""
-    if file_obj is None or getattr(file_obj, "size", 1) == 0:
-        raise ValueError("업로드된 파일이 비어 있습니다 (0 Byte). 데이터가 포함된 질병관리청 형식 CSV 파일을 선택해 주세요.")
+def load_uploaded_dataframe(file_input) -> pd.DataFrame:
+    """사용자가 업로드한 1개 또는 2개 이상의 CSV 파일들을 안전하게 병합하여 읽어오는 함수"""
+    if not file_input:
+        raise ValueError("업로드된 파일이 없습니다. CSV 파일을 선택해 주세요.")
 
-    df = None
-    encodings_to_try = ["utf-8-sig", "utf-8", "cp949", "euc-kr"]
-    for enc in encodings_to_try:
-        try:
-            file_obj.seek(0)
-            df = pd.read_csv(file_obj, encoding=enc)
-            if not df.empty and len(df.columns) >= 2:
-                break
-        except Exception:
+    file_list = file_input if isinstance(file_input, list) else [file_input]
+    dfs = []
+
+    for f_obj in file_list:
+        if f_obj is None or getattr(f_obj, "size", 1) == 0:
+            continue
+        df_sub = None
+        encodings_to_try = ["utf-8-sig", "utf-8", "cp949", "euc-kr"]
+        for enc in encodings_to_try:
+            try:
+                f_obj.seek(0)
+                df_sub = pd.read_csv(f_obj, encoding=enc)
+                if not df_sub.empty and len(df_sub.columns) >= 2:
+                    break
+            except Exception:
+                continue
+
+        if df_sub is None or df_sub.empty:
             continue
 
-    if df is None or df.empty:
-        raise ValueError("CSV 파일에 유효한 데이터 행이 없습니다. 빈 파일이 아닌지 확인해 주세요.")
+        # BOM(\ufeff) 및 컬럼 공백 제거
+        df_sub.columns = [str(c).replace('\ufeff', '').strip() for c in df_sub.columns]
+        for col in df_sub.select_dtypes(include='object').columns:
+            df_sub[col] = df_sub[col].astype(str).str.strip()
 
-    # BOM(\ufeff) 및 컬럼 공백 제거
-    df.columns = [str(c).replace('\ufeff', '').strip() for c in df.columns]
-    for col in df.select_dtypes(include='object').columns:
-        df[col] = df[col].astype(str).str.strip()
+        # 파일명 기반 감염병명 후보 추출 (예: '수두_발생현황_2019_2025.csv' -> '수두', '홍역.csv' -> '홍역')
+        f_name = getattr(f_obj, "name", "")
+        guessed_disease = ""
+        if f_name:
+            clean_fname = f_name.replace(".csv", "").strip()
+            guessed_disease = clean_fname.split("_")[0].strip()
 
-    # 필수 열 유무 검사 및 유연한 매핑
-    if "신규환자수" not in df.columns:
-        cand_counts = [c for c in df.columns if any(w in c for w in ["환자수", "발생수", "신고건수", "건수", "환자"])]
-        if cand_counts:
-            df["신규환자수"] = df[cand_counts[0]]
+        # 필수 열 유무 검사 및 유연한 매핑
+        if "신규환자수" not in df_sub.columns:
+            cand_counts = [c for c in df_sub.columns if any(w in c for w in ["환자수", "발생수", "신고건수", "건수", "환자"])]
+            if cand_counts:
+                df_sub["신규환자수"] = df_sub[cand_counts[0]]
+            else:
+                raise ValueError(f"파일({f_name or 'CSV'})에 필수 열인 '신규환자수'(또는 환자수/신고건수)가 누락되었습니다.")
+
+        if "감염병명" not in df_sub.columns:
+            cand_names = [c for c in df_sub.columns if any(w in c for w in ["감염병", "질병", "질환", "병명"])]
+            if cand_names:
+                df_sub["감염병명"] = df_sub[cand_names[0]]
+            elif guessed_disease:
+                df_sub["감염병명"] = guessed_disease
+            else:
+                df_sub["감염병명"] = "업로드감염병"
         else:
-            raise ValueError("CSV 파일에 필수 열인 '신규환자수'(또는 환자수/신고건수)가 누락되었습니다.")
+            # 감염병명 컬럼이 존재하더라도 비어있거나 '전체'인 행은 파일명으로 보정
+            if guessed_disease:
+                mask_blank = df_sub["감염병명"].isna() | (df_sub["감염병명"].astype(str).str.strip().isin(["", "전체", "nan", "None"]))
+                df_sub.loc[mask_blank, "감염병명"] = guessed_disease
 
-    if "감염병명" not in df.columns:
-        cand_names = [c for c in df.columns if any(w in c for w in ["감염병", "질병", "질환", "병명"])]
-        if cand_names:
-            df["감염병명"] = df[cand_names[0]]
-        else:
-            df["감염병명"] = "사용자 업로드 감염병"
+        dfs.append(df_sub)
 
-    return ensure_dataset_integrity(df)
+    if not dfs:
+        raise ValueError("유효한 CSV 데이터를 읽지 못했습니다. 파일 내용 및 형식을 확인해 주세요.")
+
+    combined_df = pd.concat(dfs, ignore_index=True)
+    return ensure_dataset_integrity(combined_df)
+
 
 
 # 서울의료보건고 로고 "원형 엠블럼 그림만" base64 인코딩
@@ -1971,19 +1999,61 @@ with st.sidebar:
     st.subheader("📂 데이터 소스 관리")
     data_mode = st.radio("데이터 소스 선택", ["질병관리청 표준 데이터 (2019~2025)", "내 CSV 파일 직접 업로드"], key="data_source_mode")
     if data_mode == "내 CSV 파일 직접 업로드":
-        up_file = st.file_uploader("CSV 파일 업로드 (질병관리청 형식)", type=["csv"])
-        if up_file:
+        st.info("💡 **다중 비교 안내**: Ctrl 또는 Shift를 누른 채 클릭하거나 여러 CSV 파일을 한 번에 드래그하면 2~3종 감염병을 동시에 비교 분석할 수 있습니다.")
+        up_files = st.file_uploader(
+            "📂 CSV 파일 다중 업로드 (수두, 홍역, 백일해 등 2개 이상 선택)",
+            type=["csv"],
+            accept_multiple_files=True,
+            help="수두, 홍역, 백일해 등 2개 이상의 CSV 파일을 파일 탐색기에서 한 번에 선택하거나 드래그하여 업로드하세요."
+        )
+
+        # 원클릭 실습용 로컬 3종 샘플 데이터 로드 기능
+        st.markdown("<div style='font-size:0.83rem; color:#94a3b8; margin-top:6px;'>🧪 <b>수업 실습용 원클릭 샘플</b> (CSV 파일이 준비되지 않았을 때)</div>", unsafe_allow_html=True)
+        if st.button("🚀 [원클릭 로드] 수두 + 홍역 + 백일해 3종 데이터 불러오기", use_container_width=True, key="btn_load_preset_3"):
+            st.session_state["use_preset_multi_csv"] = True
+            st.session_state["preset_loaded_notice"] = True
+            st.rerun()
+
+        if st.session_state.get("use_preset_multi_csv", False) and not up_files:
             try:
-                working_df = load_uploaded_dataframe(up_file)
-                up_dis_list = working_df["감염병명"].unique().tolist() if "감염병명" in working_df.columns else []
-                st.success(f"✅ 데이터 로드 성공: {len(working_df):,}건 ({', '.join(up_dis_list[:3])})")
+                preset_paths = [
+                    DATA_DIR / "수두_발생현황_2019_2025.csv",
+                    DATA_DIR / "홍역_발생현황_2019_2025.csv",
+                    DATA_DIR / "백일해_발생현황_2019_2025.csv"
+                ]
+                preset_dfs = []
+                for p_p in preset_paths:
+                    if p_p.exists():
+                        p_df = pd.read_csv(p_p)
+                        preset_dfs.append(p_df)
+                if preset_dfs:
+                    working_df = ensure_dataset_integrity(pd.concat(preset_dfs, ignore_index=True))
+                    up_dis_list = [str(d) for d in working_df["감염병명"].unique() if str(d).strip()]
+                    st.success(f"🧪 **실습용 3종 데이터 활성화**: {', '.join(up_dis_list)} (총 {len(working_df):,}건)")
+                    st.caption("📁 수두, 홍역, 백일해 3개 감염병 비교 분석 모드가 즉시 가동됩니다.")
+                else:
+                    working_df = df_all
+            except Exception as e:
+                st.error(f"샘플 로드 오류: {e}")
+                working_df = df_all
+        elif up_files:
+            st.session_state["use_preset_multi_csv"] = False
+            try:
+                working_df = load_uploaded_dataframe(up_files)
+                up_dis_list = [str(d) for d in working_df["감염병명"].unique() if str(d).strip()] if "감염병명" in working_df.columns else []
+                if len(up_dis_list) >= 2:
+                    st.success(f"🎉 **다중 감염병 비교 로드 완료**: 총 {len(working_df):,}건 ({len(up_dis_list)}종: {', '.join(up_dis_list)})")
+                else:
+                    st.warning(f"⚠️ 현재 1개 감염병({up_dis_list[0] if up_dis_list else '알수없음'})만 로드되었습니다. 2~3종 비교 분석을 위해 수두, 백일해 등 추가 CSV 파일도 함께 드래그해 보세요!")
+                st.caption(f"📁 총 {len(up_files)}개 파일 병합: " + ", ".join([f.name for f in up_files]))
             except Exception as e:
                 st.error(f"오류: {e}")
                 working_df = df_all
         else:
             working_df = df_all
-            st.info("파일 업로드 전까지 표준 데이터가 적용됩니다.")
+            st.info("💡 파일을 업로드하지 않은 상태에서는 질병관리청 표준 데이터(63종)가 기본 적용됩니다.")
     else:
+        st.session_state["use_preset_multi_csv"] = False
         working_df = df_all
         st.success("표준 데이터 (56,700건 완비) 적용 중")
 
@@ -2210,7 +2280,7 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
 
     # 업로드 데이터 감염병 자동 감지 및 스마트 선택 동기화
     uploaded_diseases = [d for d in working_df["감염병명"].dropna().unique() if str(d).strip()] if "감염병명" in working_df.columns else []
-    is_uploaded_data = (data_mode == "내 CSV 파일 직접 업로드" and len(uploaded_diseases) > 0)
+    is_uploaded_data = (data_mode == "내 CSV 파일 직접 업로드" and len(uploaded_diseases) > 0) or st.session_state.get("use_preset_multi_csv", False)
 
     tier_list_keys = list(TIER_DISEASE_MAP.keys())
     
@@ -2225,7 +2295,7 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
         st.session_state["m2_tier_dropdown"] = t_name
 
     # 업로드된 파일 감염병의 급수로 자동 연동
-    if is_uploaded_data:
+    if is_uploaded_data and uploaded_diseases:
         first_dis = uploaded_diseases[0]
         detected_tier = DISEASE_INFO_DB.get(first_dis, {}).get("tier", None)
         if detected_tier:
@@ -2263,13 +2333,16 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                   on_click=select_m2_tier, args=(t4,))
 
     if is_uploaded_data:
-        st.success(f"📂 **업로드 데이터 자동 감지 완료**: `{', '.join(uploaded_diseases)}` (총 {len(working_df):,}건 분석 준비 완료)")
+        st.success(f"📂 **업로드 데이터 연동 완료**: `{', '.join(uploaded_diseases)}` (총 {len(working_df):,}건 분석 준비 완료)")
 
     sel_c1, sel_c2 = st.columns([1, 1.2])
     with sel_c1:
+        # 업로드된 질병이 2개 이상이면 '복수 감염병 비교 분석'을 기본 활성화
+        default_analysis_idx = 1 if (is_uploaded_data and len(uploaded_diseases) >= 2) else 0
         analysis_type = st.selectbox(
             "📌 분석 모드 선택",
             ["단일 감염병 집중 분석", "복수 감염병 비교 분석"],
+            index=default_analysis_idx,
             help="1개 질병을 집중 분석하거나 2~3개 질병을 나란히 비교합니다."
         )
 
@@ -2278,8 +2351,8 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
 
     with sel_c2:
         all_opts = tier_list_keys + ["전체 133종 보기"]
-        cur_dd_val = st.session_state.get("m2_tier_dropdown", tier_list_keys[3])
-        cur_t_idx = all_opts.index(cur_dd_val) if cur_dd_val in all_opts else 3
+        cur_dd_val = st.session_state.get("m2_tier_dropdown", tier_list_keys[1] if is_uploaded_data else tier_list_keys[3])
+        cur_t_idx = all_opts.index(cur_dd_val) if cur_dd_val in all_opts else 1
         tier_filter = st.selectbox(
             "🏷️ 법정감염병 급수 확인 및 드롭다운 선택",
             options=all_opts,
@@ -2296,24 +2369,29 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
     else:
         scoped_diseases = list(TIER_DISEASE_MAP.get(tier_filter, []))
 
-    # 업로드된 파일의 감염병이 있을 경우 scoped_diseases 최우선 배치
-    if is_uploaded_data:
+    # 업로드된 파일의 감염병이 있을 경우 scoped_diseases 최우선 배치 및 미포함 질병도 강제 추가
+    if is_uploaded_data and uploaded_diseases:
         for ud in reversed(uploaded_diseases):
             if ud in scoped_diseases:
                 scoped_diseases.remove(ud)
             scoped_diseases.insert(0, ud)
 
     # 2단계: 대상 감염병 설정
-    st.markdown(f"##### ⚙️ 2단계: 대상 감염병 선택 ({tier_filter} 소속 {len(scoped_diseases)}종)")
+    st.markdown(f"##### ⚙️ 2단계: 대상 감염병 선택 ({len(scoped_diseases)}종)")
     if analysis_type == "단일 감염병 집중 분석":
         chosen_single = st.selectbox("🦠 분석 대상 감염병 선택", options=scoped_diseases, index=0 if scoped_diseases else None)
         target_diseases = [chosen_single] if chosen_single else []
     else:
-        default_targets = [d for d in scoped_diseases if d in uploaded_diseases] if is_uploaded_data else scoped_diseases[:2]
-        if not default_targets:
+        # 업로드된 질병들이 있다면 우선적으로 모두 기본값으로 선택하여 바로 비교되도록 지원
+        if is_uploaded_data and uploaded_diseases:
+            default_targets = [d for d in uploaded_diseases if d in scoped_diseases]
+            if not default_targets:
+                default_targets = uploaded_diseases[:3]
+        else:
             default_targets = scoped_diseases[:2] if len(scoped_diseases) >= 2 else scoped_diseases
+
         target_diseases = st.multiselect(
-            "🦠 비교할 감염병 선택 (2~3개 선택 가능)",
+            "🦠 비교할 감염병 선택 (2~4개 선택 가능)",
             options=scoped_diseases,
             default=default_targets
         )
@@ -2435,21 +2513,22 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     ax_s.set_title("연도별 감염병 환자 발생 비교 (Seaborn)")
                     max_val_s = ts["신규환자수"].max() if not ts.empty else 0
                     if max_val_s > 0:
-                        ax_s.set_ylim(0, max_val_s * 1.25)
-                    # 막대 위 숫자를 x좌표 순으로 정렬하여 지그재그(교차) 오프셋 배치 -> 가로 숫자 겹침 방지 및 흰색 볼드 선명도 확보
+                        ax_s.set_ylim(0, max_val_s * 1.35)
                     valid_patches = sorted([p for p in ax_s.patches if p.get_height() > 0], key=lambda p: p.get_x())
-                    for idx, p in enumerate(valid_patches):
+                    for p in valid_patches:
                         h = p.get_height()
-                        y_off = 14 if (idx % 2 == 1) else 4
                         ax_s.annotate(
                             f"{int(h):,}",
                             (p.get_x() + p.get_width() / 2, h),
                             textcoords="offset points",
-                            xytext=(0, y_off),
-                            ha='center',
+                            xytext=(2, 4),
+                            ha='left',
+                            va='bottom',
+                            rotation=40,
                             fontsize=7.5,
                             color='#ffffff',
-                            weight='bold'
+                            weight='bold',
+                            path_effects=[pe.withStroke(linewidth=2.5, foreground='#0f172a')]
                         )
                     ax_s.set_xticks(range(len(years)))
                     ax_s.set_xticklabels(year_labels, rotation=0)
@@ -2504,13 +2583,11 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     bar_w = 0.8 / n_dis
                     max_val_m = ts["신규환자수"].max() if not ts.empty else 0
                     if max_val_m > 0:
-                        ax_m.set_ylim(0, max_val_m * 1.25)
+                        ax_m.set_ylim(0, max_val_m * 1.35)
                     for i, d_name in enumerate(target_diseases):
                         sub = ts[ts["감염병명"] == d_name].set_index("연도").reindex(years, fill_value=0)
                         offsets = [idx + (i - n_dis / 2 + 0.5) * bar_w for idx in range(len(years))]
                         bars_m = ax_m.bar(offsets, sub["신규환자수"], width=bar_w, label=d_name, color=palette_colors[i % len(palette_colors)], edgecolor="#1e293b")
-                        # 이웃 막대 간 겹침 방지를 위해 지그재그(교차) 오프셋 적용 및 흰색 볼드체 적용
-                        y_off = 14 if (i % 2 == 1) else 4
                         for b in bars_m:
                             h = b.get_height()
                             if h > 0:
@@ -2518,11 +2595,14 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                                     f"{int(h):,}",
                                     (b.get_x() + b.get_width() / 2, h),
                                     textcoords="offset points",
-                                    xytext=(0, y_off),
-                                    ha='center',
+                                    xytext=(2, 4),
+                                    ha='left',
+                                    va='bottom',
+                                    rotation=40,
                                     fontsize=7.5,
                                     color='#ffffff',
-                                    weight='bold'
+                                    weight='bold',
+                                    path_effects=[pe.withStroke(linewidth=2.5, foreground='#0f172a')]
                                 )
                     ax_m.set_title("연도별 감염병 환자 발생 비교 (Matplotlib 막대)")
                     ax_m.set_xticks(range(len(years)))
@@ -2535,7 +2615,8 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     ax_m.set_xticks(years)
                     ax_m.set_xticklabels(year_labels, rotation=0)
 
-                ax_m.set_xlabel("발생 연도")
+                ax_s_xlabel = "발생 연도"
+                ax_m.set_xlabel(ax_s_xlabel)
                 ax_m.set_ylabel("신규 환자 수(명)")
                 ax_m.tick_params(axis='x', rotation=0)
                 ax_m.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, p: f"{int(x):,}"))
@@ -2584,7 +2665,24 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     with d_col2:
                         fig_s_donut, ax_sd = plt.subplots(figsize=(5.0, 3.6), dpi=100)
                         apply_dark_plot_style(fig_s_donut, ax_sd)
-                        ax_sd.pie(active_pie_df["신규환자수"], labels=active_pie_df[p_name], autopct="%1.1f%%", colors=palette_colors[:len(active_pie_df)], radius=0.78, pctdistance=0.62, textprops={'color': '#f8fafc', 'fontsize': 8.5})
+                        patches_d, texts_d, autotexts_d = ax_sd.pie(
+                            active_pie_df["신규환자수"],
+                            labels=active_pie_df[p_name],
+                            autopct="%1.1f%%",
+                            colors=palette_colors[:len(active_pie_df)],
+                            radius=0.82,
+                            pctdistance=0.65
+                        )
+                        for t in texts_d:
+                            t.set_color('#ffffff')
+                            t.set_fontsize(9)
+                            t.set_weight('bold')
+                        for at in autotexts_d:
+                            at.set_color('#0f172a')
+                            at.set_fontsize(10)
+                            at.set_weight('bold')
+                            at.set_path_effects([pe.withStroke(linewidth=1.8, foreground='#ffffff')])
+
                         ax_sd.add_artist(plt.Circle((0,0), 0.45, fc='#0f172a'))
                         ax_sd.set_title(f"{p_title} (Seaborn 통계 도넛)", fontsize=10.5, pad=8, color="#f8fafc")
                         plt.tight_layout()
@@ -2639,21 +2737,23 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     ax_s.set_title("감염병별 연령대 환자 분포 비교 (Seaborn)")
                     max_age_val = age_melted["환자수"].max() if not age_melted.empty else 0
                     if max_age_val > 0:
-                        ax_s.set_ylim(0, max_age_val * 1.25)
-                    # 막대 위 숫자를 x좌표 순으로 정렬하여 지그재그(교차) 오프셋 배치
+                        ax_s.set_ylim(0, max_age_val * 1.35)
+                    # 막대 위 숫자를 40도 회전 및 2.5px 다크 테두리 적용하여 겹침 원천 방지
                     valid_patches = sorted([p for p in ax_s.patches if p.get_height() > 0], key=lambda p: p.get_x())
-                    for idx, p in enumerate(valid_patches):
+                    for p in valid_patches:
                         h = p.get_height()
-                        y_off = 13 if (idx % 2 == 1) else 4
                         ax_s.annotate(
                             f"{int(h):,}",
                             (p.get_x() + p.get_width() / 2, h),
                             textcoords="offset points",
-                            xytext=(0, y_off),
-                            ha='center',
-                            fontsize=7,
+                            xytext=(2, 4),
+                            ha='left',
+                            va='bottom',
+                            rotation=40,
+                            fontsize=7.5,
                             color='#ffffff',
-                            weight='bold'
+                            weight='bold',
+                            path_effects=[pe.withStroke(linewidth=2.5, foreground='#0f172a')]
                         )
                     ax_s.set_xlabel("감염병명")
                 else:
@@ -2703,11 +2803,10 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     bar_w = 0.8 / n_sub
                     max_age_val_m = age_grp[age_cols].values.max() if not age_grp.empty else 0
                     if max_age_val_m > 0:
-                        ax_m.set_ylim(0, max_age_val_m * 1.25)
+                        ax_m.set_ylim(0, max_age_val_m * 1.35)
                     for i, c_name in enumerate(age_cols):
                         offsets = [idx + (i - n_sub / 2 + 0.5) * bar_w for idx in range(n_groups)]
                         bars_m = ax_m.bar(offsets, age_grp[c_name], width=bar_w, label=c_name, color=palette_colors[i % len(palette_colors)], edgecolor="#1e293b")
-                        y_off = 13 if (i % 2 == 1) else 4
                         for b in bars_m:
                             h = b.get_height()
                             if h > 0:
@@ -2715,11 +2814,14 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                                     f"{int(h):,}",
                                     (b.get_x() + b.get_width() / 2, h),
                                     textcoords="offset points",
-                                    xytext=(0, y_off),
-                                    ha='center',
-                                    fontsize=7,
+                                    xytext=(2, 4),
+                                    ha='left',
+                                    va='bottom',
+                                    rotation=40,
+                                    fontsize=7.5,
                                     color='#ffffff',
-                                    weight='bold'
+                                    weight='bold',
+                                    path_effects=[pe.withStroke(linewidth=2.5, foreground='#0f172a')]
                                 )
                     ax_m.set_title("감염병별 5개 연령대 환자 비교 (Matplotlib 막대)")
                     ax_m.set_xticks(range(n_groups))
@@ -2768,7 +2870,25 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     with d_col2:
                         fig_s_donut, ax_sd = plt.subplots(figsize=(5.0, 3.6), dpi=100)
                         apply_dark_plot_style(fig_s_donut, ax_sd)
-                        ax_sd.pie(active_tot_age["환자수"], labels=active_tot_age["연령대"], autopct="%1.1f%%", colors=sns.color_palette("Blues_r", len(active_tot_age)), radius=0.78, pctdistance=0.62, textprops={'color': '#f8fafc', 'fontsize': 8.5})
+                        patches_d, texts_d, autotexts_d = ax_sd.pie(
+                            active_tot_age["환자수"],
+                            labels=active_tot_age["연령대"],
+                            autopct="%1.1f%%",
+                            colors=palette_colors[:len(active_tot_age)],
+                            radius=0.82,
+                            pctdistance=0.65
+                        )
+                        for t in texts_d:
+                            t.set_color('#ffffff')
+                            t.set_fontsize(8.5)
+                            t.set_weight('bold')
+                            t.set_path_effects([pe.withStroke(linewidth=2.0, foreground='#0f172a')])
+                        for at in autotexts_d:
+                            at.set_color('#0f172a')
+                            at.set_fontsize(10.0)
+                            at.set_weight('bold')
+                            at.set_path_effects([pe.withStroke(linewidth=2.0, foreground='#ffffff')])
+
                         ax_sd.add_artist(plt.Circle((0,0), 0.45, fc='#0f172a'))
                         ax_sd.set_title("5개 연령대별 환자 점유율 (Seaborn 도넛)", fontsize=10.5, pad=8, color="#f8fafc")
                         plt.tight_layout()
@@ -2948,7 +3068,25 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     with d_col2:
                         fig_s_donut, ax_sd = plt.subplots(figsize=(5.0, 3.6), dpi=100)
                         apply_dark_plot_style(fig_s_donut, ax_sd)
-                        ax_sd.pie(active_global_df["신규환자수"], labels=active_global_df["지역"], autopct="%1.1f%%", colors=sns.color_palette("mako", len(active_global_df)), radius=0.78, pctdistance=0.62, textprops={'color': '#f8fafc', 'fontsize': 8.0})
+                        patches_d, texts_d, autotexts_d = ax_sd.pie(
+                            active_global_df["신규환자수"],
+                            labels=active_global_df["지역"],
+                            autopct="%1.1f%%",
+                            colors=palette_colors[:len(active_global_df)],
+                            radius=0.82,
+                            pctdistance=0.65
+                        )
+                        for t in texts_d:
+                            t.set_color('#ffffff')
+                            t.set_fontsize(8.5)
+                            t.set_weight('bold')
+                            t.set_path_effects([pe.withStroke(linewidth=2.0, foreground='#0f172a')])
+                        for at in autotexts_d:
+                            at.set_color('#0f172a')
+                            at.set_fontsize(10.0)
+                            at.set_weight('bold')
+                            at.set_path_effects([pe.withStroke(linewidth=2.0, foreground='#ffffff')])
+
                         ax_sd.add_artist(plt.Circle((0,0), 0.45, fc='#0f172a'))
                         ax_sd.set_title("해외 주요국 발생 비중 (Seaborn 도넛)", fontsize=10.5, pad=8, color="#f8fafc")
                         plt.tight_layout()
@@ -3018,12 +3156,23 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     ax_s.set_title("국내 17개 시도별 환자 분포 (Seaborn)")
                     max_k_s = korea_df["신규환자수"].max() if not korea_df.empty else 0
                     if max_k_s > 0:
-                        ax_s.set_ylim(0, max_k_s * 1.25)
+                        ax_s.set_ylim(0, max_k_s * 1.35)
                     valid_patches = sorted([p for p in ax_s.patches if p.get_height() > 0], key=lambda p: p.get_x())
-                    for idx, p in enumerate(valid_patches):
+                    for p in valid_patches:
                         h = p.get_height()
-                        y_off = 13 if (idx % 2 == 1) else 4
-                        ax_s.annotate(f"{int(h):,}", (p.get_x() + p.get_width() / 2, h), textcoords="offset points", xytext=(0, y_off), ha='center', fontsize=7, color='#ffffff', weight='bold')
+                        ax_s.annotate(
+                            f"{int(h):,}",
+                            (p.get_x() + p.get_width() / 2, h),
+                            textcoords="offset points",
+                            xytext=(2, 4),
+                            ha='left',
+                            va='bottom',
+                            rotation=40,
+                            fontsize=7.5,
+                            color='#ffffff',
+                            weight='bold',
+                            path_effects=[pe.withStroke(linewidth=2.5, foreground='#0f172a')]
+                        )
                     ax_s.set_xlabel("지역(시도)")
                     ax_s.set_ylabel("신규 환자 수(명)")
                     ax_s.tick_params(axis='x', rotation=45, labelsize=8)
@@ -3078,12 +3227,23 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     bars_km = ax_m.bar(korea_df["지역"], korea_df["신규환자수"], color=bar_colors, edgecolor="#1e293b")
                     max_k_m = korea_df["신규환자수"].max() if not korea_df.empty else 0
                     if max_k_m > 0:
-                        ax_m.set_ylim(0, max_k_m * 1.25)
-                    for idx, b in enumerate(bars_km):
+                        ax_m.set_ylim(0, max_k_m * 1.35)
+                    for b in bars_km:
                         h = b.get_height()
                         if h > 0:
-                            y_off = 13 if (idx % 2 == 1) else 4
-                            ax_m.annotate(f"{int(h):,}", (b.get_x() + b.get_width() / 2, h), textcoords="offset points", xytext=(0, y_off), ha='center', fontsize=7, color='#ffffff', weight='bold')
+                            ax_m.annotate(
+                                f"{int(h):,}",
+                                (b.get_x() + b.get_width() / 2, h),
+                                textcoords="offset points",
+                                xytext=(2, 4),
+                                ha='left',
+                                va='bottom',
+                                rotation=40,
+                                fontsize=7.5,
+                                color='#ffffff',
+                                weight='bold',
+                                path_effects=[pe.withStroke(linewidth=2.5, foreground='#0f172a')]
+                            )
                     ax_m.set_title("국내 17개 시도별 환자 발생 통계 (Matplotlib 상위 시도 강조)")
                     ax_m.set_xlabel("지역(시도)")
                     ax_m.set_ylabel("신규 환자 수(명)")
@@ -3130,7 +3290,25 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     with d_col2:
                         fig_s_donut, ax_sd = plt.subplots(figsize=(5.0, 3.6), dpi=100)
                         apply_dark_plot_style(fig_s_donut, ax_sd)
-                        ax_sd.pie(active_top6["신규환자수"], labels=active_top6["지역"], autopct="%1.1f%%", colors=sns.color_palette("crest", len(active_top6)), radius=0.78, pctdistance=0.62, textprops={'color': '#f8fafc', 'fontsize': 8.0})
+                        patches_d, texts_d, autotexts_d = ax_sd.pie(
+                            active_top6["신규환자수"],
+                            labels=active_top6["지역"],
+                            autopct="%1.1f%%",
+                            colors=palette_colors[:len(active_top6)],
+                            radius=0.82,
+                            pctdistance=0.65
+                        )
+                        for t in texts_d:
+                            t.set_color('#ffffff')
+                            t.set_fontsize(8.5)
+                            t.set_weight('bold')
+                            t.set_path_effects([pe.withStroke(linewidth=2.0, foreground='#0f172a')])
+                        for at in autotexts_d:
+                            at.set_color('#0f172a')
+                            at.set_fontsize(10.0)
+                            at.set_weight('bold')
+                            at.set_path_effects([pe.withStroke(linewidth=2.0, foreground='#ffffff')])
+
                         ax_sd.add_artist(plt.Circle((0,0), 0.45, fc='#0f172a'))
                         ax_sd.set_title("국내 상위 6대 시도 점유율 (Seaborn 도넛)", fontsize=10.5, pad=8, color="#f8fafc")
                         plt.tight_layout()
