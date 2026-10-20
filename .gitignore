@@ -1,7 +1,19 @@
+# Document & Media Copyright Protection (교과서, 계획안, 개인 문서 노출 차단)
+*.pdf
+*.hwp
+*.hwpx
+*.doc
+*.docx
+*.ppt
+*.pptx
+*.xls
+*.xlsx
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
 *$py.class
+
 
 # C extensions
 *.so

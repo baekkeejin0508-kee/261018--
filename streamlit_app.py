@@ -2532,6 +2532,103 @@ def generate_worksheet_markdown() -> str:
 """
 
 
+def generate_worksheet_hwp() -> bytes:
+    """한컴오피스 한글 프로그램(모든 버전)에서 바로 열어 편집할 수 있는 한글 문서 서식 생성 (원본 파일 미저장 인메모리 방식)"""
+    hwp_doc = """MIME-Version: 1.0
+Content-Type: text/html; charset="utf-8"
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>학생 탐구 활동지 - 서울의료보건고등학교 보건간호과</title>
+<style>
+body { font-family: '맑은 고딕', '바탕', '굴림', sans-serif; font-size: 11pt; line-height: 1.6; margin: 20mm 15mm; color: #000000; }
+h1 { font-size: 18pt; font-weight: bold; text-align: center; margin-bottom: 4px; }
+.sub { font-size: 10pt; text-align: center; color: #4b5563; margin-bottom: 16px; }
+table { width: 100%; border-collapse: collapse; margin-bottom: 12px; }
+th, td { border: 1px solid #000000; padding: 6px 10px; font-size: 10pt; }
+.bg-h { background-color: #f3f4f6; font-weight: bold; text-align: center; }
+.sec-t { font-size: 12pt; font-weight: bold; background-color: #e5e7eb; padding: 6px 10px; border: 1px solid #000000; margin-top: 14px; margin-bottom: 6px; }
+.notice { font-size: 9pt; color: #374151; border: 1px solid #9ca3af; padding: 8px 12px; background-color: #f9fafb; margin-top: 14px; line-height: 1.5; }
+</style>
+</head>
+<body>
+<h1>학생 탐구 활동지</h1>
+<div class="sub">서울의료보건고등학교 보건간호과 | 데이터 기반 감염병 융합 수업</div>
+<table>
+    <tr>
+        <th class="bg-h" style="width: 15%;">모 둠</th>
+        <td style="width: 35%;">제 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 모둠</td>
+        <th class="bg-h" style="width: 15%;">이 름</th>
+        <td style="width: 35%;">&nbsp;</td>
+    </tr>
+    <tr>
+        <th class="bg-h">관심 감염병</th>
+        <td>&nbsp;</td>
+        <th class="bg-h">탐구 일시</th>
+        <td>2026년 &nbsp;&nbsp;&nbsp;&nbsp;월 &nbsp;&nbsp;&nbsp;&nbsp;일</td>
+    </tr>
+</table>
+
+<div class="sec-t">1. 자료를 읽고 질문 만들기 (메뉴 1, 2, 3 연계)</div>
+<table>
+    <tr><th class="bg-h" style="width: 30%;">자료 제목과 제공기관</th><td>질병관리청 감염병포털 및 공공데이터 대시보드 (2019~2025)</td></tr>
+    <tr><th class="bg-h">원자료 URL · 다운로드 날짜</th><td>https://261018-aihealthtutor.streamlit.app/ (2026. 10. 19.)</td></tr>
+    <tr><th class="bg-h">자료 기간 · 지역 · 대상 · 단위</th><td>기간: 2019~2025년 / 지역: 국내 17개 시도 및 해외 10개국 / 단위: 신규 환자 수(명)</td></tr>
+    <tr><th class="bg-h">공식 통계 / 교사 재구성 모의 데이터</th><td>[ &nbsp;&nbsp; ] 공식 통계 &nbsp;&nbsp;&nbsp;&nbsp; [ &nbsp;&nbsp; ] 교사 재구성 모의 데이터<br>확인 이유: </td></tr>
+    <tr><th class="bg-h">비교 조건을 같게 한 두 수치</th><td>수치 A: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 와(과) &nbsp;&nbsp;&nbsp;&nbsp; 수치 B: </td></tr>
+    <tr><th class="bg-h">변화를 설명하는 문장</th><td>"_______년 _______명에서 _______년 _______명으로 총 _______명 (증가 / 감소)하였다."</td></tr>
+    <tr><th class="bg-h">원자료 확인 위치와 그래프 제목</th><td>메뉴: 2. 감염병 발생 현황 & 시각화 / 제목: </td></tr>
+    <tr><th class="bg-h">내가 궁금한 핵심 탐구 질문</th><td style="height: 45px;">&nbsp;</td></tr>
+    <tr><th class="bg-h">관찰 사실만으로 알 수 없는 점과 추가 근거</th><td style="height: 45px;">&nbsp;</td></tr>
+</table>
+
+<div class="sec-t">2. 보건 근거와 AI 도움 검토하기 (메뉴 5 AI_보건튜터 연계)</div>
+<table>
+    <tr><th class="bg-h" style="width: 30%;">병원체와 주요 전파 경로</th><td>병원체: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; / 전파 경로: </td></tr>
+    <tr><th class="bg-h">주요 증상과 도움 요청 상황</th><td>증상: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; / 대처: 보건실 일시대기실 격리 및 의료기관 진료</td></tr>
+    <tr><th class="bg-h">전파 경로와 연결되는 예방 행동 및 이유</th><td style="height: 40px;">&nbsp;</td></tr>
+    <tr><th class="bg-h">공식 출처 제목 · URL · 확인 날짜</th><td>출처: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; / 날짜: </td></tr>
+    <tr><th class="bg-h">내가 먼저 써 본 설명 (가설)</th><td style="height: 40px;">&nbsp;</td></tr>
+    <tr><th class="bg-h">AI_보건튜터에게 물은 질문</th><td>질문: </td></tr>
+    <tr><th class="bg-h">AI 답변에서 확인한 주장과 공식 근거</th><td style="height: 40px;">&nbsp;</td></tr>
+    <tr><th class="bg-h">[비판적 검토] 받아들인 내용 / 고친 내용</th><td style="height: 50px;">&nbsp;</td></tr>
+</table>
+
+<div class="sec-t">3. 예방 모형에서 조건을 비교하기 (메뉴 4 시뮬레이터 연계)</div>
+<table>
+    <thead>
+        <tr>
+            <th class="bg-h" style="width: 34%;">중재 조건 항목</th>
+            <th class="bg-h" style="width: 33%;">기준 상태 (A)</th>
+            <th class="bg-h" style="width: 33%;">변경 상태 (B)</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr><td class="bg-h">감염병명 · 나머지 고정 조건</td><td style="text-align: center;">&nbsp;</td><td style="text-align: center;">(동일 유지)</td></tr>
+        <tr><td class="bg-h">이번에 바꾸는 조건 한 가지<br><small>(환기 / 마스크 / 손씻기 / 격리)</small></td><td style="text-align: center;">&nbsp;</td><td style="text-align: center;">&nbsp;</td></tr>
+        <tr><td class="bg-h">사전 예상과 이유</td><td style="height: 35px;">&nbsp;</td><td>&nbsp;</td></tr>
+        <tr><td class="bg-h" style="color: #b91c1c;">앱이 표시한 유효 재생산지수 (Rt)</td><td style="text-align: center; font-weight: bold; font-size: 11pt;">Rt = </td><td style="text-align: center; font-weight: bold; font-size: 11pt; color: #1d4ed8;">Rt = </td></tr>
+    </tbody>
+</table>
+<table>
+    <tr><th class="bg-h" style="width: 30%;">결과 해석</th><td>"이 모형의 조건에서 _______________________________________________________________"</td></tr>
+    <tr><th class="bg-h">실제 학교에 적용하기 어려운 점 (모형의 한계)</th><td style="height: 45px;">&nbsp;</td></tr>
+    <tr><th class="bg-h">학교 감염병 예방 제안과 근거</th><td style="height: 50px;">&nbsp;</td></tr>
+    <tr><th class="bg-h">피드백 후 수정한 문장과 이유</th><td style="height: 45px;">&nbsp;</td></tr>
+</table>
+<div class="notice">
+    <strong>⚠️ 활동 안내 및 데이터 윤리 수칙:</strong><br>
+    1. 친구의 실제 개인 질환·진료·예방접종 내역과 실명을 입력하지 않으며, 집계된 통계와 가상 상황을 사용합니다.<br>
+    2. 특정 환자, 집단, 지역, 국가를 감염병 발생의 원인으로 낙인찍지 않으며, 전파 경로에 기반한 과학적 예방 수칙을 설계합니다.
+</div>
+</body>
+</html>
+"""
+    return hwp_doc.encode("utf-8")
+
+
 # ==========================================
 # 3.9 학생 탐구 활동지 다이얼로그 모달 함수
 # ==========================================
@@ -2542,36 +2639,38 @@ def show_worksheet_dialog():
         <div style="font-size: 1.15rem; font-weight: 800; color: #38bdf8; margin-bottom: 4px;">
             🏥 서울의료보건고등학교 보건간호과 2학년 보건·정보 융합수업 활동지
         </div>
-        <div style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.5;">
+        <div style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.55;">
             공공 감염병 데이터와 예방 시뮬레이션으로 설계하는 우리 학교 감염병 예방 제안 활동지입니다.<br>
-            아래에서 활동지 내용을 미리 확인하고, <b>인쇄용 HTML/PDF 문서</b> 또는 <b>마크다운 텍스트 양식</b>으로 바로 다운로드받을 수 있습니다.
+            아래에서 활동지 내용을 미리 확인하고, <b>인쇄/PDF용 알록달록 디자인 양식</b> 또는 <b>한글 파일(.HWP)</b>로 바로 다운로드받을 수 있습니다.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # 1. 즉시 다운로드 버튼 영역 (상단 배치)
+    # 1. 즉시 다운로드 버튼 영역 (알록달록 예쁜 HTML/PDF 양식 & 한글 HWP 파일)
     dl_c1, dl_c2 = st.columns(2)
     with dl_c1:
         st.download_button(
-            label="📥 학생 탐구 활동지 다운로드 (인쇄/PDF용 HTML)",
+            label="📥 학생 탐구 활동지 다운로드 (인쇄/PDF용 양식)",
             data=generate_worksheet_html(),
             file_name="학생_탐구_활동지_서울의료보건고.html",
             mime="text/html",
             type="primary",
             use_container_width=True,
+            help="색깔이 알록달록하게 디자인된 예쁜 활동지 웹 문서로 다운로드됩니다. 브라우저에서 열고 Ctrl+P를 누르면 고화질 PDF로 저장하거나 인쇄할 수 있습니다.",
             key="dl_ws_html_top"
         )
     with dl_c2:
         st.download_button(
-            label="📄 활동지 텍스트 양식 다운로드 (Markdown)",
-            data=generate_worksheet_markdown(),
-            file_name="학생_탐구_활동지_서울의료보건고.md",
-            mime="text/markdown",
+            label="📝 한글 파일(.HWP) 양식 다운로드",
+            data=generate_worksheet_hwp(),
+            file_name="학생_탐구_활동지_서울의료보건고.hwp",
+            mime="application/x-hwp",
             use_container_width=True,
-            key="dl_ws_md_top"
+            help="더블클릭하면 한컴오피스 한글 프로그램에서 바로 열려 내용을 직접 입력하고 저장할 수 있습니다.",
+            key="dl_ws_hwp_top"
         )
 
-    st.caption("💡 **고화질 인쇄 안내**: 다운로드한 HTML 파일을 크롬이나 엣지 브라우저에서 열고 `Ctrl + P`를 누르면 즉시 고화질 A4 PDF로 저장하거나 인쇄할 수 있습니다.")
+    st.caption("💡 **활용 팁**: 왼쪽 버튼을 누르면 알록달록 예쁜 양식이 다운로드되며, 오른쪽 버튼을 누르면 한컴오피스 한글 프로그램에서 바로 열리는 .hwp 파일이 다운로드됩니다.")
     st.divider()
 
     # 2. 활동지 미리보기 화면 (학생들이 좋아하게 컬러풀하고 가독성 높은 카드 스타일)
