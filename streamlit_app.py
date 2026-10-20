@@ -2280,60 +2280,60 @@ def generate_worksheet_html() -> str:
     <!-- 기본 정보 표 -->
     <table class="meta-table">
         <tr>
-            <td class="meta-label">모 둠</td>
+            <td class="meta-label">모둠</td>
             <td class="meta-value">제 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 모둠</td>
-            <td class="meta-label">이 름</td>
-            <td class="meta-value">&nbsp;</td>
+            <td class="meta-label">작성자</td>
+            <td class="meta-value">학번: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 성명:</td>
         </tr>
         <tr>
             <td class="meta-label">관심 감염병</td>
             <td class="meta-value">&nbsp;</td>
-            <td class="meta-label">탐구 일시</td>
-            <td class="meta-value">2026년 &nbsp;&nbsp;&nbsp;월 &nbsp;&nbsp;&nbsp;일</td>
+            <td class="meta-label">탐구일</td>
+            <td class="meta-value">2026 년 &nbsp;&nbsp;&nbsp;월 &nbsp;&nbsp;&nbsp;일</td>
         </tr>
     </table>
 
     <!-- 1단계 카드 -->
     <div class="section-card sec-cyan">
         <div class="sec-header">
-            <span>📊</span> [1단계] 자료를 읽고 질문 만들기 (메뉴 1, 2, 3 연계)
+            <span>■</span> [1단계] 자료를 읽고 질문 만들기 (대시보드 메뉴 1, 2, 3 연계)
         </div>
         <div class="sec-body">
             <div class="q-row">
                 <div class="q-label">1. 자료 제목 및 제공기관:</div>
-                <div class="q-line">질병관리청 감염병포털 및 대시보드 공공 보건의료 통계 (2019~2025)</div>
+                <div class="q-line">질병관리청 감염병포털 및 공공데이터 대시보드 (2019~2025)</div>
             </div>
             <div class="q-row">
                 <div class="q-label">2. 원자료 URL 및 확인 일자:</div>
-                <div class="q-line">https://261018-aihealthtutor.streamlit.app/ &nbsp;&nbsp;|&nbsp;&nbsp; 2026. 10. 19.</div>
+                <div class="q-line"><span style="color: #c00000; font-weight: bold;">https://261018--aihealthtutor.streamlit.app/</span> &nbsp;&nbsp;|&nbsp;&nbsp; 확인 일자: 2026. 10. 20.</div>
             </div>
             <div class="q-row">
                 <div class="q-label">3. 자료의 범위 및 기본 단위:</div>
-                <div class="q-line">기간: 2019년 ~ 2025년 &nbsp;|&nbsp; 지역: 국내 17개 시도 및 해외 10개국 &nbsp;|&nbsp; 단위: 신규 환자 수(명)</div>
+                <div class="q-line">기간: 2019~2025년 &nbsp;|&nbsp; 지역: 국내 17개 시도 및 해외 10개국 &nbsp;|&nbsp; 단위: 신규 환자 수(명)</div>
             </div>
             <div class="q-row">
-                <div class="q-label">4. 데이터 종류 확인 (해당 항목 체크 및 확인 이유):</div>
-                <div class="q-line">[ &nbsp; ] 공식 전수/표본감시 통계 &nbsp;&nbsp;&nbsp;&nbsp; [ &nbsp; ] 수업 실습용 재구성/모의 데이터<br>이유: </div>
+                <div class="q-label">4. 데이터 종류 확인 (해당 항목에 [V] 체크하고 확인 이유를 적으시오):</div>
+                <div class="q-line">[ &nbsp; ] 공식 전수·표본감시 통계 &nbsp;&nbsp;&nbsp;&nbsp; [ &nbsp; ] 수업 실습용 가상 모의 데이터<br>확인 이유: </div>
             </div>
             <div class="q-row">
-                <div class="q-label">5. 비교 조건을 동일하게 맞춘 두 시점/지역의 수치:</div>
-                <div class="q-line">수치 A: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 와(과) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 수치 B: </div>
+                <div class="q-label">5. 비교 조건을 동일하게 맞춘 두 시점 또는 두 지역의 수치:</div>
+                <div class="q-line">수치 A:<br>수치 B: </div>
             </div>
             <div class="q-row">
                 <div class="q-label">6. 변화 추세를 설명하는 완성된 문장 작성:</div>
-                <div class="q-line">"_______년 _______명에서 _______년 _______명으로 총 _______명 (증가 / 감소)하였다."</div>
+                <div class="q-line">"________년 ________명(%)에서 ________년 ________명(%)으로 총 ________명(%)<br>(증가 / 감소)하였다."</div>
             </div>
             <div class="q-row">
                 <div class="q-label">7. 원자료를 확인한 대시보드 위치 및 그래프 제목:</div>
-                <div class="q-line">메뉴: 2. 감염병 발생 현황 & 시각화 &nbsp;|&nbsp; 그래프 제목: </div>
+                <div class="q-line">대시보드 메뉴: 2. 감염병 발생 현황 &amp; 시각화<br>그래프 제목: </div>
             </div>
             <div class="q-row">
                 <div class="q-label">8. 그래프를 관찰하며 생긴 나의 핵심 탐구 질문:</div>
-                <div class="q-box" style="min-height: 45px;"></div>
+                <div class="q-box" style="min-height: 48px; color: #6b7280;">(여기에 질문을 직접 입력하세요)</div>
             </div>
             <div class="q-row">
                 <div class="q-label">9. 관찰 사실만으로 알 수 없는 점과 추가로 필요한 근거 자료:</div>
-                <div class="q-box" style="min-height: 45px;"></div>
+                <div class="q-box" style="min-height: 48px; color: #6b7280;">(여기에 내용을 직접 입력하세요)</div>
             </div>
         </div>
     </div>
@@ -2341,7 +2341,7 @@ def generate_worksheet_html() -> str:
     <!-- 2단계 카드 -->
     <div class="section-card sec-purple">
         <div class="sec-header">
-            <span>🧬</span> [2단계] 보건 근거와 AI_보건튜터 도움 검토하기 (메뉴 5 연계)
+            <span>■</span> [2단계] 보건 근거와 AI_보건튜터 도움 검토하기 (메뉴 5 연계)
         </div>
         <div class="sec-body">
             <div class="q-row">
@@ -2349,32 +2349,32 @@ def generate_worksheet_html() -> str:
                 <div class="q-line">병원체: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 전파 경로: </div>
             </div>
             <div class="q-row">
-                <div class="q-label">2. 주요 임상 증상 및 학교 보건실/의료기관 도움 요청 상황:</div>
-                <div class="q-line">증상: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 대처: 보건실 일시대기실 격리 및 진료 안내</div>
+                <div class="q-label">2. 주요 임상 증상 및 학교 보건실·의료기관 도움 요청 상황:</div>
+                <div class="q-line">임상 증상:<br>대처: 보건실 일시대기실 격리 및 의료기관 진료 안내</div>
             </div>
             <div class="q-row">
                 <div class="q-label">3. 전파 경로와 연결되는 핵심 예방 행동 및 이유:</div>
-                <div class="q-box" style="min-height: 40px;"></div>
+                <div class="q-box" style="min-height: 55px; color: #6b7280;">(여기에 내용을 직접 입력하세요)</div>
             </div>
             <div class="q-row">
                 <div class="q-label">4. 교과서 및 질병관리청 공식 출처 확인:</div>
-                <div class="q-line">출처 제목: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 확인 날짜: </div>
+                <div class="q-line">출처 제목:<br>확인 날짜: </div>
             </div>
             <div class="q-row">
-                <div class="q-label">5. AI_보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명:</div>
-                <div class="q-box" style="min-height: 45px;"></div>
+                <div class="q-label">5. AI_보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명 (가설):</div>
+                <div class="q-box" style="min-height: 55px; color: #6b7280;">(여기에 내용을 직접 입력하세요)</div>
             </div>
             <div class="q-row">
-                <div class="q-label">6. AI_보건튜터에게 입력한 구체적 질문:</div>
+                <div class="q-label">6. AI_보건튜터에게 입력한 구체적 질문 또는 교사에게 문의한 질문:</div>
                 <div class="q-line">질문: </div>
             </div>
             <div class="q-row">
                 <div class="q-label">7. AI 답변에서 확인한 핵심 주장과 공식 자료의 해당 근거:</div>
-                <div class="q-box" style="min-height: 45px;"></div>
+                <div class="q-box" style="min-height: 55px; color: #6b7280;">(여기에 내용을 직접 입력하세요)</div>
             </div>
             <div class="q-row">
-                <div class="q-label">8. [비판적 검토] AI 답변 중 받아들인 내용 / 수정한 내용 / 확인하지 못한 내용:</div>
-                <div class="q-box" style="min-height: 55px;"></div>
+                <div class="q-label">8. [비판적 검토] AI 답변 중 받아들인 내용 / 고친 내용 / 확인하지 못한 내용:</div>
+                <div class="q-box" style="min-height: 65px; color: #6b7280;">(여기에 내용을 직접 입력하세요)</div>
             </div>
         </div>
     </div>
@@ -2382,7 +2382,7 @@ def generate_worksheet_html() -> str:
     <!-- 3단계 카드 -->
     <div class="section-card sec-amber">
         <div class="sec-header">
-            <span>🛡️</span> [3단계] 예방 모형에서 조건을 비교하기 (메뉴 4 시뮬레이터 연계)
+            <span>■</span> [3단계] 예방 모형에서 조건을 비교하기 (메뉴 4 시뮬레이터 연계)
         </div>
         <div class="sec-body">
             <div class="q-label" style="margin-bottom: 6px;">1. 예방 중재 조건 조작 및 감폭 효과(Rt) 비교표:</div>
@@ -2396,22 +2396,22 @@ def generate_worksheet_html() -> str:
                 </thead>
                 <tbody>
                     <tr>
-                        <td style="font-weight: 700; background: #fafafa;">감염병명 및 기본 조건</td>
+                        <td style="font-weight: 700; background: #fafafa;">감염병명 및 나머지 고정 조건</td>
                         <td></td>
                         <td>(동일 유지)</td>
                     </tr>
                     <tr>
-                        <td style="font-weight: 700; background: #fafafa;">이번에 바꾼 조건 1가지<br><span style="font-size:11px; color:#64748b;">(환기 / 마스크 / 손씻기 / 격리 중)</span></td>
+                        <td style="font-weight: 700; background: #fafafa;">이번에 바꾸는 조건 한 가지<br><span style="font-size:11px; color:#64748b;">(환기 / 마스크 / 손씻기 / 격리 중)</span></td>
                         <td></td>
                         <td></td>
                     </tr>
                     <tr>
-                        <td style="font-weight: 700; background: #fafafa;">사전 예상 및 이유</td>
+                        <td style="font-weight: 700; background: #fafafa;">사전 예상 및 보건학적 이유</td>
                         <td></td>
                         <td></td>
                     </tr>
                     <tr>
-                        <td style="font-weight: 700; background: #fafafa; color: #b45309;">앱이 계산한 유효 재생산지수 (Rt)</td>
+                        <td style="font-weight: 700; background: #fafafa; color: #b45309;">앱이 계산한 유효 재생산지수<br>(Rt)</td>
                         <td style="font-weight: 700; font-size: 14px;">Rt = </td>
                         <td style="font-weight: 700; font-size: 14px; color: #0284c7;">Rt = </td>
                     </tr>
@@ -2420,26 +2420,29 @@ def generate_worksheet_html() -> str:
 
             <div class="q-row" style="margin-top: 14px;">
                 <div class="q-label">2. 결과 해석 (조건 A와 B의 비교를 바탕으로):</div>
-                <div class="q-line">"이 모형의 조건에서 ____________________________________________________________________"</div>
+                <div class="q-line" style="line-height: 1.8;">
+                    "이 &nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>&nbsp; 모형의 &nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>&nbsp; 조건에서<br>
+                    ____________________________________________________________________"
+                </div>
             </div>
             <div class="q-row">
                 <div class="q-label">3. 모형의 한계 (실제 학교 교실에 그대로 적용하기 어려운 이유):</div>
-                <div class="q-box" style="min-height: 45px;"></div>
+                <div class="q-box" style="min-height: 50px; color: #6b7280;">(여기에 내용을 직접 입력하세요)</div>
             </div>
             <div class="q-row">
                 <div class="q-label">4. 우리 학교를 위한 감염병 예방 대책 최종 제안 및 근거:</div>
-                <div class="q-box" style="min-height: 55px;"></div>
+                <div class="q-box" style="min-height: 60px; color: #6b7280;">(여기에 내용을 직접 입력하세요)</div>
             </div>
             <div class="q-row">
                 <div class="q-label">5. 모둠 동료 및 교사 피드백 후 수정한 문장과 수정 이유:</div>
-                <div class="q-box" style="min-height: 45px;"></div>
+                <div class="q-box" style="min-height: 50px; color: #6b7280;">(여기에 내용을 직접 입력하세요)</div>
             </div>
         </div>
     </div>
 
     <!-- 하단 유의사항 -->
     <div class="notice-box">
-        <strong>⚠️ 보건의료 데이터 탐구 윤리 및 활동 안내</strong><br>
+        <strong>※ 보건의료 데이터 탐구 윤리 및 활동 안내:</strong><br>
         1. 친구의 실제 개인 질환·진료·예방접종 내역 및 실명을 활동지에 입력하지 않으며, 집계된 공공 통계와 가상 상황을 기반으로 탐구합니다.<br>
         2. 특정 환자·집단·지역·국가를 감염병 발생의 원인으로 낙인찍거나 비난하지 않으며, 전파 경로에 기반한 과학적 예방 수칙을 설계합니다.
     </div>
@@ -2449,220 +2452,245 @@ def generate_worksheet_html() -> str:
 
 
 def generate_worksheet_markdown() -> str:
-    """학생 탐구 활동지 마크다운 양식 텍스트"""
+    """학생 탐구 활동지 마크다운 양식 텍스트 (사용자 수정본 100% 반영)"""
     return """# 📋 [서울의료보건고 보건간호과] 학생 탐구 활동지
-> **프로젝트 주제**: 공공 감염병 데이터와 예방 시뮬레이션으로 설계하는 우리 학교 감염병 예방 제안  
+> **프로젝트 주제**: 서울의료보건고등학교 보건간호과 / 데이터 기반 감염병 융합 수업  
 > **교육과정 연계**: 2022 개정 보건 [12보건04-03], 정보 [12정02-04], 보건간호 [보간 22-04] 준용  
 
 ---
 
 ### 👤 기본 정보
 - **모둠**: 제 ______ 모둠
-- **이름**: ____________________
+- **작성자**: 학번: ______________ 성명: ______________
 - **관심 감염병**: ____________________
-- **탐구 일시**: 2026년 ______월 ______일
+- **탐구일**: 2026년 ______월 ______일
 
 ---
 
-### 📊 1. 자료를 읽고 질문 만들기 (메뉴 1, 2, 3 연계)
-1. **자료 제목 및 제공기관**: 질병관리청 감염병포털 및 공공데이터 대시보드
-2. **원자료 URL 및 확인 일자**: `https://261018-aihealthtutor.streamlit.app/` (2026. 10. 19.)
-3. **자료 기간·지역·대상·단위**: 기간(2019~2025), 지역(국내 17개 시도/해외 10개국), 단위(신규 환자 수(명))
-4. **공식 통계 / 교사 재구성 모의 데이터 여부 및 확인 이유**:
-   - 구분: [  ] 공식 통계   [  ] 수업 실습용 재구성 데이터
+### ■ [1단계] 자료를 읽고 질문 만들기 (대시보드 메뉴 1, 2, 3 연계)
+1. **자료 제목 및 제공기관**: 질병관리청 감염병포털 및 공공데이터 대시보드 (2019~2025)
+2. **원자료 URL 및 확인 일자**: `https://261018--aihealthtutor.streamlit.app/` (확인 일자: 2026. 10. 20.)
+3. **자료의 범위 및 기본 단위**: 기간(2019~2025년), 지역(국내 17개 시도 및 해외 10개국), 단위(신규 환자 수(명))
+4. **데이터 종류 확인 (해당 항목에 [V] 체크하고 확인 이유를 적으시오)**:
+   - [  ] 공식 전수·표본감시 통계   [  ] 수업 실습용 가상 모의 데이터
    - 확인 이유: __________________________________________________
-5. **비교 조건을 동일하게 맞춘 두 수치**: 수치 A (__________) vs 수치 B (__________)
+5. **비교 조건을 동일하게 맞춘 두 시점 또는 두 지역의 수치**:
+   - 수치 A: ____________________________________________________
+   - 수치 B: ____________________________________________________
 6. **변화를 설명하는 문장**:  
-   *"_______년 _______명에서 _______년 _______명으로 총 _______명 (증가/감소)하였다."*
+   *"________년 ________명(%)에서 ________년 ________명(%)으로 총 ________명(%) (증가 / 감소)하였다."*
 7. **원자료를 확인한 대시보드 위치 및 그래프 제목**:
-   - 위치: 메뉴 2. 감염병 발생 현황 & 시각화
+   - 대시보드 메뉴: 2. 감염병 발생 현황 & 시각화
    - 그래프 제목: __________________________________________________
-8. **내가 궁금한 핵심 탐구 질문**:  
-   - ____________________________________________________________
-9. **관찰 사실만으로 알 수 없는 점과 추가로 필요한 자료**:  
-   - ____________________________________________________________
+8. **그래프를 관찰하며 생긴 나의 핵심 탐구 질문**:  
+   - (여기에 질문을 직접 입력하세요)
+9. **관찰 사실만으로 알 수 없는 점과 추가로 필요한 근거 자료**:  
+   - (여기에 내용을 직접 입력하세요)
 
 ---
 
-### 🧬 2. 보건 근거와 AI_보건튜터 도움 검토하기 (메뉴 5 연계)
-1. **병원체와 전파 경로**:  
-   - 원인 병원체: _______________________________________________
+### ■ [2단계] 보건 근거와 AI_보건튜터 도움 검토하기 (메뉴 5 연계)
+1. **관심 감염병의 원인 병원체 및 주요 전파 경로**:  
+   - 병원체: ____________________________________________________
    - 전파 경로: _________________________________________________
-2. **주요 증상과 보건실 도움을 요청할 상황**:  
+2. **주요 임상 증상 및 학교 보건실·의료기관 도움 요청 상황**:  
    - 임상 증상: _________________________________________________
-   - 대처 요령: 보건실 일시대기실 격리 및 신속 진료 안내
-3. **전파 경로와 연결되는 예방 행동 및 이유**:  
-   - ____________________________________________________________
-4. **공식 출처 제목·URL·확인 날짜**:  
-   - 출처: ______________________________________________________
-5. **AI에게 질문하기 전, 내가 먼저 작성해 본 설명**:  
-   - ____________________________________________________________
-6. **AI_보건튜터에게 물은 구체적 질문**:  
-   - ____________________________________________________________
-7. **AI 답변에서 확인한 주장과 공식 자료의 해당 근거**:  
-   - ____________________________________________________________
-8. **[비판적 검토] 받아들인 내용 / 고친 내용 / 확인하지 못한 내용 및 이유**:  
-   - ____________________________________________________________
+   - 대처: 보건실 일시대기실 격리 및 의료기관 진료 안내
+3. **전파 경로와 연결되는 핵심 예방 행동 및 이유**:  
+   - (여기에 내용을 직접 입력하세요)
+4. **교과서 및 질병관리청 공식 출처 확인**:  
+   - 출처 제목: _________________________________________________
+   - 확인 날짜: _________________________________________________
+5. **AI_보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명 (가설)**:  
+   - (여기에 내용을 직접 입력하세요)
+6. **AI_보건튜터에게 입력한 구체적 질문 또는 교사에게 문의한 질문**:  
+   - 질문: ______________________________________________________
+7. **AI 답변에서 확인한 핵심 주장과 공식 자료의 해당 근거**:  
+   - (여기에 내용을 직접 입력하세요)
+8. **[비판적 검토] AI 답변 중 받아들인 내용 / 고친 내용 / 확인하지 못한 내용**:  
+   - (여기에 내용을 직접 입력하세요)
 
 ---
 
-### 🛡️ 3. 예방 모형에서 조건을 비교하기 (메뉴 4 시뮬레이터 연계)
+### ■ [3단계] 예방 모형에서 조건을 비교하기 (메뉴 4 시뮬레이터 연계)
 
-| 조건 항목 | 기준 상태 (A) | 변경 상태 (B) |
+| 중재 조건 항목 | 기준 상태 (A) | 변경 상태 (B) |
 | :--- | :--- | :--- |
 | **감염병명 및 나머지 고정 조건** | | (동일 유지) |
-| **이번에 바꾸는 조건 한 가지** | | |
+| **이번에 바꾸는 조건 한 가지 (환기/마스크/손씻기/격리 중)** | | |
 | **사전 예상 및 보건학적 이유** | | |
-| **앱이 표시한 유효 재생산지수 (Rt)** | **Rt = ________** | **Rt = ________** |
+| **앱이 계산한 유효 재생산지수 (Rt)** | **Rt = ________** | **Rt = ________** |
 
-1. **결과 해석**:  
-   *"이 모형의 조건에서 ____________________________________________________"*
-2. **실제 학교 교실에 그대로 적용하기 어려운 점 (모형의 한계)**:  
-   - ____________________________________________________________
-3. **우리 학교를 위한 감염병 예방 제안과 근거**:  
-   - ____________________________________________________________
-4. **피드백 후 수정한 문장과 수정 이유**:  
-   - ____________________________________________________________
+1. **결과 해석 (조건 A와 B의 비교를 바탕으로)**:  
+   *"이 [ ____________ ] 모형의 [ ____________ ] 조건에서 ________________________________"*
+2. **모형의 한계 (실제 학교 교실에 그대로 적용하기 어려운 이유)**:  
+   - (여기에 내용을 직접 입력하세요)
+3. **우리 학교를 위한 감염병 예방 대책 최종 제안 및 근거**:  
+   - (여기에 내용을 직접 입력하세요)
+4. **모둠 동료 및 교사 피드백 후 수정한 문장과 수정 이유**:  
+   - (여기에 내용을 직접 입력하세요)
 
 ---
 
-### ⚠️ 활동 유의사항
-- 친구의 실제 질환·진료·예방접종 내역과 이름을 입력하지 않습니다. 집계 통계와 가상 상황을 사용합니다.
-- 특정 환자·지역·국가를 원인으로 낙인찍지 않습니다.
+### ※ 보건의료 데이터 탐구 윤리 및 활동 안내
+1. 친구의 실제 개인 질환·진료·예방접종 내역 및 실명을 활동지에 입력하지 않으며, 집계된 공공 통계와 가상 상황을 기반으로 탐구합니다.  
+2. 특정 환자·집단·지역·국가를 감염병 발생의 원인으로 낙인찍거나 비난하지 않으며, 전파 경로에 기반한 과학적 예방 수칙을 설계합니다.
 """
 
 
 def generate_worksheet_hwp() -> bytes:
-    """한컴오피스 한글 프로그램(모든 버전)에서 PDF 양식과 동일하게 알록달록한 카드형으로 열려 학생들이 직접 입력할 수 있는 한글 서식 생성"""
+    """사용자가 직접 편집한 3쪽 양식과 100% 동일하게 일치하는 한컴오피스 한글 문서 서식 생성 (UTF-8 BOM 적용)"""
     hwp_doc = """<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html lang="ko">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 <title>학생 탐구 활동지 - 서울의료보건고등학교 보건간호과</title>
 <style type="text/css">
-body {
-    font-family: '맑은 고딕', 'Malgun Gothic', '한컴 돋움', sans-serif;
-    margin: 15mm 15mm;
-    color: #1e293b;
-    line-height: 1.6;
+@page {
+    size: A4;
+    margin: 15mm 15mm 15mm 15mm;
 }
-table {
+body {
+    font-family: '맑은 고딕', 'Malgun Gothic', '한컴 돋움', '바탕', sans-serif;
+    color: #111827;
+    line-height: 1.5;
+    margin: 12mm 15mm;
+}
+.page {
+    page-break-after: always;
+    clear: both;
+}
+.page-last {
+    clear: both;
+}
+
+/* 제목 스타일 */
+.title-box {
+    text-align: center;
+    margin-bottom: 12px;
+}
+.title-main {
+    font-size: 21pt;
+    font-weight: bold;
+    letter-spacing: 5px;
+    color: #000000;
+    margin: 0 0 6px 0;
+}
+.title-sub {
+    font-size: 11pt;
+    font-weight: bold;
+    margin: 0 0 14px 0;
+}
+.title-sub-blue {
+    color: #002060;
+}
+.title-sub-red {
+    color: #c00000;
+}
+
+/* 상단 인적사항 표 */
+.info-table {
     width: 100%;
     border-collapse: collapse;
     margin-bottom: 14px;
 }
-.header-table {
-    border: none;
-    margin-bottom: 16px;
-}
-.title-main {
-    font-size: 20pt;
-    font-weight: bold;
-    letter-spacing: 2px;
-    color: #0f172a;
-    margin: 0 0 4px 0;
-}
-.title-sub {
-    font-size: 10.5pt;
-    color: #475569;
-    margin: 0 0 16px 0;
-}
-
-/* 기본 정보 표 */
 .info-table th, .info-table td {
-    border: 1px solid #94a3b8;
-    padding: 8px 10px;
+    border: 1px solid #4b5563;
+    padding: 6px 8px;
     font-size: 10pt;
 }
 .info-table th {
-    background-color: #f1f5f9;
+    background-color: #f3f4f6;
     font-weight: bold;
     text-align: center;
-    color: #1e293b;
+    color: #111827;
 }
 
-/* 카드형 단계 컨테이너 */
-.card-table {
+/* 단계 카드 컨테이너 */
+.step-card {
     width: 100%;
+    border: 1.5px solid #4b5563;
     border-collapse: collapse;
-    margin-bottom: 18px;
-    border: 1.5px solid #94a3b8;
+    margin-bottom: 14px;
 }
-.card-header-cyan {
-    background-color: #e0f2fe;
-    color: #0369a1;
+.step-header-1 {
+    background-color: #dbeafe;
+    color: #1d4ed8;
     font-size: 11pt;
     font-weight: bold;
-    padding: 8px 12px;
-    border-bottom: 1.5px solid #7dd3fc;
+    padding: 7px 12px;
+    border-bottom: 1.5px solid #4b5563;
 }
-.card-header-purple {
+.step-header-2 {
     background-color: #ede9fe;
-    color: #5b21b6;
+    color: #6d28d9;
     font-size: 11pt;
     font-weight: bold;
-    padding: 8px 12px;
-    border-bottom: 1.5px solid #c4b5fd;
+    padding: 7px 12px;
+    border-bottom: 1.5px solid #4b5563;
 }
-.card-header-amber {
+.step-header-3 {
     background-color: #fef3c7;
-    color: #92400e;
+    color: #b45309;
     font-size: 11pt;
     font-weight: bold;
-    padding: 8px 12px;
-    border-bottom: 1.5px solid #fde68a;
+    padding: 7px 12px;
+    border-bottom: 1.5px solid #4b5563;
 }
-.card-body {
-    padding: 14px 14px;
+.step-body {
+    padding: 12px 14px;
     background-color: #ffffff;
 }
 
-/* 질문 및 입력 상자 */
+/* 문항 제목 및 서브 텍스트 */
 .q-title {
     font-size: 10pt;
     font-weight: bold;
-    color: #0f172a;
-    margin: 10px 0 4px 0;
+    color: #000000;
+    margin: 8px 0 3px 0;
 }
-.q-line-box {
-    border: 1px solid #cbd5e1;
+.q-desc-box {
     background-color: #f8fafc;
-    padding: 8px 10px;
+    border: 1px solid #e2e8f0;
+    padding: 6px 10px;
     font-size: 9.5pt;
     color: #334155;
-    margin-bottom: 8px;
+    margin-bottom: 6px;
 }
-.q-input-box {
-    border: 1px solid #94a3b8;
-    background-color: #ffffff;
-    padding: 8px 10px;
+.q-input-area {
     font-size: 9.5pt;
-    color: #0f172a;
-    margin-bottom: 10px;
+    color: #6b7280;
+    padding: 4px 6px;
+    margin-bottom: 6px;
 }
 
-/* 비교 표 */
-.compare-table th, .compare-table td {
-    border: 1px solid #94a3b8;
-    padding: 8px 10px;
+/* 비교표 */
+.compare-tbl {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0 12px 0;
+}
+.compare-tbl th, .compare-tbl td {
+    border: 1px solid #4b5563;
+    padding: 6px 8px;
     font-size: 9.5pt;
 }
-.compare-table th {
+.compare-tbl th {
     background-color: #f8fafc;
     font-weight: bold;
     text-align: center;
 }
 
-/* 윤리 수칙 안내 박스 */
-.notice-table {
+/* 하단 윤리 수칙 안내문 */
+.notice-card {
     width: 100%;
-    border: 1.5px solid #f59e0b;
+    border: 1px solid #b45309;
     border-collapse: collapse;
     background-color: #fffbeb;
-    margin-top: 16px;
+    margin-top: 14px;
 }
-.notice-td {
-    padding: 12px 14px;
+.notice-body {
+    padding: 10px 14px;
     font-size: 9.5pt;
     color: #92400e;
     line-height: 1.6;
@@ -2671,213 +2699,227 @@ table {
 </head>
 <body>
 
-<!-- 상단 제목 영역 -->
-<table class="header-table" width="100%" border="0" cellpadding="0" cellspacing="0">
-    <tr>
-        <td align="center">
-            <p class="title-main">학 생 &nbsp; 탐 구 &nbsp; 활 동 지</p>
-            <p class="title-sub">서울의료보건고등학교 보건간호과 &nbsp;|&nbsp; 데이터 기반 감염병 융합 수업</p>
-        </td>
-    </tr>
-</table>
+<!-- ========================================== -->
+<!-- [PAGE 1] 제목 + 인적사항 + 1단계 카드        -->
+<!-- ========================================== -->
+<div class="page">
+    <div class="title-box">
+        <div class="title-main">학 &nbsp; 생 &nbsp; 탐 &nbsp; 구 &nbsp; 활 &nbsp; 동 &nbsp; 지</div>
+        <div class="title-sub">
+            <span class="title-sub-blue">서울의료보건고등학교 보건간호과</span> &nbsp;/&nbsp; <span class="title-sub-red">데이터 기반 감염병 융합 수업</span>
+        </div>
+    </div>
 
-<!-- 인적사항 표 (국어 띄어쓰기 규정 준수, 단어 쪼개짐 없는 충분한 너비 확보) -->
-<table class="info-table" border="1" bordercolor="#94a3b8" cellpadding="8" cellspacing="0">
-    <tr>
-        <th bgcolor="#f1f5f9" width="18%" align="center">모둠</th>
-        <td width="32%">제 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 모둠</td>
-        <th bgcolor="#f1f5f9" width="18%" align="center">작성자</th>
-        <td width="32%">학번: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 성명:</td>
-    </tr>
-    <tr>
-        <th bgcolor="#f1f5f9" align="center">관심 감염병</th>
-        <td></td>
-        <th bgcolor="#f1f5f9" align="center">탐구 일시</th>
-        <td>2026년 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;월 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;일</td>
-    </tr>
-</table>
+    <!-- 인적사항 표 (사용자 서식 100% 일치: 모둠, 작성자, 관심 감염병, 탐구일) -->
+    <table class="info-table" border="1" bordercolor="#4b5563" cellpadding="6" cellspacing="0">
+        <tr>
+            <th width="15%" align="center">모둠</th>
+            <td width="35%"></td>
+            <th width="15%" align="center">작성자</th>
+            <td width="35%">학번: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 성명:</td>
+        </tr>
+        <tr>
+            <th align="center">관심 감염병</th>
+            <td></td>
+            <th align="center">탐구일</th>
+            <td>2026 년 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 월 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 일</td>
+        </tr>
+    </table>
 
-<br>
+    <!-- 1단계 카드 -->
+    <table class="step-card" border="1" bordercolor="#4b5563" cellpadding="0" cellspacing="0">
+        <tr>
+            <td class="step-header-1" bgcolor="#dbeafe">
+                ■ [1단계] 자료를 읽고 질문 만들기 (대시보드 메뉴 1, 2, 3 연계)
+            </td>
+        </tr>
+        <tr>
+            <td class="step-body" style="padding: 10px 14px;">
+                <p class="q-title">1. 자료 제목 및 제공기관</p>
+                <div class="q-desc-box">질병관리청 감염병포털 및 공공데이터 대시보드 (2019~2025)</div>
 
-<!-- ================= [1단계 카드 (스카이블루)] ================= -->
-<table class="card-table" border="1" bordercolor="#7dd3fc" cellpadding="0" cellspacing="0">
-    <tr>
-        <td bgcolor="#e0f2fe" class="card-header-cyan" style="padding: 8px 12px; font-size: 11pt; font-weight: bold; color: #0369a1;">
-            ■ [1단계] 자료를 읽고 질문 만들기 (대시보드 메뉴 1, 2, 3 연계)
-        </td>
-    </tr>
-    <tr>
-        <td class="card-body" style="padding: 12px 14px;">
-            <p class="q-title">1. 자료 제목 및 제공기관</p>
-            <div class="q-line-box">질병관리청 감염병포털 및 공공데이터 대시보드 (2019~2025)</div>
+                <p class="q-title">2. 원자료 URL 및 확인 일자</p>
+                <div style="font-size: 9.5pt; margin-bottom: 6px; padding: 4px 6px;">
+                    <span style="color: #c00000; font-weight: bold;">https://261018--aihealthtutor.streamlit.app/</span> &nbsp;&nbsp;&nbsp;&nbsp; 확인 일자: 2026. 10. 20.
+                </div>
 
-            <p class="q-title">2. 원자료 URL 및 확인 일자</p>
-            <div class="q-line-box">https://261018--aihealthtutor.streamlit.app/ &nbsp;|&nbsp; 확인 일자: 2026. 10. 19.</div>
+                <p class="q-title">3. 자료의 범위 및 기본 단위</p>
+                <div class="q-desc-box">
+                    기간: 2019~2025년 &nbsp;&nbsp;&nbsp;&nbsp; 지역: 국내 17개 시도 및 해외 10개국 &nbsp;&nbsp;&nbsp;&nbsp; 단위: 신규 환자 수(명)
+                </div>
 
-            <p class="q-title">3. 자료의 범위 및 기본 단위</p>
-            <div class="q-line-box">기간: 2019~2025년 &nbsp;|&nbsp; 지역: 국내 17개 시도 및 해외 10개국 &nbsp;|&nbsp; 단위: 신규 환자 수(명)</div>
+                <p class="q-title">4. 데이터 종류 확인 (해당 항목에 [V] 체크하고 확인 이유를 적으시오)</p>
+                <div style="font-size: 9.5pt; margin-bottom: 4px; padding: 2px 6px;">
+                    [ &nbsp;&nbsp;&nbsp; ] 공식 전수·표본감시 통계 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [ &nbsp;&nbsp;&nbsp; ] 수업 실습용 가상 모의 데이터<br>
+                    확인 이유: 
+                </div>
 
-            <p class="q-title">4. 데이터 종류 확인 (해당 항목에 [V] 체크하고 확인 이유를 적으시오)</p>
-            <div class="q-input-box" style="height: 42px;">
-                [ &nbsp;&nbsp; ] 공식 전수·표본감시 통계 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; [ &nbsp;&nbsp; ] 수업 실습용 가상 모의 데이터<br>
-                확인 이유: 
-            </div>
+                <p class="q-title">5. 비교 조건을 동일하게 맞춘 두 시점 또는 두 지역의 수치</p>
+                <div style="font-size: 9.5pt; margin-bottom: 4px; padding: 2px 6px;">
+                    수치 A:<br>
+                    수치 B: 
+                </div>
 
-            <p class="q-title">5. 비교 조건을 동일하게 맞춘 두 시점 또는 두 지역의 수치</p>
-            <div class="q-input-box" style="height: 32px;">
-                수치 A: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 와(과) &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 수치 B: 
-            </div>
+                <p class="q-title">6. 변화 추세를 설명하는 완성된 문장 작성</p>
+                <div style="font-size: 9.5pt; margin-bottom: 4px; padding: 2px 6px;">
+                    "________년 ________명(%)에서 ________년 ________명(%)으로 총 ________명(%)<br>
+                    (증가 / 감소)하였다."
+                </div>
 
-            <p class="q-title">6. 변화 추세를 설명하는 완성된 문장 작성</p>
-            <div class="q-input-box" style="height: 32px;">
-                "_______년 _______명에서 _______년 _______명으로 총 _______명 (증가 / 감소)하였다."
-            </div>
+                <p class="q-title">7. 원자료를 확인한 대시보드 위치 및 그래프 제목</p>
+                <div style="font-size: 9.5pt; margin-bottom: 4px; padding: 2px 6px;">
+                    대시보드 메뉴: 2. 감염병 발생 현황 &amp; 시각화<br>
+                    그래프 제목: 
+                </div>
 
-            <p class="q-title">7. 원자료를 확인한 대시보드 위치 및 그래프 제목</p>
-            <div class="q-input-box" style="height: 32px;">
-                대시보드 메뉴: 2. 감염병 발생 현황 &amp; 시각화 &nbsp;|&nbsp; 그래프 제목: 
-            </div>
+                <p class="q-title">8. 그래프를 관찰하며 생긴 나의 핵심 탐구 질문</p>
+                <div class="q-input-area" style="min-height: 48px;">
+                    (여기에 질문을 직접 입력하세요)
+                </div>
 
-            <p class="q-title">8. 그래프를 관찰하며 생긴 나의 핵심 탐구 질문</p>
-            <div class="q-input-box" style="height: 60px;">
-                (여기에 질문을 직접 입력하세요)
-            </div>
+                <p class="q-title">9. 관찰 사실만으로 알 수 없는 점과 추가로 필요한 근거 자료</p>
+                <div class="q-input-area" style="min-height: 48px;">
+                    (여기에 내용을 직접 입력하세요)
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
 
-            <p class="q-title">9. 관찰 사실만으로 알 수 없는 점과 추가로 필요한 근거 자료</p>
-            <div class="q-input-box" style="height: 60px;">
-                (여기에 내용을 직접 입력하세요)
-            </div>
-        </td>
-    </tr>
-</table>
+<!-- ========================================== -->
+<!-- [PAGE 2] 2단계 카드                        -->
+<!-- ========================================== -->
+<div class="page">
+    <table class="step-card" border="1" bordercolor="#4b5563" cellpadding="0" cellspacing="0" style="margin-top: 10px;">
+        <tr>
+            <td class="step-header-2" bgcolor="#ede9fe">
+                ■ [2단계] 보건 근거와 AI_보건튜터 도움 검토하기 (메뉴 5 연계)
+            </td>
+        </tr>
+        <tr>
+            <td class="step-body" style="padding: 12px 14px;">
+                <p class="q-title">1. 관심 감염병의 원인 병원체 및 주요 전파 경로</p>
+                <div style="font-size: 9.5pt; margin-bottom: 8px; padding: 3px 6px;">
+                    병원체: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 전파 경로: 
+                </div>
 
-<br>
+                <p class="q-title">2. 주요 임상 증상 및 학교 보건실·의료기관 도움 요청 상황</p>
+                <div style="font-size: 9.5pt; margin-bottom: 8px; padding: 3px 6px;">
+                    임상 증상:<br>
+                    대처: 보건실 일시대기실 격리 및 의료기관 진료 안내
+                </div>
 
-<!-- ================= [2단계 카드 (퍼플)] ================= -->
-<table class="card-table" border="1" bordercolor="#c4b5fd" cellpadding="0" cellspacing="0">
-    <tr>
-        <td bgcolor="#ede9fe" class="card-header-purple" style="padding: 8px 12px; font-size: 11pt; font-weight: bold; color: #5b21b6;">
-            ■ [2단계] 보건 근거와 AI_보건튜터 도움 검토하기 (메뉴 5 연계)
-        </td>
-    </tr>
-    <tr>
-        <td class="card-body" style="padding: 12px 14px;">
-            <p class="q-title">1. 관심 감염병의 원인 병원체 및 주요 전파 경로</p>
-            <div class="q-input-box" style="height: 32px;">
-                병원체: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; / 전파 경로: 
-            </div>
+                <p class="q-title">3. 전파 경로와 연결되는 핵심 예방 행동 및 이유</p>
+                <div class="q-input-area" style="min-height: 55px;">
+                    (여기에 내용을 직접 입력하세요)
+                </div>
 
-            <p class="q-title">2. 주요 임상 증상 및 학교 보건실·의료기관 도움 요청 상황</p>
-            <div class="q-input-box" style="height: 32px;">
-                임상 증상: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; / 대처: 보건실 일시대기실 격리 및 의료기관 진료 안내
-            </div>
+                <p class="q-title">4. 교과서 및 질병관리청 공식 출처 확인</p>
+                <div style="font-size: 9.5pt; margin-bottom: 8px; padding: 3px 6px;">
+                    출처 제목:<br>
+                    확인 날짜: 
+                </div>
 
-            <p class="q-title">3. 전파 경로와 연결되는 핵심 예방 행동 및 이유</p>
-            <div class="q-input-box" style="height: 55px;">
-                (여기에 내용을 직접 입력하세요)
-            </div>
+                <p class="q-title">5. AI_보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명 (가설)</p>
+                <div class="q-input-area" style="min-height: 55px;">
+                    (여기에 내용을 직접 입력하세요)
+                </div>
 
-            <p class="q-title">4. 교과서 및 질병관리청 공식 출처 확인</p>
-            <div class="q-input-box" style="height: 32px;">
-                출처 제목: &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; / 확인 날짜: 
-            </div>
+                <p class="q-title">6. AI_보건튜터에게 입력한 구체적 질문 또는 교사에게 문의한 질문</p>
+                <div style="font-size: 9.5pt; margin-bottom: 8px; padding: 3px 6px;">
+                    질문: 
+                </div>
 
-            <p class="q-title">5. AI_보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명 (가설)</p>
-            <div class="q-input-box" style="height: 55px;">
-                (여기에 내용을 직접 입력하세요)
-            </div>
+                <p class="q-title">7. AI 답변에서 확인한 핵심 주장과 공식 자료의 해당 근거</p>
+                <div class="q-input-area" style="min-height: 55px;">
+                    (여기에 내용을 직접 입력하세요)
+                </div>
 
-            <p class="q-title">6. AI_보건튜터에게 입력한 구체적 질문</p>
-            <div class="q-input-box" style="height: 32px;">
-                질문: 
-            </div>
+                <p class="q-title">8. [비판적 검토] AI 답변 중 받아들인 내용 / 고친 내용 / 확인하지 못한 내용</p>
+                <div class="q-input-area" style="min-height: 65px;">
+                    (여기에 내용을 직접 입력하세요)
+                </div>
+            </td>
+        </tr>
+    </table>
+</div>
 
-            <p class="q-title">7. AI 답변에서 확인한 핵심 주장과 공식 자료의 해당 근거</p>
-            <div class="q-input-box" style="height: 55px;">
-                (여기에 내용을 직접 입력하세요)
-            </div>
+<!-- ========================================== -->
+<!-- [PAGE 3] 3단계 카드 + 윤리수칙             -->
+<!-- ========================================== -->
+<div class="page-last">
+    <table class="step-card" border="1" bordercolor="#4b5563" cellpadding="0" cellspacing="0" style="margin-top: 10px;">
+        <tr>
+            <td class="step-header-3" bgcolor="#fef3c7">
+                ■ [3단계] 예방 모형에서 조건을 비교하기 (메뉴 4 시뮬레이터 연계)
+            </td>
+        </tr>
+        <tr>
+            <td class="step-body" style="padding: 12px 14px;">
+                <p class="q-title">1. 예방 중재 조건 조작 및 감폭 효과(Rt) 비교표</p>
+                <table class="compare-tbl" border="1" bordercolor="#4b5563" cellpadding="6" cellspacing="0">
+                    <tr bgcolor="#f8fafc">
+                        <th width="34%" align="center">중재 조건 항목</th>
+                        <th width="33%" align="center">기준 상태 (A)</th>
+                        <th width="33%" align="center">변경 상태 (B)</th>
+                    </tr>
+                    <tr>
+                        <td bgcolor="#fafafa" align="center"><b>감염병명 및 나머지 고정 조건</b></td>
+                        <td align="center"></td>
+                        <td align="center">(동일 유지)</td>
+                    </tr>
+                    <tr>
+                        <td bgcolor="#fafafa" align="center"><b>이번에 바꾸는 조건 한 가지<br><small style="color: #4b5563;">(환기 / 마스크 / 손씻기 / 격리 중)</small></b></td>
+                        <td align="center"></td>
+                        <td align="center"></td>
+                    </tr>
+                    <tr>
+                        <td bgcolor="#fafafa" align="center"><b>사전 예상 및 보건학적 이유</b></td>
+                        <td height="45"></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td bgcolor="#fafafa" align="center"><b>앱이 계산한 유효 재생산지수<br>(Rt)</b></td>
+                        <td align="center" style="font-weight: bold; font-size: 10.5pt;">Rt = </td>
+                        <td align="center" style="font-weight: bold; font-size: 10.5pt;">Rt = </td>
+                    </tr>
+                </table>
 
-            <p class="q-title">8. [비판적 검토] AI 답변 중 받아들인 내용 / 고친 내용 / 확인하지 못한 내용</p>
-            <div class="q-input-box" style="height: 65px;">
-                (여기에 내용을 직접 입력하세요)
-            </div>
-        </td>
-    </tr>
-</table>
+                <p class="q-title">2. 결과 해석 (조건 A와 B의 비교를 바탕으로)</p>
+                <div style="font-size: 9.5pt; margin-bottom: 8px; line-height: 1.8; padding: 4px 6px;">
+                    "이 &nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>&nbsp; 모형의 &nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>&nbsp; 조건에서<br>
+                    ____________________________________________________________________"
+                </div>
 
-<br>
+                <p class="q-title">3. 모형의 한계 (실제 학교 교실에 그대로 적용하기 어려운 이유)</p>
+                <div class="q-input-area" style="min-height: 50px;">
+                    (여기에 내용을 직접 입력하세요)
+                </div>
 
-<!-- ================= [3단계 카드 (앰버)] ================= -->
-<table class="card-table" border="1" bordercolor="#fde68a" cellpadding="0" cellspacing="0">
-    <tr>
-        <td bgcolor="#fef3c7" class="card-header-amber" style="padding: 8px 12px; font-size: 11pt; font-weight: bold; color: #92400e;">
-            ■ [3단계] 예방 모형에서 조건을 비교하기 (메뉴 4 시뮬레이터 연계)
-        </td>
-    </tr>
-    <tr>
-        <td class="card-body" style="padding: 12px 14px;">
-            <p class="q-title">1. 예방 중재 조건 조작 및 감폭 효과(Rt) 비교표</p>
-            <table class="compare-table" border="1" bordercolor="#94a3b8" cellpadding="7" cellspacing="0">
-                <tr bgcolor="#f8fafc">
-                    <th width="34%" align="center">중재 조건 항목</th>
-                    <th width="33%" align="center">기준 상태 (A)</th>
-                    <th width="33%" align="center">변경 상태 (B)</th>
-                </tr>
-                <tr>
-                    <td bgcolor="#fafafa" align="center"><b>감염병명 및 나머지 고정 조건</b></td>
-                    <td align="center"></td>
-                    <td align="center">(동일 유지)</td>
-                </tr>
-                <tr>
-                    <td bgcolor="#fafafa" align="center"><b>이번에 바꾸는 조건 한 가지<br><small style="color: #64748b;">(환기 / 마스크 / 손씻기 / 격리 중)</small></b></td>
-                    <td align="center"></td>
-                    <td align="center"></td>
-                </tr>
-                <tr>
-                    <td bgcolor="#fafafa" align="center"><b>사전 예상 및 보건학적 이유</b></td>
-                    <td height="50"></td>
-                    <td></td>
-                </tr>
-                <tr>
-                    <td bgcolor="#fafafa" align="center" style="color: #b45309;"><b>앱이 계산한 유효 재생산지수 (Rt)</b></td>
-                    <td align="center" style="font-weight: bold; font-size: 11pt;">Rt = </td>
-                    <td align="center" style="font-weight: bold; font-size: 11pt; color: #0284c7;">Rt = </td>
-                </tr>
-            </table>
+                <p class="q-title">4. 우리 학교를 위한 감염병 예방 대책 최종 제안 및 근거</p>
+                <div class="q-input-area" style="min-height: 60px;">
+                    (여기에 내용을 직접 입력하세요)
+                </div>
 
-            <p class="q-title">2. 결과 해석 (조건 A와 B의 비교를 바탕으로)</p>
-            <div class="q-input-box" style="height: 48px; line-height: 1.8;">
-                "이 &nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>&nbsp; 모형의 &nbsp;<u>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</u>&nbsp; 조건에서 ____________________________________________________________________"
-            </div>
+                <p class="q-title">5. 모둠 동료 및 교사 피드백 후 수정한 문장과 수정 이유</p>
+                <div class="q-input-area" style="min-height: 50px;">
+                    (여기에 내용을 직접 입력하세요)
+                </div>
+            </td>
+        </tr>
+    </table>
 
-            <p class="q-title">3. 모형의 한계 (실제 학교 교실에 그대로 적용하기 어려운 이유)</p>
-            <div class="q-input-box" style="height: 55px;">
-                (여기에 내용을 직접 입력하세요)
-            </div>
-
-            <p class="q-title">4. 우리 학교를 위한 감염병 예방 대책 최종 제안 및 근거</p>
-            <div class="q-input-box" style="height: 65px;">
-                (여기에 내용을 직접 입력하세요)
-            </div>
-
-            <p class="q-title">5. 모둠 동료 및 교사 피드백 후 수정한 문장과 수정 이유</p>
-            <div class="q-input-box" style="height: 55px;">
-                (여기에 내용을 직접 입력하세요)
-            </div>
-        </td>
-    </tr>
-</table>
-
-<!-- 하단 윤리 수칙 안내 (이모지 대신 한글 2020에서 깨지지 않는 공식 기호 사용) -->
-<table class="notice-table" border="1" bordercolor="#f59e0b" cellpadding="10" cellspacing="0">
-    <tr>
-        <td class="notice-td" bgcolor="#fffbeb">
-            <b>※ 보건의료 데이터 탐구 윤리 및 활동 안내:</b><br>
-            1. 친구의 실제 개인 질환·진료·예방접종 내역 및 실명을 활동지에 입력하지 않으며, 집계된 공공 통계와 가상 상황을 기반으로 탐구합니다.<br>
-            2. 특정 환자·집단·지역·국가를 감염병 발생의 원인으로 낙인찍거나 비난하지 않으며, 전파 경로에 기반한 과학적 예방 수칙을 설계합니다.
-        </td>
-    </tr>
-</table>
+    <!-- 하단 윤리 수칙 안내 (사용자 수정본 100% 일치) -->
+    <table class="notice-card" border="1" bordercolor="#b45309" cellpadding="8" cellspacing="0">
+        <tr>
+            <td class="notice-body" bgcolor="#fffbeb">
+                <b>※ 보건의료 데이터 탐구 윤리 및 활동 안내:</b><br>
+                1. 친구의 실제 개인 질환·진료·예방접종 내역 및 실명을 활동지에 입력하지 않으며, 집계된 공공 통계와 가상 상황을 기반으로 탐구합니다.<br>
+                2. 특정 환자·집단·지역·국가를 감염병 발생의 원인으로 낙인찍거나 비난하지 않으며, 전파 경로에 기반한 과학적 예방 수칙을 설계합니다.
+            </td>
+        </tr>
+    </table>
+</div>
 
 </body>
 </html>
@@ -2938,59 +2980,59 @@ def show_worksheet_dialog():
     <div style="background: #1e293b; border: 1px solid #475569; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
         <span style="font-weight: bold; color: #38bdf8;">📌 기본 정보 입력란:</span> &nbsp;&nbsp;
         모둠: <code>[ &nbsp;&nbsp;&nbsp;&nbsp; 모둠 ]</code> &nbsp;|&nbsp; 
-        이름: <code>[ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ]</code> &nbsp;|&nbsp; 
+        작성자: <code>[ 학번: ________ &nbsp; 성명: ________ ]</code> &nbsp;|&nbsp; 
         관심 감염병: <code>[ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ]</code> &nbsp;|&nbsp; 
         탐구일: <code>2026. __. __.</code>
     </div>
     """, unsafe_allow_html=True)
 
     # 1단계 카드 (시안)
-    with st.expander("📊 [1단계] 자료를 읽고 질문 만들기 (메뉴 1, 2, 3 연계)", expanded=True):
+    with st.expander("■ [1단계] 자료를 읽고 질문 만들기 (대시보드 메뉴 1, 2, 3 연계)", expanded=True):
         st.markdown("""
         - **1. 자료 제목 및 제공기관**: 질병관리청 감염병포털 및 공공데이터 대시보드 (2019~2025)
-        - **2. 원자료 URL 및 확인 일자**: `https://261018-aihealthtutor.streamlit.app/`
-        - **3. 자료의 범위 및 기본 단위**: 기간(2019~2025), 지역(국내 17개 시도/해외 10개국), 단위(신규 환자 수(명))
-        - **4. 데이터 종류 확인**: `[ ] 공식 통계` &nbsp; `[ ] 수업 실습용 재구성/모의 데이터`
-        - **5. 비교 조건을 동일하게 맞춘 두 수치**: 수치 A (________) vs 수치 B (________)
-        - **6. 변화 추세를 설명하는 문장**: *"____년 ____명에서 ____년 ____명으로 총 ____명 (증가/감소)하였다."*
-        - **7. 원자료를 확인한 대시보드 위치 및 그래프 제목**: 메뉴 2. 감염병 발생 현황 & 시각화
-        - **8. 그래프를 관찰하며 생긴 나의 핵심 탐구 질문**: *(학생 작성란)*
-        - **9. 관찰 사실만으로 알 수 없는 점과 추가로 필요한 근거 자료**: *(학생 작성란)*
+        - **2. 원자료 URL 및 확인 일자**: `https://261018--aihealthtutor.streamlit.app/` (확인 일자: 2026. 10. 20.)
+        - **3. 자료의 범위 및 기본 단위**: 기간(2019~2025년), 지역(국내 17개 시도 및 해외 10개국), 단위(신규 환자 수(명))
+        - **4. 데이터 종류 확인**: `[ ] 공식 전수·표본감시 통계` &nbsp; `[ ] 수업 실습용 가상 모의 데이터`
+        - **5. 비교 조건을 동일하게 맞춘 두 시점 또는 두 지역의 수치**: 수치 A / 수치 B
+        - **6. 변화 추세를 설명하는 완성된 문장 작성**: *"________년 ________명(%)에서 ________년 ________명(%)으로 총 ________명(%) (증가 / 감소)하였다."*
+        - **7. 원자료를 확인한 대시보드 위치 및 그래프 제목**: 대시보드 메뉴: 2. 감염병 발생 현황 & 시각화
+        - **8. 그래프를 관찰하며 생긴 나의 핵심 탐구 질문**: *(여기에 질문을 직접 입력하세요)*
+        - **9. 관찰 사실만으로 알 수 없는 점과 추가로 필요한 근거 자료**: *(여기에 내용을 직접 입력하세요)*
         """)
 
     # 2단계 카드 (퍼플)
-    with st.expander("🧬 [2단계] 보건 근거와 AI_보건튜터 도움 검토하기 (메뉴 5 연계)", expanded=True):
+    with st.expander("■ [2단계] 보건 근거와 AI_보건튜터 도움 검토하기 (메뉴 5 연계)", expanded=True):
         st.markdown("""
         - **1. 관심 감염병의 원인 병원체 및 주요 전파 경로**: 병원체 (________), 전파 경로 (호흡기 비말/공기/접촉/수인성 등)
-        - **2. 주요 임상 증상 및 보건실 도움 요청 상황**: 증상 (________), 대처 (보건실 일시대기실 격리)
-        - **3. 전파 경로와 연결되는 핵심 예방 행동 및 이유**: *(학생 작성란)*
-        - **4. 공식 출처 (질병관리청 누리집, 보건 교과서 등)**: *(학생 작성란)*
-        - **5. 내가 먼저 작성해 본 설명**: *(AI 질문 전 학생 가설)*
-        - **6. AI_보건튜터에게 입력한 구체적 질문**: *(학생 질문)*
-        - **7. AI 답변에서 확인한 주장과 공식 자료의 해당 근거**: *(대조 확인)*
-        - **8. [비판적 검토] AI 답변 중 받아들인 내용 / 수정한 내용 / 미확인 내용 및 이유**: *(학생 작성란)*
+        - **2. 주요 임상 증상 및 학교 보건실·의료기관 도움 요청 상황**: 임상 증상 (________), 대처 (보건실 일시대기실 격리 및 의료기관 진료 안내)
+        - **3. 전파 경로와 연결되는 핵심 예방 행동 및 이유**: *(여기에 내용을 직접 입력하세요)*
+        - **4. 교과서 및 질병관리청 공식 출처 확인**: 출처 제목 / 확인 날짜
+        - **5. AI_보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명 (가설)**: *(여기에 내용을 직접 입력하세요)*
+        - **6. AI_보건튜터에게 입력한 구체적 질문 또는 교사에게 문의한 질문**: *(질문 입력)*
+        - **7. AI 답변에서 확인한 핵심 주장과 공식 자료의 해당 근거**: *(여기에 내용을 직접 입력하세요)*
+        - **8. [비판적 검토] AI 답변 중 받아들인 내용 / 고친 내용 / 확인하지 못한 내용**: *(여기에 내용을 직접 입력하세요)*
         """)
 
     # 3단계 카드 (오렌지)
-    with st.expander("🛡️ [3단계] 예방 모형에서 조건을 비교하기 (메뉴 4 시뮬레이터 연계)", expanded=True):
+    with st.expander("■ [3단계] 예방 모형에서 조건을 비교하기 (메뉴 4 시뮬레이터 연계)", expanded=True):
         st.markdown("""
         | 중재 조건 항목 | 기준 상태 (A) | 변경 상태 (B) |
         | :--- | :--- | :--- |
         | **감염병명 및 나머지 고정 조건** | *(예: 홍역, 기본 조건)* | *(동일 유지)* |
-        | **이번에 바꾼 조건 1가지** | *(예: 환기 2회/교시)* | *(예: 환기 5회/교시)* |
+        | **이번에 바꾸는 조건 한 가지 (환기/마스크/손씻기/격리 중)** | *(예: 환기 2회/교시)* | *(예: 환기 5회/교시)* |
         | **사전 예상 및 보건학적 이유** | *(예: Rt 유지)* | *(예: 공기 전파 차단으로 Rt 감소 예상)* |
         | **앱이 계산한 유효 재생산지수 (Rt)** | **Rt = ________** | **Rt = ________** |
 
-        - **1. 결과 해석**: *"이 모형의 조건에서 ________________________________"*
-        - **2. 모형의 한계 (실제 학교 교실에 그대로 적용하기 어려운 점)**: *(학생 작성란)*
-        - **3. 우리 학교를 위한 감염병 예방 대책 최종 제안 및 근거**: *(학생 작성란)*
-        - **4. 동료 및 교사 피드백 후 수정한 문장과 수정 이유**: *(학생 작성란)*
+        - **2. 결과 해석 (조건 A와 B의 비교를 바탕으로)**: *"이 [ ____________ ] 모형의 [ ____________ ] 조건에서 ________________________________"*
+        - **3. 모형의 한계 (실제 학교 교실에 그대로 적용하기 어려운 이유)**: *(여기에 내용을 직접 입력하세요)*
+        - **4. 우리 학교를 위한 감염병 예방 대책 최종 제안 및 근거**: *(여기에 내용을 직접 입력하세요)*
+        - **5. 모둠 동료 및 교사 피드백 후 수정한 문장과 수정 이유**: *(여기에 내용을 직접 입력하세요)*
         """)
 
     # 하단 유의사항
     st.markdown("""
     <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 10px 14px; border-radius: 6px; font-size: 0.83rem; color: #fde68a;">
-        ⚠️ <b>보건의료 데이터 탐구 윤리</b>: 친구의 실제 질환·이름을 입력하지 않으며, 집계된 통계와 가상 상황을 기반으로 탐구합니다. 특정 환자나 집단을 낙인찍지 않습니다.
+        ※ <b>보건의료 데이터 탐구 윤리 및 활동 안내</b>: 친구의 실제 질환·이름을 입력하지 않으며, 집계된 통계와 가상 상황을 기반으로 탐구합니다. 특정 환자나 집단을 낙인찍지 않습니다.
     </div>
     """, unsafe_allow_html=True)
 
