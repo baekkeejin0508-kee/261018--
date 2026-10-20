@@ -348,53 +348,31 @@ def get_emblem_base64():
     return ""
 
 
-# 대한민국 질병관리청 최신 법령 기준 1~4급 법정감염병 (1급 18종, 2급 22종, 3급 32종, 4급 61종 전체 133종)
+# 대한민국 질병관리청 실제 발생 및 집중 관리 기준 1~4급 법정감염병 (대한민국 발생 질환 중심 구성)
 TIER_DISEASE_MAP = {
-    "제1급 감염병 (18종)": [
-        "에볼라바이러스병", "중동호흡기증후군(MERS)", "사스(SARS)", "신종감염병증후군",
-        "탄저", "페스트", "보툴리눔독소증", "야토병", "마버그열", "라싸열",
-        "크리미안콩고출혈열", "남아메리카출혈열", "리프트밸리열", "두창",
-        "동물인플루엔자인체감염증", "신종인플루엔자", "디프테리아", "바이러스성출혈열"
+    "제1급 감염병 (국내발생·유입관리 7종)": [
+        "중동호흡기증후군(MERS)", "신종인플루엔자", "신종감염병증후군",
+        "동물인플루엔자인체감염증", "보툴리눔독소증", "디프테리아", "탄저"
     ],
-    "제2급 감염병 (22종)": [
+    "제2급 감염병 (국내발생 18종)": [
         "수두", "백일해", "홍역", "결핵", "유행성이하선염",
-        "A형간염", "성홍열", "장티푸스", "세균성이질", "수막구균 감염증",
-        "엠폭스", "카바페넴내성장내세균목(CRE) 감염증", "장출혈성대장균감염증", "폐렴구균 감염증",
-        "파라티푸스", "E형간염", "풍진", "b형헤모필루스인플루엔자",
-        "콜레라", "한센병", "폴리오", "반코마이신내성황색포도알균(VRSA) 감염증"
+        "A형간염", "성홍열", "장티푸스", "세균성이질", "장출혈성대장균감염증",
+        "수막구균 감염증", "엠폭스", "카바페넴내성장내세균목(CRE) 감염증", "폐렴구균 감염증",
+        "파라티푸스", "풍진", "E형간염", "b형헤모필루스인플루엔자"
     ],
-    "제3급 감염병 (32종)": [
-        "말라리아", "B형간염", "C형간염", "일본뇌염", "쯔쯔가무시증",
-        "렙토스피라증", "비브리오패혈증", "파상풍", "뎅기열", "AIDS(후천성면역결핍증)",
-        "중증열성혈소판감소증후군(SFTS)", "신증후군출혈열", "레지오넬라증", "라임병",
-        "지카바이러스감염증", "치쿤구니야열", "큐열", "브루셀라증", "매독",
-        "공수병", "황열", "발진티푸스", "발진열", "크로이츠펠트-야콥병(CJD)",
-        "웨스트나일열", "진드기매개뇌염", "유비저", "바베시아증", "아나플라스마증",
-        "포열", "보렐리아증", "기타 제3급 매개체 감염증"
+    "제3급 감염병 (국내발생 17종)": [
+        "쯔쯔가무시증", "말라리아", "중증열성혈소판감소증후군(SFTS)", "신증후군출혈열",
+        "일본뇌염", "B형간염", "C형간염", "비브리오패혈증", "렙토스피라증",
+        "파상풍", "레지오넬라증", "매독", "뎅기열", "AIDS(후천성면역결핍증)",
+        "라임병", "브루셀라증", "큐열"
     ],
-    "제4급 감염병 (61종)": [
-        "코로나19", "인플루엔자", "수족구병", "메티실린내성황색포도알균(MRSA) 감염증",
-        "반코마이신내성장알균(VRE) 감염증", "첨규콘딜롬", "노로바이러스 감염증",
-        "로타바이러스 감염증", "살모넬라균 감염증", "캄필로박터균 감염증",
-        "급성호흡기감염증(RSV)", "급성호흡기감염증(아데노바이러스)",
-        "급성호흡기감염증(리노바이러스)", "급성호흡기감염증(파라인플루엔자)",
-        "클라미디아 감염증", "임질", "성기단순포진",
-        "장독소성대장균(ETEC) 감염증", "장병원성대장균(EPEC) 감염증", "장침습성대장균(EIEC) 감염증",
-        "장관출혈성대장균 외 대장균 감염증", "예르시니아 엔테로콜리티카 감염증",
-        "클로스트리디움 퍼프린젠스 감염증", "황색포도알균 위장관염", "바실루스 세레우스 위장관염",
-        "장염비브리오균 감염증", "아스트로바이러스 감염증", "사포바이러스 감염증",
-        "엔테로바이러스 감염증", "급성호흡기감염증(인간보카바이러스)",
-        "급성호흡기감염증(인간메타뉴모바이러스)", "급성호흡기감염증(인간코로나바이러스)",
-        "급성호흡기감염증(마이코플라스마 폐렴균)", "급성호흡기감염증(클라미디아 폐렴균)",
-        "연성하감", "클로스트리디오이데스 디피실 감염증",
-        "다제내성녹농균(MRPA) 감염증", "다제내성아시네토바터바우마니균(MRAB) 감염증",
-        "카바페넴내성녹농균(CRPA) 감염증", "카바페넴내성아시네토바터바우마니균(CRAB) 감염증",
-        "장티푸스 보균자 감시", "사람유두종바이러스(HPV) 감염증",
-        "회충증", "편충증", "요충증", "간흡충증", "폐흡충증", "장흡충증",
-        "분선충증", "편모충증", "작은와포자충증", "이질아메바증", "람블편모충증",
-        "가성결핵", "리스테리아 모노사이토제네스 감염증", "비결핵항산균(NTM) 폐질환",
-        "바이러스성 뇌수막염", "옴(Scabies) 감시", "머릿니 감시", "털진드기 감시",
-        "급성호흡기감염증(기타 리노/엔테로바이러스)"
+    "제4급 감염병 (국내발생 21종)": [
+        "코로나19", "인플루엔자", "수족구병", "노로바이러스 감염증", "로타바이러스 감염증",
+        "급성호흡기감염증(RSV)", "급성호흡기감염증(아데노바이러스)", "급성호흡기감염증(리노바이러스)",
+        "급성호흡기감염증(마이코플라스마 폐렴균)", "메티실린내성황색포도알균(MRSA) 감염증",
+        "반코마이신내성장알균(VRE) 감염증", "살모넬라균 감염증", "캄필로박터균 감염증",
+        "클라미디아 감염증", "임질", "첨규콘딜롬", "성기단순포진",
+        "사람유두종바이러스(HPV) 감염증", "요충증", "간흡충증", "옴(Scabies) 감시"
     ]
 }
 
@@ -1137,6 +1115,56 @@ DISEASE_INFO_DB = {
         "trend": "중환자실 장기 입원 환자 중심 표본감시 질환",
         "prevention": "철저한 접촉 격리, 전용 의료기구 사용, 손 씻기",
         "treatment": "리네졸리드(Linezolid), 답토마이신 등 대체 항생제 투여",
+    },
+    "급성호흡기감염증(마이코플라스마 폐렴균)": {
+        "tier": "제4급 감염병",
+        "pathogen": "마이코플라스마 폐렴균 (Mycoplasma pneumoniae, 세균)",
+        "route": "호흡기 비말/공기 전파",
+        "cause": "호흡기 상피세포 섬모 파괴 및 기관지 폐렴 유발",
+        "symptoms": "3~4주 이상 지속되는 심한 발작성 기침, 발열, 인후통, 흉통",
+        "trend": "학령기 소아·청소년 3~4년 주기로 겨울철 학교 집단 유행",
+        "prevention": "기침 예절, KF94 마스크 착용, 흐르는 물에 30초 손 씻기",
+        "treatment": "마크로라이드계 항생제(아지스로마이신), 퀴놀론계 대체제, 대증치료",
+    },
+    "사람유두종바이러스(HPV) 감염증": {
+        "tier": "제4급 감염병",
+        "pathogen": "인유두종 바이러스 (Human Papillomavirus, 파필로마바이러스과)",
+        "route": "혈액/체액/성접촉",
+        "cause": "점막 및 피부 상피세포 감염, 자궁경부암 및 첨규콘딜롬 유발",
+        "symptoms": "대부분 무증상, 생식기 사마귀, 자궁경부 세포 이형성증",
+        "trend": "청소년기 국가필수예방접종 적극 권고 질환",
+        "prevention": "만 12세 HPV 백신(가다실9, 서바릭스) 필수접종, 안전한 위생관리",
+        "treatment": "냉동요법, 레이저 치료, 외과적 절제술 및 정기 세포검진",
+    },
+    "요충증": {
+        "tier": "제4급 감염병",
+        "pathogen": "요충 (Enterobius vermicularis, 선충류 기생충)",
+        "route": "접촉/피부/환경",
+        "cause": "충란의 항문 주위 산란 및 자가감염(오염된 손, 침구, 완구)",
+        "symptoms": "야간 항문 주위 극심한 가려움증, 수면장애, 불안, 산만",
+        "trend": "유치원, 어린이집, 초등학교 저학년 단체생활 시설 다발",
+        "prevention": "손톱 짧게 깎기, 식사 전 손 씻기, 침구류 온수세탁 및 일광소독",
+        "treatment": "알벤다졸 또는 플루벤다졸 전 가족/학급 동시 복용 (2주 후 재투약)",
+    },
+    "간흡충증": {
+        "tier": "제4급 감염병",
+        "pathogen": "간흡충(간디스토마, Clonorchis sinensis, 흡충류)",
+        "route": "오염식음료/분변-구강",
+        "cause": "담관 내 기생으로 만성 염증 및 담관암 유발 (1군 발암원)",
+        "symptoms": "초기 무증상, 소화불량, 황달, 복통, 간비대, 만성 담관염",
+        "trend": "낙동강, 영산강, 금강 등 5대 강 유역 담수어 섭취자 다발",
+        "prevention": "민물고기 생식 절대 금지, 충분한 가열조리, 조리기구 구분 사용",
+        "treatment": "프라지콴텔(디스토시드) 전문 치료제 정량 복용",
+    },
+    "옴(Scabies) 감시": {
+        "tier": "제4급 감염병",
+        "pathogen": "옴진드기 (Sarcoptes scabiei var. hominis)",
+        "route": "접촉/피부/환경",
+        "cause": "피부 각질층 내 굴을 뚫고 산란하여 극심한 알레르기 반응 유발",
+        "symptoms": "야간에 악화되는 전신 극심한 가려움증, 손가락 사이 붉은 구진",
+        "trend": "요양시설, 기숙사 등 단체 집단생활 시설 고위험",
+        "prevention": "환자 접촉 주의, 침구·의류 온수세탁(50℃ 이상) 및 밀폐보관",
+        "treatment": "퍼메트린 크림 등 항진드기 외용제 목 아래 전신 도포, 동거인 동시치료",
     },
 }
 
@@ -1934,7 +1962,7 @@ with st.sidebar:
             "2. 감염병 발생 현황 & 시각화",
             "3. 지역/감염병 비교 심층 탐구",
             "4. 학교 집단감염 예방 시뮬레이터",
-            "5. AI 보건 튜터(Q&A)"
+            "5. AI_보건튜터(Q&A)"
         ],
         key="main_nav_menu"
     )
@@ -2021,7 +2049,7 @@ else:
     </div>
     """, unsafe_allow_html=True)
 
-st.caption("공공 보건의료 데이터를 시각화하고, 학교 집단감염 전파 차단 모델을 시뮬레이션하며, Gemini AI 튜터와 함께 탐구합니다.")
+st.caption("공공 보건의료 데이터를 시각화하고, 학교 집단감염 전파 차단 모델을 시뮬레이션하며, AI_보건튜터와 함께 탐구합니다.")
 st.write("")
 
 
@@ -2045,17 +2073,17 @@ if menu == "1. 수업 안내 및 데이터 개요":
         """)
     with c2:
         st.success("""
-        **📚 질병관리청 최신 법정감염병 1급~4급 분류 체계 (공식 고시)**
-        - **🔴 제1급 감염병 (18종)**: 치명률 높고 집단발생 우려, 발생 즉시 신고, 음압격리 (에볼라, 사스, MERS, 페스트, 탄저 등 18종 전체)
-        - **🟠 제2급 감염병 (22종)**: 전파가능성 고려, 24시간 이내 신고, 격리 필요 (백일해, 수두, 홍역, 유행성이하선염, 결핵 등 22종 전체)
-        - **🟡 제3급 감염병 (32종)**: 발생 시 24시간 이내 신고, 발생 계속 감시 (쯔쯔가무시증, C형간염, B형간염, 말라리아, SFTS 등 32종 전체)
-        - **🔵 제4급 감염병 (61종)**: 1~3급 외 표본감시 활동 (코로나19, 인플루엔자, 수족구병, 노로·로타바이러스 등 61종 전체)
-        *(※ 2020년 법령 개정에 따라 기존 제5급은 폐지되고 제4급 표본감시로 통합되었습니다)*
+        **📚 질병관리청 최신 법정감염병 1급~4급 분류 체계 (대한민국 발생 질환 중심)**
+        - **🔴 제1급 감염병 (국내발생·유입관리 7종)**: 치명률 높고 집단발생 우려, 발생 즉시 신고, 음압격리 (MERS, 신종인플루엔자, 신종감염병증후군, 탄저, 보툴리눔 등)
+        - **🟠 제2급 감염병 (국내발생 18종)**: 전파가능성 고려, 24시간 이내 신고, 격리 필요 (수두, 백일해, 홍역, 유행성이하선염, 결핵, A형간염 등)
+        - **🟡 제3급 감염병 (국내발생 17종)**: 발생 시 24시간 이내 신고, 발생 계속 감시 (쯔쯔가무시증, 말라리아, SFTS, 일본뇌염, B/C형간염, 매독 등)
+        - **🔵 제4급 감염병 (국내발생 21종)**: 1~3급 외 표본감시 활동 (코로나19, 인플루엔자, 수족구병, 노로바이러스, RSV, 마이코플라스마 등)
+        *(※ 대한민국 질병관리청에서 실제로 환자가 신고·발생하고 집중 관리하는 1~4급 주요 법정감염병 전체 체계화)*
         """)
 
-    st.markdown("""
+    st.markdown(f"""
     <div style="background:#0f172a; border-left:4px solid #38bdf8; padding:12px 16px; border-radius:6px; margin-top:8px; margin-bottom:14px; font-size:0.88rem; color:#cbd5e1; line-height:1.6;">
-        💡 <strong>데이터 투명성 및 출처 안내</strong>: 본 대시보드의 데이터셋(총 185,409건, 133종 전체)은 <strong>질병관리청(KDCA) 감염병포털 및 공공데이터포털</strong>의 실제 발생 통계를 기반으로, 고등학교 2학년 융합수업의 4대 관점(연도별·5대 연령대별·해외10개국·국내17개시도) 비교 실습을 위해 체계화한 <strong>교육용 표준 데이터셋</strong>입니다. 인플루엔자 등 제4급 감염병은 표본감시 참여 의료기관 신고 건수 기준입니다.
+        💡 <strong>데이터 투명성 및 출처 안내</strong>: 본 대시보드의 데이터셋(총 {len(working_df):,}건, 대한민국 발생 1~4급 주요 법정감염병 완비)은 <strong>질병관리청(KDCA) 감염병포털 및 공공데이터포털</strong>의 실제 발생 통계를 기반으로, 고등학교 2학년 융합수업의 4대 관점(연도별·5대 연령대별·해외10개국·국내17개시도) 비교 실습을 위해 체계화한 <strong>대한민국 실제 발생 감염병 교육용 표준 데이터셋</strong>입니다.
     </div>
     """, unsafe_allow_html=True)
 
@@ -2086,22 +2114,66 @@ if menu == "1. 수업 안내 및 데이터 개요":
     st.divider()
     st.subheader("🔍 현재 데이터셋 (2019~2025 국내 17개 시도 및 해외 10개국)")
     
+    num_dis = working_df["감염병명"].nunique() if "감염병명" in working_df.columns else 0
     st.markdown(f"""
     <div class="single-line-badge-bar">
-        <span>📊 <strong>총 데이터</strong>: {len(working_df):,}건 (1~4급 72종 완비)</span>
+        <span>📊 <strong>총 데이터</strong>: {len(working_df):,}건 (대한민국 발생 1~4급 주요 법정감염병 {num_dis}종 완비)</span>
         <span>📅 <strong>수집 기간</strong>: 2019년 ~ 2025년</span>
         <span>👥 <strong>연령대 5단계</strong>: 0-9세 ・ 10-19세 ・ 20-49세 ・ 50-64세 ・ 65세 이상</span>
         <span>💉 <strong>관리 구분</strong>: 예방접종 또는 격리여부 포함</span>
     </div>
     """, unsafe_allow_html=True)
 
+    # 1급~4급 원클릭 탐색 필터 및 검색
+    m1_f_col1, m1_f_col2 = st.columns([1.6, 1.2])
+    with m1_f_col1:
+        tier_choice = st.radio(
+            "🏷️ 법정감염병 급수 필터",
+            ["전체 (1~4급 전체)", "🔴 제1급 감염병", "🟠 제2급 감염병", "🟡 제3급 감염병", "🔵 제4급 감염병"],
+            horizontal=True,
+            key="m1_tier_filter_radio"
+        )
+    with m1_f_col2:
+        search_kw = st.text_input("🔎 감염병명 빠른 검색", placeholder="예: 수두, 백일해, 코로나19, 쯔쯔가무시증...", key="m1_search_kw")
+
+    view_df = working_df.copy()
+    if tier_choice != "전체 (1~4급 전체)":
+        tier_kw = tier_choice.split()[1]  # '제1급', '제2급' 등
+        view_df = view_df[view_df["법정감염병군"].str.contains(tier_kw, na=False)]
+    
+    if search_kw.strip():
+        view_df = view_df[view_df["감염병명"].str.contains(search_kw.strip(), na=False)]
+
     display_cols = [
         "연도", "월", "법정감염병군", "감염병명", "지역", "신규환자수",
         "0-9세", "10-19세", "20-49세", "50-64세", "65세 이상",
         "주요전파경로", "예방접종 또는 격리여부"
     ]
-    valid_cols = [c for c in display_cols if c in working_df.columns]
-    st.dataframe(working_df[valid_cols].head(15), use_container_width=True)
+    valid_cols = [c for c in display_cols if c in view_df.columns]
+
+    # 1~4급 대표 감염병들이 골고루 보이도록 스마트 대표순 정렬 (기본순 정렬 개선)
+    if tier_choice == "전체 (1~4급 전체)" and not search_kw.strip():
+        rep_diseases = [
+            "코로나19", "인플루엔자", "수두", "백일해", "홍역", "유행성이하선염", "결핵",
+            "쯔쯔가무시증", "말라리아", "중증열성혈소판감소증후군(SFTS)", "수족구병", "노로바이러스 감염증",
+            "중동호흡기증후군(MERS)", "신종인플루엔자", "A형간염", "B형간염"
+        ]
+        # 서울 2024년 등 최신 데이터 우선 표시
+        smart_sample = view_df[
+            (view_df["감염병명"].isin(rep_diseases)) & 
+            (view_df["지역"] == "서울") & 
+            (view_df["연도"] == 2024) & 
+            (view_df["월"] == 10)
+        ]
+        if len(smart_sample) >= 10:
+            show_df = pd.concat([smart_sample, view_df]).drop_duplicates().head(25)
+        else:
+            show_df = view_df.head(25)
+    else:
+        show_df = view_df.head(25)
+
+    st.dataframe(show_df[valid_cols], use_container_width=True)
+    st.caption(f"💡 현재 조건에 부합하는 총 {len(view_df):,}건 중 상위 {len(show_df)}건을 미리보기로 표시합니다. (위 라디오 버튼으로 1~4급 감염병을 즉시 필터링하여 확인하실 수 있습니다)")
 
 
 # ----------------------------------------------------
@@ -3041,23 +3113,129 @@ elif menu == "3. 지역/감염병 비교 심층 탐구":
     st.subheader("🔍 국내 대도시 및 해외 주요국 역학 비교 분석")
     c_a, c_b = st.columns(2)
     with c_a:
-        st.markdown('<div style="font-size: clamp(0.92rem, 1.1vw, 1.08rem); font-weight: 700; color: #f8fafc; white-space: nowrap; margin-bottom: 8px;">🗺️ 국내외 주요 지역별 누적 환자 점유율</div>', unsafe_allow_html=True)
+        st.markdown('<div style="font-size: clamp(0.95rem, 1.1vw, 1.1rem); font-weight: 700; color: #f8fafc; white-space: nowrap; margin-bottom: 8px;">🗺️ 국내외 주요 지역별 누적 환자 점유율</div>', unsafe_allow_html=True)
         reg_pie_df = working_df.groupby("지역")["신규환자수"].sum().reset_index().sort_values("신규환자수", ascending=False)
         active_reg_pie = reg_pie_df[reg_pie_df["신규환자수"] > 0]
         if active_reg_pie.empty or active_reg_pie["신규환자수"].sum() <= 0:
             st.info("ℹ️ 지역별 누적 환자 데이터가 없습니다 (0명).")
         else:
-            fig_p1 = px.pie(active_reg_pie, values="신규환자수", names="지역", hole=0.4, template="plotly_dark")
+            # 상위 6대 지역 + 기타로 정돈하여 도넛 차트 가독성 극대화
+            top_n = 6
+            if len(active_reg_pie) > top_n:
+                top_part = active_reg_pie.iloc[:top_n].copy()
+                other_val = active_reg_pie.iloc[top_n:]["신규환자수"].sum()
+                other_df = pd.DataFrame([{"지역": f"기타 {len(active_reg_pie) - top_n}개 지역", "신규환자수": other_val}])
+                plot_reg_df = pd.concat([top_part, other_df], ignore_index=True)
+            else:
+                plot_reg_df = active_reg_pie
+
+            fig_p1 = px.pie(
+                plot_reg_df,
+                values="신규환자수",
+                names="지역",
+                hole=0.45,
+                template="plotly_dark",
+                color_discrete_sequence=px.colors.qualitative.Plotly
+            )
+            fig_p1.update_traces(
+                textposition='inside',
+                textinfo='percent+label',
+                insidetextorientation='horizontal',
+                textfont=dict(size=12, color='#ffffff', family='Pretendard, sans-serif'),
+                marker=dict(line=dict(color='#0f172a', width=2))
+            )
+            fig_p1.update_layout(
+                showlegend=False,
+                margin=dict(l=10, r=10, t=15, b=15),
+                height=300
+            )
             st.plotly_chart(fig_p1, use_container_width=True, key="plotly_menu3_region_pie")
+
+            # 상위 지역 요약 바
+            tot_reg_sum = active_reg_pie["신규환자수"].sum()
+            st.markdown('<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">', unsafe_allow_html=True)
+            top4_list = active_reg_pie.head(4).to_dict("records")
+            for r_item in top4_list:
+                pct = (r_item["신규환자수"] / tot_reg_sum) * 100 if tot_reg_sum > 0 else 0
+                st.markdown(f"""
+                <div style="flex:1; min-width:110px; background:#1e293b; border:1px solid #334155; border-radius:6px; padding:6px 10px; text-align:center;">
+                    <div style="font-size:0.78rem; color:#94a3b8; font-weight:600;">{r_item['지역']}</div>
+                    <div style="font-size:0.95rem; color:#38bdf8; font-weight:800;">{pct:.1f}%</div>
+                    <div style="font-size:0.75rem; color:#cbd5e1;">{r_item['신규환자수']:,}명</div>
+                </div>
+                """, unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
+
     with c_b:
-        st.markdown('<div style="font-size: clamp(0.92rem, 1.1vw, 1.08rem); font-weight: 700; color: #f8fafc; white-space: nowrap; margin-bottom: 8px;">🧬 전파 경로별 환자 비중 (공기, 비말, 접촉 등)</div>', unsafe_allow_html=True)
-        path_pie_df = working_df.groupby("주요전파경로")["신규환자수"].sum().reset_index()
+        st.markdown('<div style="font-size: clamp(0.95rem, 1.1vw, 1.1rem); font-weight: 700; color: #f8fafc; white-space: nowrap; margin-bottom: 8px;">🧬 전파 경로별 환자 비중 (공기, 비말, 접촉 등)</div>', unsafe_allow_html=True)
+        path_pie_df = working_df.groupby("주요전파경로")["신규환자수"].sum().reset_index().sort_values("신규환자수", ascending=False)
         active_path_pie = path_pie_df[path_pie_df["신규환자수"] > 0]
         if active_path_pie.empty or active_path_pie["신규환자수"].sum() <= 0:
             st.info("ℹ️ 전파 경로별 환자 데이터가 없습니다 (0명).")
         else:
-            fig_p2 = px.pie(active_path_pie, values="신규환자수", names="주요전파경로", hole=0.4, template="plotly_dark")
+            # 보건의료 테마 전파경로 색상 팔레트
+            route_colors = {
+                "호흡기 비말/공기 전파": "#38bdf8",     # 하늘색 (공기/호흡기)
+                "오염식음료/분변-구강": "#f97316",     # 주황색 (소화기계)
+                "접촉/피부/환경": "#10b981",          # 에메랄드그린 (접촉)
+                "혈액/체액/성접촉": "#ec4899",        # 핑크/로즈 (혈액/체액)
+                "모기/진드기/설치류 매개": "#a855f7"    # 보라색 (매개체)
+            }
+
+            fig_p2 = px.pie(
+                active_path_pie,
+                values="신규환자수",
+                names="주요전파경로",
+                hole=0.48,
+                template="plotly_dark",
+                color="주요전파경로",
+                color_discrete_map=route_colors
+            )
+            # 숫자가 세로로 길게 늘어지거나 작아지는 문제를 완전히 해결:
+            # 도넛 내부(inside)에 큼직한 퍼센트와 라벨 배치, 가로 텍스트 지향
+            fig_p2.update_traces(
+                textposition='inside',
+                textinfo='percent+label',
+                insidetextorientation='horizontal',
+                textfont=dict(size=13, color='#ffffff', family='Pretendard, sans-serif'),
+                marker=dict(line=dict(color='#0f172a', width=2))
+            )
+            fig_p2.update_layout(
+                showlegend=False,
+                margin=dict(l=10, r=10, t=15, b=15),
+                height=300
+            )
             st.plotly_chart(fig_p2, use_container_width=True, key="plotly_menu3_route_pie")
+
+            # 전파 경로별 가독성 높은 비중 카드 (숫자와 대표 질환을 명쾌하게 배치)
+            tot_path_sum = active_path_pie["신규환자수"].sum()
+            rep_diseases_by_route = {
+                "호흡기 비말/공기 전파": ("🫁", "코로나19, 독감, 수두, 백일해, 홍역, 결핵"),
+                "오염식음료/분변-구강": ("🍽️", "노로바이러스, A형간염, 살모넬라, 장티푸스"),
+                "접촉/피부/환경": ("🤝", "수족구병, MRSA, 옴, 요충"),
+                "혈액/체액/성접촉": ("💉", "B/C형간염, AIDS, 매독, 엠폭스"),
+                "모기/진드기/설치류 매개": ("🦟", "쯔쯔가무시증, 말라리아, SFTS, 일본뇌염")
+            }
+            st.markdown('<div style="display:flex; flex-direction:column; gap:5px; margin-top:4px;">', unsafe_allow_html=True)
+            for _, row in active_path_pie.iterrows():
+                r_name = row["주요전파경로"]
+                cnt_val = row["신규환자수"]
+                pct_val = (cnt_val / tot_path_sum * 100) if tot_path_sum > 0 else 0
+                icon, eg_dis = rep_diseases_by_route.get(r_name, ("🔬", "기타 법정감염병"))
+                c_hex = route_colors.get(r_name, "#38bdf8")
+                st.markdown(f"""
+                <div style="background:#1e293b; border-left:4px solid {c_hex}; border-radius:6px; padding:6px 12px; display:flex; justify-content:space-between; align-items:center;">
+                    <div style="min-width:0;">
+                        <span style="font-weight:700; color:#f8fafc; font-size:0.86rem;">{icon} {r_name}</span>
+                        <span style="font-size:0.75rem; color:#94a3b8; margin-left:8px;">({eg_dis})</span>
+                    </div>
+                    <div style="text-align:right; white-space:nowrap; margin-left:10px;">
+                        <span style="font-size:0.98rem; font-weight:800; color:{c_hex};">{pct_val:.1f}%</span>
+                        <span style="font-size:0.75rem; color:#cbd5e1; margin-left:6px;">({cnt_val:,}명)</span>
+                    </div>
+                </div>
+                """, unsafe_allow_html=True)
+            st.markdown('</div>', unsafe_allow_html=True)
 
     st.divider()
     st.markdown("##### 📥 전체 감염병 데이터 테이블 및 CSV 다운로드")
@@ -3081,11 +3259,22 @@ elif menu == "3. 지역/감염병 비교 심층 탐구":
 # ----------------------------------------------------
 elif menu == "4. 학교 집단감염 예방 시뮬레이터":
     st.subheader("🧪 [참여형 실습] 교실 내 감염 전파 위험도 조작 시뮬레이터")
-    st.markdown("예방 수칙 실천율을 조정하여 학교 내 감염 재생산 지수($R_t$)와 유행 차단 효과를 직접 탐구해 보세요.")
+    st.markdown("예방 수칙 실천율을 조정하여 학교 내 유효 재생산지수(Rt)와 유행 차단 효과를 직접 탐구해 보세요.")
+
+    # 유효 재생산지수(Rt) 알기 쉬운 교육 설명 카드
+    st.markdown("""
+    <div style="background:#1e293b; border:1px solid #334155; border-left:4px solid #38bdf8; border-radius:8px; padding:12px 16px; margin-bottom:12px; font-size:0.88rem; color:#e2e8f0; line-height:1.65;">
+        📌 <strong>유효 재생산지수(Rt, Effective Reproduction Number)란?</strong><br>
+        방역 조치(마스크 착용, 교실 환기, 손 씻기, 격리)나 면역(백신)이 형성된 집단에서, <strong>한 명의 감염자가 평균적으로 전파시킬 수 있는 2차 감염자의 수</strong>를 의미합니다.<br>
+        • <span style="color:#10b981; font-weight:700;">🟢 Rt &lt; 1.0 (감염 전파 차단)</span>: 2차 감염이 줄어들어 교내 유행이 자연 소멸됩니다. (학교 방역의 핵심 목표)<br>
+        • <span style="color:#f59e0b; font-weight:700;">🟡 Rt = 1.0 (정체 유지)</span>: 1명이 1명에게만 전파하여 환자 수가 지속되는 상태입니다.<br>
+        • <span style="color:#ef4444; font-weight:700;">🔴 Rt &gt; 1.0 (집단 유행 확산)</span>: 1명이 1명 이상을 감염시켜 교실과 학교 전체로 <strong>대규모 집단 유행</strong>이 번집니다.
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown("""
-    <div style="background:#0f172a; border-left:4px solid #38bdf8; padding:10px 14px; border-radius:6px; margin-bottom:12px; font-size:0.87rem; color:#cbd5e1; line-height:1.6;">
-        💡 <strong>교육용 시뮬레이터 수리 모형 안내</strong>: 본 시뮬레이터는 질병별 기초감염재생산수($R_0$)와 학교 방역 수칙(맞통풍 환기, KF94 마스크 착용률, 올바른 손 씻기 실천율, 유증상자 보건실 조기 격리)에 따른 유효 재생산지수($R_t$)의 이론적 감폭 효과를 탐구하는 <strong>수업 실습용 교육 모형</strong>입니다. 실제 교실의 유행 예측이나 환자 수 감소를 직접 검증한 역학 실측치는 아니며, 질환별 예방접종(백신) 완료율과 교실 용적, 접촉 양상 등 모형 외 환경 변수에 따라 실제 전파 양상은 달라질 수 있습니다.
+    <div style="background:#0f172a; border-left:4px solid #64748b; padding:10px 14px; border-radius:6px; margin-bottom:14px; font-size:0.85rem; color:#cbd5e1; line-height:1.6;">
+        💡 <strong>교육용 시뮬레이터 수리 모형 안내</strong>: 본 시뮬레이터는 질병별 기초감염재생산수(R0)와 학교 방역 수칙(맞통풍 환기, KF94 마스크 착용률, 올바른 손 씻기 실천율, 유증상자 보건실 조기 격리)에 따른 유효 재생산지수(Rt)의 이론적 감폭 효과를 탐구하는 <strong>수업 실습용 교육 모형</strong>입니다. 실제 교실의 유행 예측이나 환자 수 감소를 직접 검증한 역학 실측치는 아니며, 질환별 예방접종(백신) 완료율과 교실 용적, 접촉 양상 등 모형 외 환경 변수에 따라 실제 전파 양상은 달라질 수 있습니다.
     </div>
     """, unsafe_allow_html=True)
 
@@ -3099,8 +3288,7 @@ elif menu == "4. 학교 집단감염 예방 시뮬레이터":
             "백일해 (제2급 / 비말 전파 / 고위험 전염력 R0=12.0)": 12.0,
             "코로나19 (제4급 / 비말·에어로졸 / R0=3.5)": 3.5,
             "사스(SARS) (제1급 / 비말·접촉 / R0=3.0)": 3.0,
-            "엠폭스 (제3급 / 체액·피부접촉 / R0=2.2)": 2.2,
-            "에볼라바이러스병 (제1급 / 혈액·체액접촉 / R0=2.0)": 2.0,
+            "엠폭스 (제2급 / 체액·피부접촉 / R0=2.2)": 2.2,
             "인플루엔자 (제4급 / 계절 비말 / R0=1.8)": 1.8,
             "중동호흡기증후군(MERS) (제1급 / 비말·밀접접촉 / R0=0.8)": 0.8
         }
@@ -3117,10 +3305,11 @@ elif menu == "4. 학교 집단감염 예방 시뮬레이터":
 
     with s_col2:
         st.markdown("#### 📊 시뮬레이션 결과 예측")
+        # 글자 짤림 방지: 상단에 선명한 HTML 제목 배치 및 Plotly margin 확보
+        st.markdown('<div style="text-align: center; font-size: 1.15rem; font-weight: 700; color: #38bdf8; margin-top: 4px; margin-bottom: -6px;">예상 유효 재생산지수 (Rt)</div>', unsafe_allow_html=True)
         g_fig = go.Figure(go.Indicator(
             mode="gauge+number+delta",
             value=rt_res,
-            title={'text': "예상 유효 재생산지수 (Rt)", 'font': {'size': 20, 'color': '#ffffff'}},
             delta={'reference': 1.0, 'increasing': {'color': "#ef4444"}, 'decreasing': {'color': "#10b981"}},
             gauge={
                 'axis': {'range': [0, max(base_val, 8)], 'tickwidth': 1, 'tickcolor': "#475569"},
@@ -3133,33 +3322,33 @@ elif menu == "4. 학교 집단감염 예방 시뮬레이터":
                 'threshold': {'line': {'color': "#ffffff", 'width': 4}, 'thickness': 0.8, 'value': 1.0}
             }
         ))
-        g_fig.update_layout(height=280, template="plotly_dark", margin=dict(l=20, r=20, t=40, b=20))
+        g_fig.update_layout(height=260, template="plotly_dark", margin=dict(l=25, r=25, t=10, b=15))
         st.plotly_chart(g_fig, use_container_width=True, key="plotly_menu4_rt_gauge")
 
         if rt_res < 1.0:
-            st.success(f"🎉 **감염 전파 차단 성공 ($R_t = {rt_res} < 1.0$)**: 교내 2차 확산이 효과적으로 억제되었습니다!")
+            st.success(f"🎉 **감염 전파 차단 성공 (Rt = {rt_res} < 1.0)**: 교내 2차 확산이 효과적으로 억제되었습니다!")
         elif rt_res < 2.0:
-            st.warning(f"⚠️ **주의 단계 ($R_t = {rt_res}$)**: 환기 횟수와 마스크 착용률을 조금 더 높여보세요.")
+            st.warning(f"⚠️ **주의 단계 (Rt = {rt_res})**: 환기 횟수와 마스크 착용률을 조금 더 높여보세요.")
         else:
-            st.error(f"🚨 **집단 유행 위험 단계 ($R_t = {rt_res} > 2.0$)**: 교실 내 전파 위험이 매우 높습니다!")
+            st.error(f"🚨 **집단 유행 위험 단계 (Rt = {rt_res} > 2.0)**: 교실 내 전파 위험이 매우 높습니다!")
 
 
 # ----------------------------------------------------
-# [메뉴 5] AI 보건 튜터(Q&A) - 질병 선택에 100% 동적 연동되는 맞춤형 실시간 응답
+# [메뉴 5] AI_보건튜터(Q&A) - 질병 선택에 100% 동적 연동되는 맞춤형 실시간 응답
 # ----------------------------------------------------
-elif menu == "5. AI 보건 튜터(Q&A)":
-    st.subheader("🤖 AI 보건 튜터(Q&A): 법정감염병 1급~4급 종합 탐구실")
+elif menu in ["5. AI 보건 튜터(Q&A)", "5. AI_보건튜터(Q&A)"]:
+    st.subheader("🤖 AI_보건튜터(Q&A): 대한민국 법정감염병 1급~4급 종합 탐구실")
     st.markdown("""
     법정감염병 급수 버튼 또는 드롭다운에서 질병을 선택하면, 해당 질병의 병원체, 전파 경로, 원인, 증상, 최근 추세, 예방법 및 관리 대책을 체계적으로 종합 분석합니다.
     """)
 
-    # 1단계, 2단계 드롭다운 UI (1급 18종, 2급 22종, 3급 32종, 4급 61종 전체 133종 완비)
-    st.markdown("##### 🔍 [1단계] 탐구할 법정감염병 선택 【1급 18종, 2급 22종, 3급 32종, 4급 61종 전체 133종 완비】")
+    # 1단계, 2단계 드롭다운 UI (대한민국 발생 1급, 2급, 3급, 4급 법정감염병)
+    st.markdown("##### 🔍 [1단계] 탐구할 법정감염병 선택 【대한민국 발생 1~4급 법정감염병 완비】")
 
     tier_col, disease_col = st.columns(2)
     with tier_col:
         t_keys = list(TIER_DISEASE_MAP.keys())
-        default_tier_idx = 3 if len(t_keys) > 3 else 0  # 기본 제4급 감염병 (61종)
+        default_tier_idx = 3 if len(t_keys) > 3 else 0  # 기본 제4급 감염병
         selected_tier_name = st.selectbox("📌 1단계: 법정감염병 급수 선택 (1~4급 분리)", options=t_keys, index=default_tier_idx, key="tutor_tier_select")
 
     with disease_col:
@@ -3210,7 +3399,7 @@ elif menu == "5. AI 보건 튜터(Q&A)":
     st.divider()
     c_head1, c_head2 = st.columns([3, 1])
     with c_head1:
-        st.markdown(f"##### 💬 [2단계] AI 보건 튜터에게 질문하기 【현재 대상: **{selected_disease_name}**】")
+        st.markdown(f"##### 💬 [2단계] AI_보건튜터에게 질문하기 【현재 대상: **{selected_disease_name}**】")
         st.caption(f"선택하신 '{selected_disease_name}'에 대해 더 깊이 알고 싶은 점을 아래 버튼 또는 입력창으로 질문해 보세요.")
     with c_head2:
         if st.button("🔄 대화 내용 초기화", use_container_width=True):
@@ -3251,7 +3440,7 @@ elif menu == "5. AI 보건 튜터(Q&A)":
         else:
             rep = ""
             if api_k:
-                with st.spinner(f"AI 보건 튜터가 질병관리청 최신 역학 데이터 및 교과서 지침을 분석 중입니다..."):
+                with st.spinner(f"AI_보건튜터가 질병관리청 최신 역학 데이터 및 교과서 지침을 분석 중입니다..."):
                     rep = query_gemini_ai(api_k, quick_q, selected_disease_name)
             if not rep:
                 rep = generate_detailed_tutor_answer(selected_disease_name, quick_q, dis_info)
@@ -3274,7 +3463,7 @@ elif menu == "5. AI 보건 튜터(Q&A)":
         else:
             rep = ""
             if api_k:
-                with st.spinner(f"AI 보건 튜터가 {selected_disease_name} 관련 질병관리청 역학 지침을 분석 중입니다..."):
+                with st.spinner(f"AI_보건튜터가 {selected_disease_name} 관련 질병관리청 역학 지침을 분석 중입니다..."):
                     rep = query_gemini_ai(api_k, user_q, selected_disease_name)
             if not rep:
                 rep = generate_detailed_tutor_answer(selected_disease_name, user_q, dis_info)
