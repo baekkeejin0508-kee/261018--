@@ -2062,24 +2062,46 @@ st.write("")
 # ----------------------------------------------------
 if menu == "1. 수업 안내 및 데이터 개요":
     st.subheader("📋 2022 개정 교육과정 연계 보건·정보 융합 수업 안내")
-    c1, c2 = st.columns([1.25, 1.1])
+    c1, c2 = st.columns(2)
     with c1:
-        st.info("""
-        **🎯 2022 개정 교육과정 핵심 성취기준 및 준용 근거**
-        - **보건과 [12보건04-03]**: 감염병과 면역의 원리를 이해하고 개인과 공동체가 지켜야 할 건강수칙과 대응 방안을 사회적 차원에서 비판적으로 탐색하여 생활에 적용한다. *(출처: 2022 개정 고등학교 보건과 성취수준)*
-        - **정보과 [12정02-03]**: 빅데이터의 개념과 특징에 대한 이해를 바탕으로, 문제 해결에 적합한 데이터를 수집한다.
-        - **정보과 [12정02-04]**: 빅데이터 분석 도구를 활용하여 데이터를 시각화하고 그 의미와 가치를 해석한다. *(출처: 2022 개정 정보과 성취평가 기준)*
-        - **3학년 전문교과 준용**: 보건간호 `[보간 22-04]`(감염 관리와 질환별 진단/관리), 공중보건 `[12공보 04-01]`(감염병 발생 요인과 전염 경로 파악)의 고2 수준 맞춤 재구성
-        """)
+        st.markdown("""
+        <div style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-left: 4px solid #38bdf8; border-radius: 8px; padding: 16px 18px; min-height: 295px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box;">
+            <div>
+                <div style="font-size: 1.02rem; font-weight: 700; color: #38bdf8; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                    <span>🎯</span> <span>2022 개정 교육과정 핵심 성취기준 및 준용 근거</span>
+                </div>
+                <ul style="margin: 0; padding-left: 18px; color: #e2e8f0; font-size: 0.86rem; line-height: 1.65;">
+                    <li style="margin-bottom: 6px;"><strong>보건과 [12보건04-03]</strong>: 감염병과 면역의 원리를 이해하고 개인과 공동체가 지켜야 할 건강수칙과 대응 방안을 사회적 차원에서 비판적으로 탐색하여 생활에 적용한다. <span style="color: #94a3b8; font-size: 0.78rem;">*(출처: 2022 개정 고등학교 보건과 성취수준)*</span></li>
+                    <li style="margin-bottom: 6px;"><strong>정보과 [12정02-03]</strong>: 빅데이터의 개념과 특징에 대한 이해를 바탕으로, 문제 해결에 적합한 데이터를 수집한다.</li>
+                    <li style="margin-bottom: 6px;"><strong>정보과 [12정02-04]</strong>: 빅데이터 분석 도구를 활용하여 데이터를 시각화하고 그 의미와 가치를 해석한다. <span style="color: #94a3b8; font-size: 0.78rem;">*(출처: 2022 개정 정보과 성취평가 기준)*</span></li>
+                    <li><strong>3학년 전문교과 준용</strong>: 보건간호 [보간 22-04](감염 관리와 질환별 진단/관리), 공중보건 [12공보 04-01](감염병 발생 요인과 전염 경로 파악)의 고2 수준 맞춤 재구성</li>
+                </ul>
+            </div>
+            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(56, 189, 248, 0.2); font-size: 0.8rem; color: #94a3b8;">
+                💡 보건간호과 2학년 보건·정보 교과 융합 실습 수업 설계
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
     with c2:
-        st.success("""
-        **📚 질병관리청 최신 법정감염병 1급~4급 분류 체계 (대한민국 발생 질환 중심)**
-        - **🔴 제1급 감염병 (국내발생·유입관리 7종)**: 치명률 높고 집단발생 우려, 발생 즉시 신고, 음압격리 (MERS, 신종인플루엔자, 신종감염병증후군, 탄저, 보툴리눔 등)
-        - **🟠 제2급 감염병 (국내발생 18종)**: 전파가능성 고려, 24시간 이내 신고, 격리 필요 (수두, 백일해, 홍역, 유행성이하선염, 결핵, A형간염 등)
-        - **🟡 제3급 감염병 (국내발생 17종)**: 발생 시 24시간 이내 신고, 발생 계속 감시 (쯔쯔가무시증, 말라리아, SFTS, 일본뇌염, B/C형간염, 매독 등)
-        - **🔵 제4급 감염병 (국내발생 21종)**: 1~3급 외 표본감시 활동 (코로나19, 인플루엔자, 수족구병, 노로바이러스, RSV, 마이코플라스마 등)
-        *(※ 대한민국 질병관리청에서 실제로 환자가 신고·발생하고 집중 관리하는 1~4급 주요 법정감염병 전체 체계화)*
-        """)
+        st.markdown("""
+        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 8px; padding: 16px 18px; min-height: 295px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box;">
+            <div>
+                <div style="font-size: 1.02rem; font-weight: 700; color: #4ade80; margin-bottom: 12px; line-height: 1.35;">
+                    <div>📚 질병관리청 최신 법정감염병 1급~4급 분류 체계</div>
+                    <div style="font-size: 0.84rem; color: #86efac; font-weight: 500; margin-top: 3px;">(대한민국 발생 질환 중심)</div>
+                </div>
+                <ul style="margin: 0; padding-left: 18px; color: #e2e8f0; font-size: 0.86rem; line-height: 1.65;">
+                    <li style="margin-bottom: 6px;"><strong>제1급 감염병 (국내발생·유입관리 7종)</strong>: 치명률 높고 집단발생 우려, 발생 즉시 신고, 음압격리 <span style="color: #cbd5e1; font-size: 0.82rem;">(MERS, 신종인플루엔자, 신종감염병증후군, 탄저, 보툴리눔 등)</span></li>
+                    <li style="margin-bottom: 6px;"><strong>제2급 감염병 (국내발생 18종)</strong>: 전파가능성 고려, 24시간 이내 신고, 격리 필요 <span style="color: #cbd5e1; font-size: 0.82rem;">(수두, 백일해, 홍역, 유행성이하선염, 결핵, A형간염 등)</span></li>
+                    <li style="margin-bottom: 6px;"><strong>제3급 감염병 (국내발생 17종)</strong>: 발생 시 24시간 이내 신고, 발생 계속 감시 <span style="color: #cbd5e1; font-size: 0.82rem;">(쯔쯔가무시증, 말라리아, SFTS, 일본뇌염, B/C형간염, 매독 등)</span></li>
+                    <li><strong>제4급 감염병 (국내발생 21종)</strong>: 1~3급 외 표본감시 활동 <span style="color: #cbd5e1; font-size: 0.82rem;">(코로나19, 인플루엔자, 수족구병, 노로바이러스, RSV, 마이코플라스마 등)</span></li>
+                </ul>
+            </div>
+            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(16, 185, 129, 0.2); font-size: 0.8rem; color: #94a3b8;">
+                ※ 대한민국 질병관리청에서 실제로 환자가 신고·발생하고 집중 관리하는 1~4급 주요 법정감염병 전체 체계화
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
 
     st.markdown(f"""
     <div style="background:#0f172a; border-left:4px solid #38bdf8; padding:12px 16px; border-radius:6px; margin-top:8px; margin-bottom:14px; font-size:0.88rem; color:#cbd5e1; line-height:1.6;">
@@ -3111,10 +3133,71 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
 # ----------------------------------------------------
 elif menu == "3. 지역/감염병 비교 심층 탐구":
     st.subheader("🔍 국내 대도시 및 해외 주요국 역학 비교 분석")
+
+    # 1) 원 도표 통계 산출 기준 및 데이터 근거 명시 카드
+    st.markdown("""
+    <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(56, 189, 248, 0.3); border-left: 4px solid #38bdf8; border-radius: 8px; padding: 12px 18px; margin-bottom: 14px; line-height: 1.65;">
+        <div style="font-size: 0.95rem; font-weight: 700; color: #38bdf8; margin-bottom: 5px; display: flex; align-items: center; gap: 6px;">
+            <span>📊</span> <span>원 도표(도넛 차트) 통계 산출 기준 및 데이터 산출 근거</span>
+        </div>
+        <div style="font-size: 0.86rem; color: #e2e8f0;">
+            본 화면의 원 도표는 <strong>질병관리청 법정감염병 1급~4급(국내 발생 관리 63종 전체 질환)</strong>의 발생 데이터를 기반으로 분석한 결과입니다.<br>
+            • <strong style="color: #67e8f9;">🗓️ 집계 기간(연도) 기준</strong>: <strong>전체 7개년 누적(2019~2025년)</strong> 또는 <strong>선택한 개별 연도</strong>의 전수 신고 환자 합산<br>
+            • <strong style="color: #86efac;">🦠 대상 감염병 기준</strong>: 특정 단일 질환에 국한되지 않고, <strong>대한민국 발생 1~4급 법정감염병 63종 전체 질환</strong>을 종합 합산<br>
+            • <strong style="color: #fde047;">📍 산출 방식</strong>: 집계 대상 총 환자 수 대비 <strong>각 지역별 점유율(%)</strong> 및 <strong>주요 전파 경로별 비중(%)</strong>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+
+    # 2) 분석 대상 기간(연도) 선택 필터 & 요약 메트릭
+    f_col1, f_col2 = st.columns([1.2, 2.3])
+    with f_col1:
+        year_list = sorted([int(y) for y in working_df["연도"].dropna().unique()], reverse=True) if "연도" in working_df.columns else []
+        year_opts = ["전체 기간 (2019~2025년 7개년 누적)"] + [f"{y}년 연간 집계" for y in year_list]
+        selected_period = st.selectbox("📅 분석 대상 기간 선택 (연도 필터)", year_opts, index=0)
+
+    if selected_period.startswith("전체 기간"):
+        m3_df = working_df
+        period_label = "2019~2025년 (7개년 전 기간 누적)"
+    else:
+        chosen_y = int(selected_period.split("년")[0])
+        m3_df = working_df[working_df["연도"] == chosen_y]
+        period_label = f"{chosen_y}년 연간"
+
+    total_m3_cases = m3_df["신규환자수"].sum() if "신규환자수" in m3_df.columns else 0
+
+    with f_col2:
+        st.markdown(f"""
+        <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; margin-top: 4px; display: flex; justify-content: space-around; align-items: center; text-align: center;">
+            <div>
+                <div style="font-size: 0.76rem; color: #94a3b8;">📅 집계 기준 연도</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: #38bdf8;">{period_label}</div>
+            </div>
+            <div style="border-left: 1px solid #334155; height: 28px;"></div>
+            <div>
+                <div style="font-size: 0.76rem; color: #94a3b8;">🦠 분석 대상 질병</div>
+                <div style="font-size: 0.95rem; font-weight: 700; color: #4ade80;">법정감염병 63종 전체</div>
+            </div>
+            <div style="border-left: 1px solid #334155; height: 28px;"></div>
+            <div>
+                <div style="font-size: 0.76rem; color: #94a3b8;">👥 총 집계 환자 수</div>
+                <div style="font-size: 0.95rem; font-weight: 800; color: #f8fafc;">{total_m3_cases:,}명</div>
+            </div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    st.write("")
     c_a, c_b = st.columns(2)
     with c_a:
-        st.markdown('<div style="font-size: clamp(0.95rem, 1.1vw, 1.1rem); font-weight: 700; color: #f8fafc; white-space: nowrap; margin-bottom: 8px;">🗺️ 국내외 주요 지역별 누적 환자 점유율</div>', unsafe_allow_html=True)
-        reg_pie_df = working_df.groupby("지역")["신규환자수"].sum().reset_index().sort_values("신규환자수", ascending=False)
+        st.markdown(f'''
+        <div style="font-size: clamp(0.95rem, 1.1vw, 1.1rem); font-weight: 700; color: #f8fafc; margin-bottom: 2px;">
+            🗺️ 국내외 주요 지역별 환자 점유율
+        </div>
+        <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px;">
+            📌 산출 기준: <span style="color:#38bdf8; font-weight:600;">[{period_label}]</span> × <span style="color:#10b981; font-weight:600;">[법정감염병 63종 전체 합산]</span>
+        </div>
+        ''', unsafe_allow_html=True)
+        reg_pie_df = m3_df.groupby("지역")["신규환자수"].sum().reset_index().sort_values("신규환자수", ascending=False)
         active_reg_pie = reg_pie_df[reg_pie_df["신규환자수"] > 0]
         if active_reg_pie.empty or active_reg_pie["신규환자수"].sum() <= 0:
             st.info("ℹ️ 지역별 누적 환자 데이터가 없습니다 (0명).")
@@ -3167,8 +3250,15 @@ elif menu == "3. 지역/감염병 비교 심층 탐구":
             st.markdown('</div>', unsafe_allow_html=True)
 
     with c_b:
-        st.markdown('<div style="font-size: clamp(0.95rem, 1.1vw, 1.1rem); font-weight: 700; color: #f8fafc; white-space: nowrap; margin-bottom: 8px;">🧬 전파 경로별 환자 비중 (공기, 비말, 접촉 등)</div>', unsafe_allow_html=True)
-        path_pie_df = working_df.groupby("주요전파경로")["신규환자수"].sum().reset_index().sort_values("신규환자수", ascending=False)
+        st.markdown(f'''
+        <div style="font-size: clamp(0.95rem, 1.1vw, 1.1rem); font-weight: 700; color: #f8fafc; margin-bottom: 2px;">
+            🧬 전파 경로별 환자 비중 (공기, 비말, 접촉 등)
+        </div>
+        <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px;">
+            📌 산출 기준: <span style="color:#38bdf8; font-weight:600;">[{period_label}]</span> × <span style="color:#10b981; font-weight:600;">[법정감염병 63종 전체 합산]</span>
+        </div>
+        ''', unsafe_allow_html=True)
+        path_pie_df = m3_df.groupby("주요전파경로")["신규환자수"].sum().reset_index().sort_values("신규환자수", ascending=False)
         active_path_pie = path_pie_df[path_pie_df["신규환자수"] > 0]
         if active_path_pie.empty or active_path_pie["신규환자수"].sum() <= 0:
             st.info("ℹ️ 전파 경로별 환자 데이터가 없습니다 (0명).")
