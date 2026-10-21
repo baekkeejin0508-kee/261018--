@@ -1508,29 +1508,60 @@ def query_gemini_ai(api_key: str, prompt: str, disease_name: str = "") -> str:
     if not cleaned_key:
         return ""
 
+    # 질문에서 언급된 법정감염병 감지 및 비교 대상 질환 특정
+    detected_in_q = find_diseases_in_text(prompt)
+    unique_detected = []
+    seen_d_names = set()
+    for fk, fn, fi in detected_in_q:
+        if fn not in seen_d_names:
+            seen_d_names.add(fn)
+            unique_detected.append(fn)
+
+    compare_instruction = ""
+    if len(unique_detected) >= 2:
+        d1_target = unique_detected[0]
+        d2_target = unique_detected[1]
+        compare_instruction = (
+            f"\n\n[⚠️ 최우선 필수 비교 지침 - 매우 중요!]\n"
+            f"학생이 질문한 비교 대상은 반드시 **'{d1_target}'**와 **'{d2_target}'**입니다.\n"
+            f"1. 반드시 이 두 질환만을 1:1로 직접 비교하는 마크다운 표(법정감염병 분류, 원인 병원체, 전파 경로, 임상 증상, 학교 등교중지 및 보건관찰실 격리 기준, 예방 백신 및 치료)를 작성하십시오.\n"
+            f"2. 학생이 질문하지 않은 다른 질환(예: 'B형간염' 질문 시 A형간염이나 C형간염 등)을 끌어들여 '바이러스성 간염 3대 질환' 등으로 임의 확대·변형하는 행위는 엄격히 금지됩니다. 오직 [{d1_target} vs {d2_target}] 두 질환만을 비교하십시오.\n"
+        )
+
     sys_instruction = (
         "당신은 대한민국 서울의료보건고등학교 보건간호과의 전임 지도교사이자 질병관리청(KDCA) 공공데이터 전문 보건 튜터 AI입니다.\n"
         "질문자는 고등학교 보건간호과 학생입니다.\n\n"
         "[핵심 교육 및 답변 지침 (매우 중요!)]\n"
-        "1. B형간염(제3급), A형간염(제2급), C형간염(제3급), 사스(SARS, 제1급), 메르스(MERS, 제1급), 인플루엔자(독감, 제4급), 코로나19, 결핵, 백일해, 수두, 홍역 등 질병관리청 법정감염병 50여 종 및 감염병 간의 비교/차이점(예: B형간염 vs A형간염, 사스 vs 인플루엔자) 질문은 최우선 법정감염병 교육 주제이므로 절대 거부하지 말고 매우 상세하고 전문적으로 답변하십시오.\n"
-        "2. 학생이 'B형간염'에 대해 질문할 경우, 법정감염병 급수(제3급), 원인 바이러스(HBV, DNA 바이러스), 전파 경로(출산 시 수직감염, 오염된 혈액/체액, 성접촉; 일상 식사/대화/신체접촉으로는 전파 안 됨), 예방접종(0, 1, 6개월 3회), 학교 보건실 관리 지침(등교 중지 비해당, 정상 학교생활 보장, 외상 시 표준주의지침)을 상세히 설명하십시오.\n"
-        "3. 학생이 '사스와 인플루엔자의 차이'를 질문할 경우, 법정감염병 급수(사스 제1급 vs 인플루엔자 제4급), 원인 바이러스(SARS-CoV vs 인플루엔자 바이러스 A/B형), 치명률(사스 약 10% vs 인플루엔자 0.1% 미만), 격리 기준(사스 발생 즉시 음압격리 vs 인플루엔자 해열 후 24시간 등교 중지), 예방 백신 유무를 일목요연한 마크다운 비교표와 함께 상세히 설명하십시오.\n"
+        "1. B형간염(제3급), A형간염(제2급), C형간염(제3급), 엠폭스(제2급), 사스(SARS, 제1급), 메르스(MERS, 제1급), 인플루엔자(독감, 제4급), 코로나19, 결핵, 백일해, 수두, 홍역 등 질병관리청 법정감염병 50여 종 및 감염병 간의 비교/차이점(예: B형간염 vs 엠폭스, 사스 vs 인플루엔자) 질문은 최우선 법정감염병 교육 주제이므로 절대 거부하지 말고 매우 상세하고 전문적으로 답변하십시오.\n"
+        "2. 학생이 2개 이상의 감염병 비교를 요청할 경우, 반드시 질문에 지정된 그 질환들만을 정확히 1:1 비교 분석하는 마크다운 비교표를 제공하십시오. 임의로 질문하지 않은 다른 질환(예: 3대 간염 등)으로 대체하거나 변경해서는 안 됩니다.\n"
+        "3. 학생이 'B형간염' 단독에 대해 질문할 경우, 법정감염병 급수(제3급), 원인 바이러스(HBV, DNA 바이러스), 전파 경로(출산 시 수직감염, 오염된 혈액/체액, 성접촉; 일상 식사/대화/신체접촉으로는 전파 안 됨), 예방접종(0, 1, 6개월 3회), 학교 보건실 관리 지침(등교 중지 비해당, 정상 학교생활 보장, 외상 시 표준주의지침)을 상세히 설명하십시오.\n"
         "4. 오직 법정감염병과 완전히 무관한 일상 잡담, 게임, 연애, 비보건 일상 질문에 대해서만 아래 문장으로 정중히 안내하십시오:\n"
         "해당 질문은 법정감염병과 관련이 없습니다. 선생님께 요청하기 바랍니다.\n\n"
         "[답변 원칙 및 지침]\n"
         "1. 고등학교 보건, 간호의 기초, 공중보건 교과서 범위에 부합하게 전문적이면서도 학생 눈높이에서 알기 쉽게 설명합니다.\n"
-        "2. 질병관리청(KDCA) 법정감염병 분류(제1급~제4급), 신고 기한(즉시/24시간 이내 등), 격리 기준을 정확하게 안내합니다.\n"
+        "2. 질병관리청(KDCA) 법정감염병 분류(제1급~제4급), 신고 기한(즉시/24시간 이내 등), 보건관찰실 격리 기준을 정확하게 안내합니다.\n"
         "3. 교육부 및 질병관리청 '학교 감염병 예방·위기대응 매뉴얼'과 학교보건법에 따른 학교 보건실 관리 지침과 '등교 중지(출석인정 결석)' 기준, 격리 해제 조건을 반드시 포함합니다.\n"
         "4. 2개 이상 질병 비교 질문 시 일목요연한 마크다운 비교표를 반드시 포함합니다.\n"
         "5. 따뜻하고 전문적인 보건간호과 지도교사의 어조로 마크다운과 이모지를 활용하여 가독성을 높입니다."
+        f"{compare_instruction}"
     )
 
     full_prompt = (
         f"{sys_instruction}\n\n"
-        f"[선택된 대시보드 감염병: {disease_name} (단, 학생이 다른 감염병이나 질병 간 비교를 물어본 경우 해당 질문에 맞춰 충실히 답변할 것)]\n"
+        f"[선택된 대시보드 감염병: {disease_name} (단, 학생이 다른 감염병이나 질병 간 비교를 물어본 경우 학생 질문에 맞춰 충실히 답변할 것)]\n"
         f"[학생 질문]\n{prompt}\n\n"
         "위 질문에 대해 고등학생 수준에 맞추어 전문적이고 신뢰할 수 있는 답변을 작성해 주세요."
     )
+
+    def validate_and_clean_answer(text: str) -> str:
+        if not text:
+            return ""
+        if len(unique_detected) >= 2:
+            d1_ok = (unique_detected[0] in text) or (unique_detected[0].lower() in text.lower())
+            d2_ok = (unique_detected[1] in text) or (unique_detected[1].lower() in text.lower())
+            if not (d1_ok and d2_ok):
+                return ""
+        return text
 
     # [1순위] 표준 라이브러리 HTTPS REST API 호출 (외부 의존성 없음, No module named 오류 원천 차단)
     models_to_try = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash", "gemini-pro"]
@@ -1561,9 +1592,10 @@ def query_gemini_ai(api_key: str, prompt: str, disease_name: str = "") -> str:
                     parts = candidates[0]["content"].get("parts", [])
                     if parts and "text" in parts[0]:
                         ans = parts[0]["text"].strip()
-                        if ans:
+                        cleaned_ans = validate_and_clean_answer(ans)
+                        if cleaned_ans:
                             st.session_state["gemini_last_error"] = ""
-                            return ans
+                            return cleaned_ans
         except urllib.error.HTTPError as he:
             try:
                 err_text = he.read().decode("utf-8", errors="ignore")
@@ -1588,7 +1620,9 @@ def query_gemini_ai(api_key: str, prompt: str, disease_name: str = "") -> str:
                     config=types.GenerateContentConfig(temperature=0.7)
                 )
                 if resp and resp.text:
-                    return resp.text.strip()
+                    cleaned_ans = validate_and_clean_answer(resp.text.strip())
+                    if cleaned_ans:
+                        return cleaned_ans
             except Exception:
                 continue
     except Exception:
@@ -1603,7 +1637,9 @@ def query_gemini_ai(api_key: str, prompt: str, disease_name: str = "") -> str:
                 model = legacy_genai.GenerativeModel(m)
                 resp = model.generate_content(full_prompt)
                 if resp and resp.text:
-                    return resp.text.strip()
+                    cleaned_ans = validate_and_clean_answer(resp.text.strip())
+                    if cleaned_ans:
+                        return cleaned_ans
             except Exception:
                 continue
     except Exception:
@@ -1624,6 +1660,35 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
     # [수업 몰입도를 위한 핵심 필터] 법정감염병 질환과 무관한 질문은 엄격 차단
     if not is_legal_infectious_question(question, disease_name):
         return "해당 질문은 법정감염병과 관련이 없습니다. 선생님께 요청하기 바랍니다."
+
+    # ----------------------------------------------------
+    # [질문 내 법정감염병 사전 감지 및 질문 내 등장 위치 순서 정렬]
+    # ----------------------------------------------------
+    found_diseases = find_diseases_in_text(question)
+
+    def _disease_pos(item):
+        k, name, _ = item
+        p1 = q_lower.find(name.lower())
+        p2 = q_lower.find(k.lower())
+        p_candidates = [p for p in (p1, p2) if p != -1]
+        return min(p_candidates) if p_candidates else 9999
+
+    found_diseases.sort(key=_disease_pos)
+
+    # 중복 질병 제거 (clean_name 기준, 질문 내 출현 순서 유지)
+    unique_found = []
+    seen_found_names = set()
+    for fk, fn, fi in found_diseases:
+        if fn not in seen_found_names:
+            seen_found_names.add(fn)
+            unique_found.append((fk, fn, fi))
+
+    # 명시적 비교 질의 키워드 ("차이점", "비교", "vs", "다른점", "구분", "구별")
+    explicit_comparison = any(w in q_lower for w in ["차이", "비교", "vs", "다른점", "구분", "구별"])
+
+    # 간염 외의 다른 법정감염병(엠폭스, 사스 등) 존재 여부 판별
+    other_than_hepatitis = [fn for _, fn, _ in unique_found if fn not in ["A형간염", "B형간염", "C형간염", "E형간염"]]
+    has_other_legal_disease = len(other_than_hepatitis) > 0
 
     # ----------------------------------------------------
     # [0] 그래프/데이터 해석 및 예방접종 단정 여부 심층 질의응답 (교육과정 핵심)
@@ -1673,7 +1738,7 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
    - **메르스**는 바이러스가 하기도 깊숙이 침투하여 폐포와 신장 조직을 파괴하므로 치명률이 34%로 매우 높으나, 일상 환경 비말 배출량이 적어 지역사회 전파력은 낮습니다.
    - 반면 **코로나19**는 상기도(인두, 후두)에서 폭발적으로 증식하여 치명률은 낮지만 전파력이 전 세계적 팬데믹을 유발할 만큼 극대화되었습니다.
 2. **학교 보건실 긴급 대응 수칙:**
-   - 사스나 메르스는 **제1급 감염병**이므로 의심 증상(중동 방문력, 고열, 호흡곤란) 확인 즉시 교내 일반 보건실에 머물게 하지 말고 **독립된 격리 대기실로 이동 후 관할 보건소로 즉시 유선 신고**해야 합니다."""
+   - 사스나 메르스는 **제1급 감염병**이므로 의심 증상(중동 방문력, 고열, 호흡곤란) 확인 즉시 교내 일반 보건실에 머물게 하지 말고 **독립된 보건관찰실로 이동 후 관할 보건소로 즉시 유선 신고**해야 합니다."""
 
     # ----------------------------------------------------
     # [1-1] 사스(SARS) vs 인플루엔자(독감) 임상 및 법정감염병 비교 분석
@@ -1699,7 +1764,7 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
    - **인플루엔자**는 유행 여부를 조사하기 위해 표본감시활동이 필요한 **제4급 감염병**입니다.
 2. **학교 보건실 긴급 대처 프로토콜:**
    - 독감 의심 학생은 보건실에서 체온 측정 후 보호자 연락 및 병원 진료(타미플루 처방) 후 가정 격리를 안내합니다.
-   - 반면 사스 의심 증상자(해외 위험지역 방문력 + 고열 + 호흡곤란) 발견 시에는 일반 대기실이 아닌 독립된 일시대기실에 즉시 격리(KF94 착용)하고 보건소에 즉각 신고해야 합니다."""
+   - 반면 사스 의심 증상자(해외 위험지역 방문력 + 고열 + 호흡곤란) 발견 시에는 일반 구역이 아닌 독립된 보건관찰실에 즉시 격리(KF94 착용)하고 보건소에 즉각 신고해야 합니다."""
 
     # ----------------------------------------------------
     # [2] 수족구병 vs 아구창(Oral Thrush) 구강 병변 감별 진단
@@ -1720,7 +1785,7 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
 | **치료 원칙** | 특이 항바이러스제 없음 (대증요법, 해열진통제, 탈수 예방 수액/냉수 섭취) | **항진균제 치료** (나이스타틴 시럽 구강 도포, 플루코나졸 복용) |
 
 💡 **학교 보건실 임상 팁:**
-- 학생이 구강 통증을 호소할 때 **반드시 손바닥과 발바닥을 확인**하세요. 손·발에 붉은 발진이나 물집이 관찰되면 **수족구병**이므로 즉시 일시대기실 격리 후 귀가 조치해야 합니다.
+- 학생이 구강 통증을 호소할 때 **반드시 손바닥과 발바닥을 확인**하세요. 손·발에 붉은 발진이나 물집이 관찰되면 **수족구병**이므로 즉시 보건관찰실 격리 후 귀가 조치해야 합니다.
 - 손·발 발진 없이 혀나 뺨 안쪽에만 우유 찌꺼기 같은 하얀 막이 있고 닦았을 때 피가 배어 나온다면 **아구창**이므로 항진균제 진료를 권고하되 격리는 불필요합니다."""
 
     # ----------------------------------------------------
@@ -1773,8 +1838,8 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
     q_nospace = re.sub(r"\s+", "", q_lower)
     is_hepatitis_q = any(w in q_nospace for w in ["간염", "hbv", "hav", "hcv"])
 
-    # 3대 간염 비교 질의
-    if is_hepatitis_q and (any(w in q_nospace for w in ["비교", "차이", "vs", "종류", "구별"]) or ("a형" in q_nospace and "b형" in q_nospace) or ("b형" in q_nospace and "c형" in q_nospace)):
+    # 3대 간염 비교 질의 (단, 질문에 엠폭스 등 다른 법정감염병이 있는 경우 [10-1] 비교 엔진으로 넘김)
+    if is_hepatitis_q and not has_other_legal_disease and (any(w in q_nospace for w in ["비교", "차이", "vs", "종류", "구별"]) or ("a형" in q_nospace and "b형" in q_nospace) or ("b형" in q_nospace and "c형" in q_nospace)):
         return """👩‍⚕️ **[AI 보건 튜터 임상 비교 분석: 바이러스성 간염 3대 질환 (A형 vs B형 vs C형)]**
 
 보건간호과 학생 여러분, 질병관리청(KDCA) 및 고교 보건 교과서 기준 **바이러스성 간염(Viral Hepatitis) 핵심 비교 분석**입니다:
@@ -1794,7 +1859,7 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
 2. **외상 처치 원칙:** 학교 보건실에서는 모든 출혈 학생 처치 시 라텍스/니트릴 장갑을 착용하는 **'표준 주의지침(Standard Precautions)'**을 준수합니다."""
 
     # B형간염 단독 질문 ("B형간염에 대해 알려줘", "B형 간염병")
-    if "b형" in q_nospace and is_hepatitis_q:
+    if "b형" in q_nospace and is_hepatitis_q and not has_other_legal_disease and not explicit_comparison:
         return """👩‍⚕️ **[AI 보건 튜터 종합 리포트: B형간염 (Hepatitis B, 제3급 법정감염병)]**
 
 보건간호과 학생 여러분, 질병관리청(KDCA) 및 공중보건 교과서 기준 **'B형간염(Hepatitis B)'**의 종합 의학 정보입니다:
@@ -1939,26 +2004,13 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
     # ----------------------------------------------------
     # [10] 질문에서 언급된 모든 법정감염병 스마트 감지 및 비교/단일 분석
     # ----------------------------------------------------
-    found_diseases = find_diseases_in_text(question)
-
-    # 중복 질병 제거 (clean_name 기준)
-    unique_found = []
-    seen_found_names = set()
-    for fk, fn, fi in found_diseases:
-        if fn not in seen_found_names:
-            seen_found_names.add(fn)
-            unique_found.append((fk, fn, fi))
-
-    # 명시적 비교 질의 키워드 ("차이점", "비교", "vs", "다른점", "구분", "구별")
-    explicit_comparison = any(w in q_lower for w in ["차이", "비교", "vs", "다른점", "구분", "구별"])
-
     # 10-1. 서로 다른 2개 이상 질병 비교 조건 검사 (절대 동일 질병끼리 비교되지 않음)
     is_multi_disease_compare = False
     d1_name, d2_name = "", ""
     d1_info, d2_info = None, None
 
     if len(unique_found) >= 2:
-        # 질문 내에 서로 다른 2개 이상의 질병이 명시된 경우
+        # 질문 내에 서로 다른 2개 이상의 질병이 명시된 경우 (질문 내 등장 순서 유지)
         d1_key, d1_name, d1_info = unique_found[0]
         d2_key, d2_name, d2_info = unique_found[1]
         if d1_name != d2_name:
@@ -1990,11 +2042,11 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
    - **{d1_name}**: `{d1_info['tier']}` 분류. {d1_info['cause']}
    - **{d2_name}**: `{d2_info['tier']}` 분류. {d2_info['cause']}
 2. **학교 보건실 관리 지침:**
-   - 감염병 발생 즉시 보건실 내 일시대기실로 격리 조치하고, 학교 감염병 매뉴얼에 따라 등교 중지(출석 인정 공결) 처리하며 학급 맞통풍 환기 및 환경 소독을 시행합니다."""
+   - 감염병 발생 즉시 보건관찰실로 격리 조치하고, 학교 감염병 매뉴얼에 따라 등교 중지(출석 인정 공결) 처리하며 학급 맞통풍 환기 및 환경 소독을 시행합니다."""
 
     # 10-2. 감지된 법정감염병에 대한 종합 전문 리포트 (예: "사스에 대해 알려줘")
-    if found_diseases:
-        target_key, target_clean, target_info = found_diseases[0]
+    if unique_found:
+        target_key, target_clean, target_info = unique_found[0]
         if any(w in q_lower for w in ["백신", "접종", "면역"]):
             return f"""👩‍⚕️ **[AI 보건 튜터 답변: {target_clean} ({target_info['tier']}) 예방 백신 및 면역 관리 지침]**
 
@@ -2017,7 +2069,7 @@ def generate_detailed_tutor_answer(disease_name: str, question: str, dis_info: d
 1. **🏫 학교 등교 중지(가정 격리) 기준:**
    - **격리/등교 지침:** {target_info['treatment']}
 2. **🩺 보건실 긴급 조치 사항:**
-   - 발열 및 의심 증상 확인 즉시 보건실 내 일시대기실로 이동시키고 KF94 마스크를 착용시킵니다.
+   - 발열 및 의심 증상 확인 즉시 보건실 내 보건관찰실로 이동시키고 KF94 마스크를 착용시킵니다.
    - 학부모 유선 연락 후 즉시 의료기관 진료를 받도록 안내합니다.
 3. **📄 출석 인정(공결) 절차:**
    - 법정감염병 의사 진단서, 소견서 또는 진료확인서 제출 시 **출석인정 결석**으로 처리되어 학생의 내신 불이익이 없습니다.
@@ -2458,7 +2510,7 @@ def generate_worksheet_html() -> str:
             </div>
             <div class="q-row">
                 <div class="q-label">2. 주요 임상 증상 및 학교 보건실·의료기관 도움 요청 상황:</div>
-                <div class="q-line">임상 증상:<br>대처: 보건실 일시대기실 격리 및 의료기관 진료 안내</div>
+                <div class="q-line">임상 증상:<br>대처: 보건관찰실 격리 및 의료기관 진료 안내</div>
             </div>
             <div class="q-row">
                 <div class="q-label">3. 전파 경로와 연결되는 핵심 예방 행동 및 이유:</div>
@@ -2603,7 +2655,7 @@ def generate_worksheet_markdown() -> str:
    - 전파 경로: _________________________________________________
 2. **주요 임상 증상 및 학교 보건실·의료기관 도움 요청 상황**:  
    - 임상 증상: _________________________________________________
-   - 대처: 보건실 일시대기실 격리 및 의료기관 진료 안내
+   - 대처: 보건관찰실 격리 및 의료기관 진료 안내
 3. **전파 경로와 연결되는 핵심 예방 행동 및 이유**:  
    - (여기에 내용을 직접 입력하세요)
 4. **교과서 및 질병관리청 공식 출처 확인**:  
@@ -2925,7 +2977,7 @@ table {
             <div class="q-head">2. 주요 임상 증상 및 학교 보건실·의료기관 도움 요청 상황</div>
             <div class="q-text">
                 임상 증상:<br>
-                대처: 보건실 일시대기실 격리 및 의료기관 진료 안내
+                대처: 보건관찰실 격리 및 의료기관 진료 안내
             </div>
 
             <div class="q-head">3. 전파 경로와 연결되는 핵심 예방 행동 및 이유</div>
@@ -3062,12 +3114,12 @@ def show_worksheet_dialog():
         </div>
         <div style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.55;">
             공공 감염병 데이터와 예방 시뮬레이션으로 설계하는 우리 학교 감염병 예방 제안 활동지입니다.<br>
-            아래에서 활동지 내용을 미리 확인하고, <b>인쇄/PDF용 알록달록 디자인 양식</b> 또는 <b>한글 파일(.HWP)</b>로 바로 다운로드받을 수 있습니다.
+            아래에서 활동지 내용을 미리 확인하고, <b>표준 인쇄/PDF 양식</b> 또는 <b>한글 파일(.HWP)</b>로 바로 다운로드받을 수 있습니다.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    # 1. 즉시 다운로드 버튼 영역 (알록달록 예쁜 HTML/PDF 양식 & 한글 HWP 파일)
+    # 1. 즉시 다운로드 버튼 영역 (표준 인쇄/PDF 양식 & 한글 HWP 파일)
     dl_c1, dl_c2 = st.columns(2)
     with dl_c1:
         st.download_button(
@@ -3077,7 +3129,7 @@ def show_worksheet_dialog():
             mime="text/html",
             type="primary",
             use_container_width=True,
-            help="색깔이 알록달록하게 디자인된 예쁜 활동지 웹 문서로 다운로드됩니다. 브라우저에서 열고 Ctrl+P를 누르면 고화질 PDF로 저장하거나 인쇄할 수 있습니다.",
+            help="고화질 표준 양식 웹 문서로 다운로드됩니다. 브라우저에서 열고 Ctrl+P를 누르면 고화질 PDF로 저장하거나 인쇄할 수 있습니다.",
             key="dl_ws_html_top"
         )
     with dl_c2:
@@ -3091,10 +3143,10 @@ def show_worksheet_dialog():
             key="dl_ws_hwp_top"
         )
 
-    st.caption("💡 **활용 팁**: 왼쪽 버튼을 누르면 알록달록 예쁜 양식이 다운로드되며, 오른쪽 버튼을 누르면 한컴오피스 한글 프로그램에서 바로 열리는 .hwp 파일이 다운로드됩니다.")
+    st.caption("💡 **활용 팁**: 왼쪽 버튼을 누르면 표준 인쇄/PDF 양식이 다운로드되며, 오른쪽 버튼을 누르면 한컴오피스 한글 프로그램에서 바로 열리는 .hwp 파일이 다운로드됩니다.")
     st.divider()
 
-    # 2. 활동지 미리보기 화면 (학생들이 좋아하게 컬러풀하고 가독성 높은 카드 스타일)
+    # 2. 활동지 미리보기 화면 (가독성 높은 전문 카드 스타일)
     st.markdown("### 📝 활동지 내용 미리보기")
 
     # 기본 정보 카드
@@ -3126,7 +3178,7 @@ def show_worksheet_dialog():
     with st.expander("■ [2단계] 보건 근거와 AI_보건튜터 도움 검토하기 (메뉴 5 연계)", expanded=True):
         st.markdown("""
         - **1. 관심 감염병의 원인 병원체 및 주요 전파 경로**: 병원체 (________), 전파 경로 (호흡기 비말/공기/접촉/수인성 등)
-        - **2. 주요 임상 증상 및 학교 보건실·의료기관 도움 요청 상황**: 임상 증상 (________), 대처 (보건실 일시대기실 격리 및 의료기관 진료 안내)
+        - **2. 주요 임상 증상 및 학교 보건실·의료기관 도움 요청 상황**: 임상 증상 (________), 대처 (보건관찰실 격리 및 의료기관 진료 안내)
         - **3. 전파 경로와 연결되는 핵심 예방 행동 및 이유**: *(여기에 내용을 직접 입력하세요)*
         - **4. 교과서 및 질병관리청 공식 출처 확인**: 출처 제목 / 확인 날짜
         - **5. AI_보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명 (가설)**: *(여기에 내용을 직접 입력하세요)*
@@ -3281,16 +3333,30 @@ if menu == "1. 수업 안내 및 데이터 개요":
     st.subheader("🔍 현재 데이터셋 (2019~2025 국내 17개 시도 및 해외 10개국)")
     
     num_dis = working_df["감염병명"].nunique() if "감염병명" in working_df.columns else 0
+    total_rows = len(working_df)
+    
+    # 연도별 데이터 수집 건수 통계 생성
+    year_stats = []
+    if "연도" in working_df.columns:
+        for y in sorted(working_df["연도"].dropna().unique(), reverse=True):
+            y_int = int(y)
+            y_cnt = len(working_df[working_df["연도"] == y])
+            year_stats.append(f"{y_int}년: {y_cnt:,}건")
+    year_stats_str = " ・ ".join(year_stats) if year_stats else "2019년 ~ 2025년 완비"
+
     st.markdown(f"""
-    <div class="single-line-badge-bar">
-        <span>📊 <strong>총 데이터</strong>: {len(working_df):,}건 (대한민국 발생 1~4급 주요 법정감염병 {num_dis}종 완비)</span>
+    <div class="single-line-badge-bar" style="margin-bottom: 8px;">
+        <span>📊 <strong>총 데이터</strong>: {total_rows:,}건 (대한민국 1~4급 주요 법정감염병 {num_dis}종 완비)</span>
         <span>📅 <strong>수집 기간</strong>: 2019년 ~ 2025년</span>
         <span>👥 <strong>연령대 5단계</strong>: 0-9세 ・ 10-19세 ・ 20-49세 ・ 50-64세 ・ 65세 이상</span>
-        <span>💉 <strong>관리 구분</strong>: 예방접종 또는 격리여부 포함</span>
+        <span>💉 <strong>관리 구분</strong>: 예방접종 및 격리여부 포함</span>
+    </div>
+    <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 8px; padding: 6px 14px; font-size: 0.82rem; color: #94a3b8; margin-bottom: 14px;">
+        📈 <strong>연도별 완비 현황</strong>: {year_stats_str}
     </div>
     """, unsafe_allow_html=True)
 
-    # 1급~4급 원클릭 탐색 필터 및 검색
+    # 1행: 1급~4급 원클릭 탐색 필터 및 검색
     m1_f_col1, m1_f_col2 = st.columns([1.6, 1.2])
     with m1_f_col1:
         tier_choice = st.radio(
@@ -3300,7 +3366,27 @@ if menu == "1. 수업 안내 및 데이터 개요":
             key="m1_tier_filter_radio"
         )
     with m1_f_col2:
-        search_kw = st.text_input("🔎 감염병명 빠른 검색", placeholder="예: 수두, 백일해, 코로나19, 쯔쯔가무시증...", key="m1_search_kw")
+        search_kw = st.text_input("🔎 감염병명 빠른 검색", placeholder="예: 코로나19, 수두, 백일해, 인플루엔자, B형간염...", key="m1_search_kw")
+
+    # 2행: 연도 선택, 정렬 기준, 표시 건수 조절 (2019~2025 전 연도 탐색 완비)
+    m1_opt1, m1_opt2, m1_opt3 = st.columns([1.2, 1.2, 1.0])
+    with m1_opt1:
+        year_options = ["전체 (2019~2025년)"] + [f"{int(y)}년" for y in sorted(working_df["연도"].dropna().unique(), reverse=True)] if "연도" in working_df.columns else ["전체 (2019~2025년)"]
+        sel_year = st.selectbox("📅 조회 연도 선택", year_options, index=0, key="m1_sel_year")
+    with m1_opt2:
+        sort_order = st.selectbox(
+            "🔄 정렬 기준",
+            ["최신순 (2025년 ➡️ 2019년)", "과거순 (2019년 ➡️ 2025년)", "신규환자 많은 순", "지역 가나다순"],
+            index=0,
+            key="m1_sort_order"
+        )
+    with m1_opt3:
+        limit_choice = st.selectbox(
+            "👁️ 표시 건수",
+            ["상위 50건", "상위 25건", "상위 100건", "상위 200건", "전체 데이터 (전체 행)"],
+            index=0,
+            key="m1_limit_choice"
+        )
 
     view_df = working_df.copy()
     if tier_choice != "전체 (1~4급 전체)":
@@ -3310,6 +3396,24 @@ if menu == "1. 수업 안내 및 데이터 개요":
     if search_kw.strip():
         view_df = view_df[view_df["감염병명"].str.contains(search_kw.strip(), na=False)]
 
+    if sel_year != "전체 (2019~2025년)":
+        target_y = int(sel_year.replace("년", "").strip())
+        view_df = view_df[view_df["연도"] == target_y]
+
+    # 정렬 적용
+    if sort_order == "최신순 (2025년 ➡️ 2019년)":
+        sort_cols = [c for c in ["연도", "월", "신규환자수"] if c in view_df.columns]
+        view_df = view_df.sort_values(by=sort_cols, ascending=[False, False, False][:len(sort_cols)])
+    elif sort_order == "과거순 (2019년 ➡️ 2025년)":
+        sort_cols = [c for c in ["연도", "월", "신규환자수"] if c in view_df.columns]
+        view_df = view_df.sort_values(by=sort_cols, ascending=[True, True, False][:len(sort_cols)])
+    elif sort_order == "신규환자 많은 순":
+        if "신규환자수" in view_df.columns:
+            view_df = view_df.sort_values(by=["신규환자수"], ascending=False)
+    elif sort_order == "지역 가나다순":
+        sort_cols = [c for c in ["지역", "연도", "월"] if c in view_df.columns]
+        view_df = view_df.sort_values(by=sort_cols, ascending=[True, False, False][:len(sort_cols)])
+
     display_cols = [
         "연도", "월", "법정감염병군", "감염병명", "지역", "신규환자수",
         "0-9세", "10-19세", "20-49세", "50-64세", "65세 이상",
@@ -3317,29 +3421,23 @@ if menu == "1. 수업 안내 및 데이터 개요":
     ]
     valid_cols = [c for c in display_cols if c in view_df.columns]
 
-    # 1~4급 대표 감염병들이 골고루 보이도록 스마트 대표순 정렬 (기본순 정렬 개선)
-    if tier_choice == "전체 (1~4급 전체)" and not search_kw.strip():
-        rep_diseases = [
-            "코로나19", "인플루엔자", "수두", "백일해", "홍역", "유행성이하선염", "결핵",
-            "쯔쯔가무시증", "말라리아", "중증열성혈소판감소증후군(SFTS)", "수족구병", "노로바이러스 감염증",
-            "중동호흡기증후군(MERS)", "신종인플루엔자", "A형간염", "B형간염"
-        ]
-        # 서울 2024년 등 최신 데이터 우선 표시
-        smart_sample = view_df[
-            (view_df["감염병명"].isin(rep_diseases)) & 
-            (view_df["지역"] == "서울") & 
-            (view_df["연도"] == 2024) & 
-            (view_df["월"] == 10)
-        ]
-        if len(smart_sample) >= 10:
-            show_df = pd.concat([smart_sample, view_df]).drop_duplicates().head(25)
-        else:
-            show_df = view_df.head(25)
-    else:
+    # 표시 건수 제한 적용
+    if limit_choice == "상위 25건":
         show_df = view_df.head(25)
+    elif limit_choice == "상위 50건":
+        show_df = view_df.head(50)
+    elif limit_choice == "상위 100건":
+        show_df = view_df.head(100)
+    elif limit_choice == "상위 200건":
+        show_df = view_df.head(200)
+    else:
+        show_df = view_df
 
     st.dataframe(show_df[valid_cols], use_container_width=True)
-    st.caption(f"💡 현재 조건에 부합하는 총 {len(view_df):,}건 중 상위 {len(show_df)}건을 미리보기로 표시합니다. (위 라디오 버튼으로 1~4급 감염병을 즉시 필터링하여 확인하실 수 있습니다)")
+    st.caption(
+        f"💡 현재 조건({tier_choice}, {sel_year})에 부합하는 총 {len(view_df):,}건 중 상위 {len(show_df):,}건을 표시 중입니다. "
+        f"(2019~2025년 전 연도 데이터가 완비되어 있으며, '조회 연도 선택' 및 '표시 건수' 옵션으로 전체 기간을 자유롭게 탐색할 수 있습니다.)"
+    )
 
 
 # ----------------------------------------------------
@@ -4859,7 +4957,7 @@ elif menu in ["5. AI 보건 튜터(Q&A)", "5. AI_보건튜터(Q&A)"]:
             if not rep:
                 rep = generate_detailed_tutor_answer(selected_disease_name, quick_q, dis_info)
                 if api_k and "관련이 없습니다" not in rep:
-                    rep += "\n\n> 💡 *[보건 교육 지침] 질병관리청 공인 표준 보건 교과서 및 역학 지식베이스를 기반으로 생성된 답변입니다.*"
+                    rep += "\n\n> 💡 *[보건 교육 지침] 질병관리청(KDCA) 감염병 포털 및 학교감염병 예방관리 매뉴얼 공식 지침을 기반으로 생성된 답변입니다.*"
         st.session_state["chat_history"].append({"role": "assistant", "content": rep})
         st.rerun()
 
@@ -4882,7 +4980,7 @@ elif menu in ["5. AI 보건 튜터(Q&A)", "5. AI_보건튜터(Q&A)"]:
             if not rep:
                 rep = generate_detailed_tutor_answer(selected_disease_name, user_q, dis_info)
                 if api_k and "관련이 없습니다" not in rep:
-                    rep += "\n\n> 💡 *[보건 교육 지침] 질병관리청 공인 표준 역학 데이터베이스 및 고교 보건 교과서 기준 답변입니다.*"
+                    rep += "\n\n> 💡 *[보건 교육 지침] 질병관리청(KDCA) 감염병 포털 및 학교감염병 예방관리 매뉴얼 공식 지침을 기반으로 생성된 답변입니다.*"
         st.session_state["chat_history"].append({"role": "assistant", "content": rep})
         st.rerun()
 

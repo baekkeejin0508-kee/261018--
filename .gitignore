@@ -233,4 +233,16 @@ __marimo__/
 scratch/
 .vscode/
 
+# Copyright & Personal Data Protection (교과서 PDF 및 개인 문서 원천 차단)
+*.pdf
+*.hwp
+*.hwpx
+*.doc
+*.docx
+*.ppt
+*.pptx
+*.xls
+*.xlsx
+
+
 
