@@ -3398,7 +3398,7 @@ if menu == "1. 수업 안내 및 데이터 개요":
         )
 
     # 2행: 연도 선택, 정렬 기준, 표시 건수 조절 (2019~2025 전 연도 탐색 완비)
-    m1_opt1, m1_opt2, m1_opt3 = st.columns([1.2, 1.2, 1.0])
+    m1_opt1, m1_opt2, m1_opt3 = st.columns([1.2, 1.2, 1.1])
     with m1_opt1:
         year_options = ["전체 (2019~2025년)"] + [f"{int(y)}년" for y in sorted(working_df["연도"].dropna().unique(), reverse=True)] if "연도" in working_df.columns else ["전체 (2019~2025년)"]
         sel_year = st.selectbox("📅 조회 연도 선택", year_options, index=0, key="m1_sel_year")
@@ -3412,9 +3412,10 @@ if menu == "1. 수업 안내 및 데이터 개요":
     with m1_opt3:
         limit_choice = st.selectbox(
             "👁️ 표시 건수",
-            ["상위 50건", "상위 25건", "상위 100건", "상위 200건", "전체 데이터 (전체 행)"],
+            ["전체 데이터 (전체 행 모두 표시)", "2019~2025 전 연도 균등 보기 (연도별 균등 추출)", "상위 200건", "상위 100건", "상위 50건"],
             index=0,
-            key="m1_limit_choice"
+            key="m1_limit_choice",
+            help="기본적으로 전체 행이 모두 로드되어 스크롤로 2019~2025년 전체를 볼 수 있습니다."
         )
 
     view_df = working_df.copy()
@@ -3450,22 +3451,36 @@ if menu == "1. 수업 안내 및 데이터 개요":
     ]
     valid_cols = [c for c in display_cols if c in view_df.columns]
 
-    # 표시 건수 제한 적용
-    if limit_choice == "상위 25건":
-        show_df = view_df.head(25)
-    elif limit_choice == "상위 50건":
-        show_df = view_df.head(50)
-    elif limit_choice == "상위 100건":
-        show_df = view_df.head(100)
-    elif limit_choice == "상위 200건":
-        show_df = view_df.head(200)
-    else:
+    # 표시 건수 제한 적용 (전체 데이터 기본 표시 및 전 연도 균등 추출 지원)
+    if limit_choice == "전체 데이터 (전체 행 모두 표시)":
         show_df = view_df
+    elif sel_year == "전체 (2019~2025년)":
+        # 2019년부터 2025년까지 전 연도가 고르게 보이도록 연도별 균등 추출
+        limit_map = {
+            "2019~2025 전 연도 균등 보기 (연도별 균등 추출)": 70,
+            "상위 200건": 200,
+            "상위 100건": 100,
+            "상위 50건": 50
+        }
+        target_limit = limit_map.get(limit_choice, 70)
+        years = sorted(view_df["연도"].dropna().unique(), reverse=True)
+        per_year_limit = max(2, target_limit // max(1, len(years)))
+        sampled_dfs = []
+        for y in years:
+            sub = view_df[view_df["연도"] == y].head(per_year_limit)
+            sampled_dfs.append(sub)
+        show_df = pd.concat(sampled_dfs).drop_duplicates() if sampled_dfs else view_df.head(target_limit)
+    else:
+        limit_num = 50
+        num_m = re.search(r"\d+", limit_choice)
+        if num_m:
+            limit_num = int(num_m.group())
+        show_df = view_df.head(limit_num)
 
     st.dataframe(show_df[valid_cols], use_container_width=True)
     st.caption(
-        f"💡 현재 조건({tier_choice}, {sel_year})에 부합하는 총 {len(view_df):,}건 중 상위 {len(show_df):,}건을 표시 중입니다. "
-        f"(2019~2025년 전 연도 데이터가 완비되어 있으며, '조회 연도 선택' 및 '표시 건수' 옵션으로 전체 기간을 자유롭게 탐색할 수 있습니다.)"
+        f"💡 현재 조건({tier_choice}, {sel_year})의 총 {len(view_df):,}건 중 {len(show_df):,}건이 표시 중입니다. "
+        f"(2019~2025년 7개년 국내 17개 시도 및 해외 10개국 전체 데이터가 완비되어 있으며, 스크롤을 내려 전체 기간을 자유롭게 탐색할 수 있습니다.)"
     )
 
 
@@ -3504,47 +3519,41 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     st.session_state["selected_tier_btn"] = t_k
                     break
 
-    # 1단계: 4대 급수 원클릭 전환 버튼 바
-    st.markdown("##### 🏷️ [1단계] 법정감염병 급수 선택 (버튼 클릭 시 우측 드롭다운에 해당 급수 감염병 즉시 나열)")
-    b_c1, b_c2, b_c3, b_c4 = st.columns(4)
+    # 1단계: 4대 급수 + 전체 급수 교차 비교 원클릭 전환 버튼 바
+    st.markdown("##### 🏷️ [1단계] 법정감염병 급수 선택 (버튼 클릭 시 우측 드롭다운에 해당 감염병 즉시 나열)")
+    b_c1, b_c2, b_c3, b_c4, b_c5 = st.columns(5)
     
+    t_all_key = "전체 급수 교차 비교 (1~4급 63종)"
     cur_tier_state = st.session_state.get("selected_tier_btn", tier_list_keys[2])  # 기본값: 제3급 감염병 (17종)
 
     with b_c1:
         t1 = tier_list_keys[0]  # 제1급 감염병 (국내발생·유입관리 7종)
-        st.button(f"🔴 {t1}", use_container_width=True, key="m2_btn_t1",
+        st.button(f"🔴 제1급 ({len(TIER_DISEASE_MAP[t1])}종)", use_container_width=True, key="m2_btn_t1",
                   type="primary" if t1 == cur_tier_state else "secondary",
                   on_click=select_m2_tier, args=(t1,))
     with b_c2:
         t2 = tier_list_keys[1]  # 제2급 감염병 (국내발생 18종)
-        st.button(f"🟠 {t2}", use_container_width=True, key="m2_btn_t2",
+        st.button(f"🟠 제2급 ({len(TIER_DISEASE_MAP[t2])}종)", use_container_width=True, key="m2_btn_t2",
                   type="primary" if t2 == cur_tier_state else "secondary",
                   on_click=select_m2_tier, args=(t2,))
     with b_c3:
         t3 = tier_list_keys[2]  # 제3급 감염병 (국내발생 17종)
-        st.button(f"🟡 {t3}", use_container_width=True, key="m2_btn_t3",
+        st.button(f"🟡 제3급 ({len(TIER_DISEASE_MAP[t3])}종)", use_container_width=True, key="m2_btn_t3",
                   type="primary" if t3 == cur_tier_state else "secondary",
                   on_click=select_m2_tier, args=(t3,))
     with b_c4:
         t4 = tier_list_keys[3]  # 제4급 감염병 (국내발생 21종)
-        st.button(f"🔵 {t4}", use_container_width=True, key="m2_btn_t4",
+        st.button(f"🔵 제4급 ({len(TIER_DISEASE_MAP[t4])}종)", use_container_width=True, key="m2_btn_t4",
                   type="primary" if t4 == cur_tier_state else "secondary",
                   on_click=select_m2_tier, args=(t4,))
+    with b_c5:
+        st.button("🌐 전체 교차 비교 (63종)", use_container_width=True, key="m2_btn_t_all",
+                  type="primary" if t_all_key == cur_tier_state else "secondary",
+                  on_click=select_m2_tier, args=(t_all_key,),
+                  help="제1급, 제2급, 제3급, 제4급을 넘나들며 서로 다른 급수의 법정감염병을 자유롭게 교차 비교 분석합니다.")
 
     if is_uploaded_data:
         st.success(f"📂 **업로드 데이터 연동 완료**: `{', '.join(uploaded_diseases)}` (총 {len(working_df):,}건 분석 준비 완료)")
-
-    # 선택된 급수에 속한 감염병 목록 산출
-    scoped_diseases = list(TIER_DISEASE_MAP.get(cur_tier_state, []))
-
-    # 업로드된 파일의 감염병이 있을 경우 최우선 배치
-    if is_uploaded_data and uploaded_diseases:
-        for ud in reversed(uploaded_diseases):
-            if ud in scoped_diseases:
-                scoped_diseases.remove(ud)
-            scoped_diseases.insert(0, ud)
-
-    tier_short_name = cur_tier_state.split()[0]  # '제1급', '제2급', '제3급', '제4급'
 
     sel_c1, sel_c2 = st.columns([1, 1.4])
     with sel_c1:
@@ -3557,33 +3566,75 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
             help="1개 질병을 집중 분석하거나 2~4개 질병을 나란히 비교합니다."
         )
 
+    # 복수 비교 모드일 때 다른 급수 교차 비교 확장 토글 지원
+    cross_tier_active = False
+    if analysis_type == "복수 감염병 비교 분석" and cur_tier_state != t_all_key:
+        cross_tier_active = st.checkbox(
+            "🌐 다른 급수 감염병도 함께 선택하여 교차 비교하기 (1~4급 63종 전체 확장)",
+            value=False,
+            key="m2_cross_tier_chk",
+            help="체크하면 현재 급수뿐만 아니라 1~4급 모든 법정감염병을 교차 선택하여 나란히 비교할 수 있습니다."
+        )
+
+    # 선택된 급수에 속한 감염병 목록 산출
+    if cur_tier_state == t_all_key or cross_tier_active:
+        all_dis = []
+        for lst in TIER_DISEASE_MAP.values():
+            all_dis.extend(lst)
+        scoped_diseases = sorted(list(set(all_dis)))
+        tier_short_name = "전체 급수 교차"
+    else:
+        scoped_diseases = list(TIER_DISEASE_MAP.get(cur_tier_state, []))
+        tier_short_name = cur_tier_state.split()[0]
+
+    # 업로드된 파일의 감염병이 있을 경우 최우선 배치
+    if is_uploaded_data and uploaded_diseases:
+        for ud in reversed(uploaded_diseases):
+            if ud in scoped_diseases:
+                scoped_diseases.remove(ud)
+            scoped_diseases.insert(0, ud)
+
     with sel_c2:
-        # 사용자 요청 1: 3급 감염병 클릭 시 우측 드롭다운에서 17종 3급 감염병이 나열되어 하나 선택하여 분석
+        # 단일 집중 분석 또는 복수 비교 분석 드롭다운
         if analysis_type == "단일 감염병 집중 분석":
             chosen_single = st.selectbox(
                 f"🏷️ 법정감염병 급수 확인 및 드롭다운 선택 ({tier_short_name} {len(scoped_diseases)}종)",
                 options=scoped_diseases,
                 index=0 if scoped_diseases else None,
-                key=f"m2_disease_select_{cur_tier_state}",
-                help=f"상단에서 [{cur_tier_state}]을 선택하셨습니다. 분석할 감염병 1종을 선택하세요."
+                key=f"m2_disease_select_{cur_tier_state}_{cross_tier_active}",
+                help=f"분석할 감염병 1종을 선택하세요. (상단 급수 버튼으로 즉시 전환됩니다)"
             )
             target_diseases = [chosen_single] if chosen_single else []
         else:
-            default_targets = [d for d in uploaded_diseases if d in scoped_diseases] if (is_uploaded_data and uploaded_diseases) else (scoped_diseases[:2] if len(scoped_diseases) >= 2 else scoped_diseases)
+            if is_uploaded_data and uploaded_diseases:
+                default_targets = [d for d in uploaded_diseases if d in scoped_diseases]
+                if not default_targets:
+                    default_targets = uploaded_diseases[:3]
+            elif cur_tier_state == t_all_key or cross_tier_active:
+                # 전체 교차 비교 시 서로 다른 급수의 대표적 비교 조합 추천
+                default_targets = ["신종인플루엔자", "인플루엔자"] if ("신종인플루엔자" in scoped_diseases and "인플루엔자" in scoped_diseases) else scoped_diseases[:2]
+            else:
+                default_targets = scoped_diseases[:2] if len(scoped_diseases) >= 2 else scoped_diseases
+
             target_diseases = st.multiselect(
                 f"🏷️ 법정감염병 급수 확인 및 비교 선택 ({tier_short_name} {len(scoped_diseases)}종)",
                 options=scoped_diseases,
                 default=default_targets,
-                key=f"m2_multi_select_{cur_tier_state}",
-                help=f"비교할 2~4개의 감염병을 선택하세요."
+                key=f"m2_multi_select_{cur_tier_state}_{cross_tier_active}",
+                help="서로 다른 급수의 법정감염병(예: 신종인플루엔자 1급 vs 인플루엔자 4급)을 자유롭게 2~4개 선택하여 비교하세요."
             )
 
-    # 선택된 감염병 정보 브리핑 바
+    # 선택된 감염병 정보 브리핑 바 (각 감염병의 급수를 직관적으로 안내)
     if target_diseases:
-        tier_badges = " ・ ".join([f"<code>{d}</code>" for d in target_diseases])
+        badge_items = []
+        for d in target_diseases:
+            d_tier = DISEASE_INFO_DB.get(d, {}).get("tier", "")
+            d_tier_tag = f" <span style='font-size: 0.78rem; opacity: 0.8;'>({d_tier})</span>" if d_tier else ""
+            badge_items.append(f"<code>{d}</code>{d_tier_tag}")
+        tier_badges = " ・ ".join(badge_items)
         st.markdown(f"""
         <div style="background: rgba(15, 23, 42, 0.5); border: 1px solid #334155; border-radius: 8px; padding: 6px 14px; font-size: 0.85rem; color: #cbd5e1; margin-top: 6px; margin-bottom: 12px;">
-            🔍 <strong>현재 분석 대상</strong>: {tier_badges} &nbsp;<span style="color: #38bdf8;">({cur_tier_state})</span>
+            🔍 <strong>현재 비교 분석 대상</strong>: {tier_badges}
         </div>
         """, unsafe_allow_html=True)
 
