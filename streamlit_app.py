@@ -267,22 +267,25 @@ def format_korean_log_ticks(y, pos):
 
 def smart_annotate_bars(ax, bars, total_bars: int = 10, is_horizontal: bool = False, max_val: float = None):
     """
-    막대 그래프의 수치 라벨을 세련된 사선으로 배치하되 겹침과 막대 내부 침범을 원천 방지하는 지능형 어노테이션 함수:
-    - 35~40도 사선 회전(rotation)으로 자연스럽고 읽기 편한 시각적 효과 제공
+    막대 그래프의 수치 라벨을 세련된 사선으로 배치하되 인접 막대 간 겹침과 막대 내부 침범을 원천 방지하는 지능형 어노테이션 함수:
+    - 막대 밀집도에 따라 폰트 크기(5.0~6.8pt)를 최적화하여 인접한 낮은 수치끼리의 충돌을 원천 차단 (사용자 피드백 반영)
+    - 50~60도 사선 회전(rotation)으로 가로 침범 길이를 대폭 축소하여 옆 막대 라벨과의 간섭 원천 방지
+    - 지능형 인접 막대 충돌 감지(Smart Collision Avoidance): 바로 옆 막대가 근접하고 높이가 비슷한 경우 오프셋 및 각도를 자동 미세 조정
     - ha='left', va='bottom', rotation_mode='anchor'를 적용하여 막대 상단 밖에서 우상단으로 뻗어가게 함으로써
-      막대그래프 안쪽으로 글자가 파고들거나 겹치는 현상 100% 원천 방지
-    - 막대 밀집도(막대 개수)에 따라 폰트 크기(6.2~7.5pt)와 회전 각도(35~40도)를 자동 조정하여 인접 숫자끼리도 전혀 겹치지 않음
+      막대그래프 안쪽으로 글자가 파고드는 현상 방지
     - 1만 이상 '만' 단위 축약으로 텍스트 길이 최소화
-    - 다크 테마 고대비 스트로크(2.0px)로 어떤 막대 색상 위에서도 또렷한 가독성 보장
+    - 다크 테마 고대비 스트로크(1.8px)로 어떤 막대 색상 위에서도 또렷한 가독성 보장
     """
-    dense = (total_bars >= 8)
-    for b in bars:
-        if is_horizontal:
+    dense = (total_bars >= 16)
+    semi_dense = (total_bars >= 8)
+
+    if is_horizontal:
+        for b in bars:
             w = b.get_width()
             if w > 0:
-                lbl = format_smart_label(w, compact=dense)
+                lbl = format_smart_label(w, compact=semi_dense)
                 if lbl:
-                    offset = 4 if dense else 6
+                    offset = 4 if dense else 5
                     ax.annotate(
                         lbl,
                         (w, b.get_y() + b.get_height() / 2),
@@ -290,41 +293,63 @@ def smart_annotate_bars(ax, bars, total_bars: int = 10, is_horizontal: bool = Fa
                         xytext=(offset, 0),
                         ha='left',
                         va='center',
-                        fontsize=7.5 if dense else 8.5,
+                        fontsize=7.0 if dense else 8.0,
                         color='#ffffff',
                         weight='bold',
                         path_effects=[pe.withStroke(linewidth=2.0, foreground='#0f172a')]
                     )
-        else:
-            h = b.get_height()
-            if h > 0:
-                lbl = format_smart_label(h, compact=dense)
-                if lbl:
-                    # 막대 밀집도에 따라 사선 각도와 폰트 크기를 지능적으로 정밀 제어
-                    if total_bars >= 18:
-                        rot = 40
-                        fs = 6.2
-                    elif total_bars >= 10:
-                        rot = 35
-                        fs = 6.8
-                    else:
-                        rot = 30
-                        fs = 7.5
+    else:
+        # 세로 막대: x 좌표 기준으로 정렬하여 인접 막대 간의 텍스트 충돌 분석
+        sorted_bars = sorted([b for b in bars if b.get_height() > 0], key=lambda b: b.get_x())
+        n_bars = len(sorted_bars)
 
-                    ax.annotate(
-                        lbl,
-                        (b.get_x() + b.get_width() / 2, h),
-                        textcoords="offset points",
-                        xytext=(1, 3.5),
-                        ha='left',
-                        va='bottom',
-                        rotation=rot,
-                        fontsize=fs,
-                        color='#ffffff',
-                        weight='bold',
-                        rotation_mode='anchor',
-                        path_effects=[pe.withStroke(linewidth=1.8, foreground='#0f172a')]
-                    )
+        # 막대 밀집도에 따라 사선 각도와 폰트 크기를 지능적으로 정밀 제어
+        if total_bars >= 18:
+            base_rot = 58
+            fs = 5.0
+        elif total_bars >= 10:
+            base_rot = 50
+            fs = 5.8
+        else:
+            base_rot = 35
+            fs = 6.8
+
+        for idx, b in enumerate(sorted_bars):
+            h = b.get_height()
+            lbl = format_smart_label(h, compact=semi_dense)
+            if not lbl:
+                continue
+
+            x_c = b.get_x() + b.get_width() / 2
+            xoff = -0.5
+            yoff = 2.0
+            rot = base_rot
+
+            # 지능형 인접 막대 충돌 회피 (Smart Collision Avoidance)
+            # 인접 막대와의 가로 간격이 좁고 우측 막대가 약간 더 높아 텍스트가 관통할 위험이 있는 경우
+            if idx + 1 < n_bars:
+                next_b = sorted_bars[idx + 1]
+                next_h = next_b.get_height()
+                dx = (next_b.get_x() + next_b.get_width() / 2) - x_c
+                if 0 < dx < 0.28 and 0 < (next_h - h) < 30000:
+                    xoff = -1.5
+                    yoff = 1.5
+                    rot = max(base_rot, 60)
+
+            ax.annotate(
+                lbl,
+                (x_c, h),
+                textcoords="offset points",
+                xytext=(xoff, yoff),
+                ha='left',
+                va='bottom',
+                rotation=rot,
+                fontsize=fs,
+                color='#ffffff',
+                weight='bold',
+                rotation_mode='anchor',
+                path_effects=[pe.withStroke(linewidth=1.8, foreground='#0f172a')]
+            )
 
 
 
@@ -2566,7 +2591,7 @@ def generate_worksheet_html() -> str:
             </div>
             <div class="q-row">
                 <div class="q-label">2. 원자료 URL 및 확인 일자:</div>
-                <div class="q-line"><span style="color: #c00000; font-weight: bold;">https://261018--aihealthtutor.streamlit.app/</span> &nbsp;&nbsp;|&nbsp;&nbsp; 확인 일자: 2026. 10. 20.</div>
+                <div class="q-line"><span style="color: #c00000; font-weight: bold;">https://261018-aihealthtutor.streamlit.app/</span> &nbsp;&nbsp;|&nbsp;&nbsp; 확인 일자: 2026. 10. 20.</div>
             </div>
             <div class="q-row">
                 <div class="q-label">3. 자료의 범위 및 기본 단위:</div>
@@ -2730,7 +2755,7 @@ def generate_worksheet_markdown() -> str:
 
 ### ■ [1단계] 자료를 읽고 질문 만들기 (대시보드 메뉴 1, 2, 3 연계)
 1. **자료 제목 및 제공기관**: 질병관리청 감염병포털 및 공공데이터 대시보드 (2019~2025)
-2. **원자료 URL 및 확인 일자**: `https://261018--aihealthtutor.streamlit.app/` (확인 일자: 2026. 10. 20.)
+2. **원자료 URL 및 확인 일자**: `https://261018-aihealthtutor.streamlit.app/` (확인 일자: 2026. 10. 20.)
 3. **자료의 범위 및 기본 단위**: 기간(2019~2025년), 지역(국내 17개 시도 및 해외 10개국), 단위(신규 환자 수(명))
 4. **데이터 종류 확인 (해당 항목에 [V] 체크하고 확인 이유를 적으시오)**:
    - [  ] 공식 전수·표본감시 통계   [  ] 수업 실습용 가상 모의 데이터
@@ -3013,7 +3038,7 @@ table {
 
             <div class="q-head">2. 원자료 URL 및 확인 일자</div>
             <div class="q-text">
-                <span style="color: #c00000; font-weight: bold; text-decoration: underline;">https://261018--aihealthtutor.streamlit.app/</span> &nbsp;&nbsp;&nbsp;&nbsp; 확인 일자: 2026. 10. 20.
+                <span style="color: #c00000; font-weight: bold; text-decoration: underline;">https://261018-aihealthtutor.streamlit.app/</span> &nbsp;&nbsp;&nbsp;&nbsp; 확인 일자: 2026. 10. 20.
             </div>
 
             <div class="q-head">3. 자료의 범위 및 기본 단위</div>
@@ -3265,7 +3290,7 @@ def show_worksheet_dialog():
     with st.expander("■ [1단계] 자료를 읽고 질문 만들기 (대시보드 메뉴 1, 2, 3 연계)", expanded=True):
         st.markdown("""
         - **1. 자료 제목 및 제공기관**: 질병관리청 감염병포털 및 공공데이터 대시보드 (2019~2025)
-        - **2. 원자료 URL 및 확인 일자**: `https://261018--aihealthtutor.streamlit.app/` (확인 일자: 2026. 10. 20.)
+        - **2. 원자료 URL 및 확인 일자**: `https://261018-aihealthtutor.streamlit.app/` (확인 일자: 2026. 10. 20.)
         - **3. 자료의 범위 및 기본 단위**: 기간(2019~2025년), 지역(국내 17개 시도 및 해외 10개국), 단위(신규 환자 수(명))
         - **4. 데이터 종류 확인**: `[ ] 공식 전수·표본감시 통계` &nbsp; `[ ] 수업 실습용 가상 모의 데이터`
         - **5. 비교 조건을 동일하게 맞춘 두 시점 또는 두 지역의 수치**: 수치 A / 수치 B
@@ -3992,7 +4017,7 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                 plt.tight_layout()
 
                 st.pyplot(fig_m, use_container_width=True)
-                st.caption("💡 **가독성 최적화 안내**: 막대 밀집 시 글자가 서로 겹치거나 막대와 간섭되지 않도록 수치가 '만' 단위로 자동 스마트 축약 및 세련된 사선(35~40°) 정렬됩니다. 정밀 숫자는 '1. Plotly' 탭 마우스 호버 또는 하단 데이터 표에서 100% 확인하실 수 있습니다.")
+                st.caption("💡 **가독성 최적화 안내**: 막대 밀집 시 인접한 낮은 수치끼리 글자가 겹치거나 막대와 간섭되지 않도록 폰트 크기 최적화(5.0pt), 지능형 충돌 회피 오프셋 및 세련된 사선(55~60°) 정렬이 자동 적용됩니다. 정밀 숫자는 '1. Plotly' 탭 마우스 호버 또는 하단 데이터 표에서 100% 확인하실 수 있습니다.")
                 buf_m = io.BytesIO()
                 fig_m.savefig(buf_m, format="png", dpi=200, bbox_inches="tight")
                 buf_m.seek(0)
@@ -4208,7 +4233,7 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                 ax_m.legend(title="연령대", bbox_to_anchor=(1.02, 1), loc='upper left', facecolor='#1e293b', edgecolor='#475569', labelcolor='#f8fafc', fontsize=8)
                 plt.tight_layout()
                 st.pyplot(fig_m, use_container_width=True)
-                st.caption("💡 **가독성 최적화 안내**: 막대 밀집 시 글자가 서로 겹치거나 막대와 간섭되지 않도록 수치가 '만' 단위로 자동 스마트 축약 및 세련된 사선(35~40°) 정렬됩니다. 정밀 숫자는 '1. Plotly' 탭 마우스 호버 또는 하단 데이터 표에서 100% 확인하실 수 있습니다.")
+                st.caption("💡 **가독성 최적화 안내**: 막대 밀집 시 인접한 낮은 수치끼리 글자가 겹치거나 막대와 간섭되지 않도록 폰트 크기 최적화(5.0pt), 지능형 충돌 회피 오프셋 및 세련된 사선(55~60°) 정렬이 자동 적용됩니다. 정밀 숫자는 '1. Plotly' 탭 마우스 호버 또는 하단 데이터 표에서 100% 확인하실 수 있습니다.")
                 buf_m = io.BytesIO()
                 fig_m.savefig(buf_m, format="png", dpi=200, bbox_inches="tight")
                 buf_m.seek(0)
@@ -4671,7 +4696,7 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     ax_m.legend(title="지역", bbox_to_anchor=(1.02, 1), loc='upper left', facecolor='#1e293b', edgecolor='#475569', labelcolor='#f8fafc', fontsize=8)
                 plt.tight_layout()
                 st.pyplot(fig_m, use_container_width=True)
-                st.caption("💡 **가독성 최적화 안내**: 막대 밀집 시 글자가 서로 겹치거나 막대와 간섭되지 않도록 수치가 '만' 단위로 자동 스마트 축약 및 세련된 사선(35~40°) 정렬됩니다. 정밀 숫자는 '1. Plotly' 탭 마우스 호버 또는 하단 데이터 표에서 100% 확인하실 수 있습니다.")
+                st.caption("💡 **가독성 최적화 안내**: 막대 밀집 시 인접한 낮은 수치끼리 글자가 겹치거나 막대와 간섭되지 않도록 폰트 크기 최적화(5.0pt), 지능형 충돌 회피 오프셋 및 세련된 사선(55~60°) 정렬이 자동 적용됩니다. 정밀 숫자는 '1. Plotly' 탭 마우스 호버 또는 하단 데이터 표에서 100% 확인하실 수 있습니다.")
                 buf_m = io.BytesIO()
                 fig_m.savefig(buf_m, format="png", dpi=200, bbox_inches="tight")
                 buf_m.seek(0)

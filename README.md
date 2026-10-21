@@ -25,8 +25,14 @@
 
 ---
 
-## 🚀 2. 실행 방법
+## 🚀 2. 웹 배포 및 실행 방법
+
+### 🌐 스트림릿 클라우드(Streamlit Community Cloud) 공식 배포 링크
+- **웹 애플리케이션 바로가기**: **[https://261018-aihealthtutor.streamlit.app/](https://261018-aihealthtutor.streamlit.app/)**
+> 💡 별도의 라이브러리 설치 없이 웹 브라우저에서 실시간으로 대시보드 탐구, 시뮬레이터 및 AI 보건 튜터를 체험하실 수 있습니다.
+
+### 💻 로컬 개발 환경 실행 방법
 ```bash
 python -m streamlit run streamlit_app.py
 ```
-접속 주소: **[http://localhost:8501](http://localhost:8501)**
+- 로컬 접속 주소: **[http://localhost:8501](http://localhost:8501)**
