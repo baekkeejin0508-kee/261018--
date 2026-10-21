@@ -228,6 +228,81 @@ def apply_dark_plot_style(fig, ax):
     ax.grid(True, linestyle='--', alpha=0.3, color='#475569')
 
 
+def format_smart_label(val: float, compact: bool = True) -> str:
+    """
+    수치 라벨이 서로 겹치거나 잘리지 않도록 스마트 포맷팅
+    - 0 또는 음수: 노이즈 방지를 위해 공백 반환
+    - 1억 이상: 1.2억 등 소수점 1자리 요약
+    - 1만 이상: 2,406만, 1,842만, 203만 등 정밀 축약
+    - 1만 미만: 원본 쉼표 포맷 (예: 2,341, 837)
+    """
+    if pd.isna(val) or val <= 0:
+        return ""
+    if not compact:
+        return f"{int(val):,}"
+    if val >= 100_000_000:
+        return f"{val/1e8:.1f}억"
+    elif val >= 10_000:
+        v_man = val / 10_000
+        if v_man >= 100:
+            return f"{v_man:,.0f}만"
+        else:
+            return f"{v_man:,.1f}만"
+    else:
+        return f"{int(val):,}"
+
+
+def smart_annotate_bars(ax, bars, total_bars: int = 10, is_horizontal: bool = False, max_val: float = None):
+    """
+    막대 그래프의 수치 라벨 겹침을 원천 방지하는 지능형 어노테이션 함수:
+    - 막대 밀집도(총 막대 수 >= 8)에 따라 수직(90도) 스마트 회전 전환
+    - 막대 중심 정렬(ha='center')로 인접 막대와의 수평 간섭 0% 보장
+    - 1만 이상 '만' 단위 축약으로 텍스트 길이 최소화
+    - 다크 테마 고대비 스트로크로 가독성 보장
+    """
+    dense = (total_bars >= 8)
+    for b in bars:
+        if is_horizontal:
+            w = b.get_width()
+            if w > 0:
+                lbl = format_smart_label(w, compact=dense)
+                if lbl:
+                    offset = (max_val * 0.015) if max_val else 4
+                    ax.annotate(
+                        lbl,
+                        (w, b.get_y() + b.get_height() / 2),
+                        textcoords="offset points",
+                        xytext=(offset, 0),
+                        ha='left',
+                        va='center',
+                        fontsize=7.5 if dense else 8.5,
+                        color='#ffffff',
+                        weight='bold',
+                        path_effects=[pe.withStroke(linewidth=2.0, foreground='#0f172a')]
+                    )
+        else:
+            h = b.get_height()
+            if h > 0:
+                lbl = format_smart_label(h, compact=dense)
+                if lbl:
+                    rot = 90 if dense else 0
+                    fs = 6.5 if total_bars > 20 else (7.0 if dense else 8.0)
+                    ax.annotate(
+                        lbl,
+                        (b.get_x() + b.get_width() / 2, h),
+                        textcoords="offset points",
+                        xytext=(0, 4),
+                        ha='center',
+                        va='bottom',
+                        rotation=rot,
+                        fontsize=fs,
+                        color='#ffffff',
+                        weight='bold',
+                        path_effects=[pe.withStroke(linewidth=2.0, foreground='#0f172a')]
+                    )
+
+
+
 def ensure_dataset_integrity(df: pd.DataFrame) -> pd.DataFrame:
     """데이터프레임 내 연령대 5단계 세분화 및 컬럼 명칭을 100% 보장하는 무결성 함수"""
     if df.empty:
@@ -3721,19 +3796,18 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     fig_p = px.line(ts, x="연도", y="신규환자수", color="감염병명", markers=True, title="연도별 감염병 환자 발생 추이 (Plotly 꺾은선)", template="plotly_dark", color_discrete_sequence=palette_colors)
                 elif "막대" in chart_style:
                     fig_p = px.bar(ts, x="연도", y="신규환자수", color="감염병명", barmode="group", text_auto=',d', title="연도별 감염병 환자 발생 비교 (Plotly 묶은 막대)", template="plotly_dark", color_discrete_sequence=palette_colors)
-                    # 막대 위 바깥에 가로로 흰색 글씨 배치하여 막대 색상에 묻히지 않고 확연히 보이도록 개선
+                    # 막대 위 바깥에 흰색 글씨 배치 및 좁은 경우 겹침 방지
                     fig_p.update_traces(
                         textposition='outside',
-                        textangle=0,
                         cliponaxis=False,
-                        textfont=dict(size=10, color='#ffffff', family='Pretendard, sans-serif')
+                        textfont=dict(size=9.5, color='#ffffff', family='Pretendard, sans-serif')
                     )
                     max_val_p = ts["신규환자수"].max() if not ts.empty else 0
                     if max_val_p > 0:
-                        fig_p.update_yaxes(range=[0, max_val_p * 1.18])
+                        fig_p.update_yaxes(range=[0, max_val_p * 1.25])
                 else:
                     fig_p = px.area(ts, x="연도", y="신규환자수", color="감염병명", markers=True, title="연도별 감염병 누적 발생 분포 (Plotly 누적 영역)", template="plotly_dark", color_discrete_sequence=palette_colors)
-                fig_p.update_layout(xaxis_title="발생 연도", yaxis_title="신규 환자 수(명)", height=390, margin=dict(l=40, r=20, t=40, b=60))
+                fig_p.update_layout(xaxis_title="발생 연도", yaxis_title="신규 환자 수(명)", height=390, margin=dict(l=40, r=20, t=40, b=60), uniformtext_minsize=7, uniformtext_mode='hide')
                 fig_p.update_xaxes(tickangle=0, dtick=1, tickmode='linear', tickformat="d")
                 fig_p.update_yaxes(tickformat=',d')
                 st.plotly_chart(fig_p, use_container_width=True, key="plotly_v1_main")
@@ -3752,26 +3826,12 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                 elif "막대" in chart_style:
                     n_uniq = len(ts["감염병명"].unique())
                     sns.barplot(data=ts, x="연도", y="신규환자수", hue="감염병명", palette=palette_colors[:n_uniq], ax=ax_s)
-                    ax_s.set_title("연도별 감염병 환자 발생 비교 (Seaborn)")
+                    ax_s.set_title("연도별 감염병 환자 발생 비교 (Seaborn 막대)")
                     max_val_s = ts["신규환자수"].max() if not ts.empty else 0
                     if max_val_s > 0:
-                        ax_s.set_ylim(0, max_val_s * 1.35)
+                        ax_s.set_ylim(0, max_val_s * 1.38)
                     valid_patches = sorted([p for p in ax_s.patches if p.get_height() > 0], key=lambda p: p.get_x())
-                    for p in valid_patches:
-                        h = p.get_height()
-                        ax_s.annotate(
-                            f"{int(h):,}",
-                            (p.get_x() + p.get_width() / 2, h),
-                            textcoords="offset points",
-                            xytext=(2, 4),
-                            ha='left',
-                            va='bottom',
-                            rotation=40,
-                            fontsize=7.5,
-                            color='#ffffff',
-                            weight='bold',
-                            path_effects=[pe.withStroke(linewidth=2.5, foreground='#0f172a')]
-                        )
+                    smart_annotate_bars(ax_s, valid_patches, total_bars=len(valid_patches))
                     ax_s.set_xticks(range(len(years)))
                     ax_s.set_xticklabels(year_labels, rotation=0)
                 else:
@@ -3816,7 +3876,11 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                         sub_ts = ts[ts["감염병명"] == d_name]
                         ax_m.plot(sub_ts["연도"], sub_ts["신규환자수"], marker='s', markersize=7, linewidth=2.2, label=d_name, color=palette_colors[i % len(palette_colors)])
                         for _, row in sub_ts.iterrows():
-                            ax_m.annotate(f"{int(row['신규환자수']):,}", (row["연도"], row["신규환자수"]), textcoords="offset points", xytext=(0, 6), ha='center', fontsize=8, color='#ffffff', weight='bold')
+                            lbl = format_smart_label(row["신규환자수"], compact=True)
+                            if lbl:
+                                y_off = 6 if i % 2 == 0 else -14
+                                va_pos = 'bottom' if i % 2 == 0 else 'top'
+                                ax_m.annotate(lbl, (row["연도"], row["신규환자수"]), textcoords="offset points", xytext=(0, y_off), ha='center', va=va_pos, fontsize=7.5, color='#ffffff', weight='bold', path_effects=[pe.withStroke(linewidth=2.0, foreground='#0f172a')])
                     ax_m.set_title("연도별 감염병 환자 발생 추이 및 수치 라벨 (Matplotlib)")
                     ax_m.set_xticks(years)
                     ax_m.set_xticklabels(year_labels, rotation=0)
@@ -3825,27 +3889,14 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     bar_w = 0.8 / n_dis
                     max_val_m = ts["신규환자수"].max() if not ts.empty else 0
                     if max_val_m > 0:
-                        ax_m.set_ylim(0, max_val_m * 1.35)
+                        ax_m.set_ylim(0, max_val_m * 1.38)
+                    all_bars_m = []
                     for i, d_name in enumerate(target_diseases):
                         sub = ts[ts["감염병명"] == d_name].set_index("연도").reindex(years, fill_value=0)
                         offsets = [idx + (i - n_dis / 2 + 0.5) * bar_w for idx in range(len(years))]
                         bars_m = ax_m.bar(offsets, sub["신규환자수"], width=bar_w, label=d_name, color=palette_colors[i % len(palette_colors)], edgecolor="#1e293b")
-                        for b in bars_m:
-                            h = b.get_height()
-                            if h > 0:
-                                ax_m.annotate(
-                                    f"{int(h):,}",
-                                    (b.get_x() + b.get_width() / 2, h),
-                                    textcoords="offset points",
-                                    xytext=(2, 4),
-                                    ha='left',
-                                    va='bottom',
-                                    rotation=40,
-                                    fontsize=7.5,
-                                    color='#ffffff',
-                                    weight='bold',
-                                    path_effects=[pe.withStroke(linewidth=2.5, foreground='#0f172a')]
-                                )
+                        all_bars_m.extend(bars_m)
+                    smart_annotate_bars(ax_m, all_bars_m, total_bars=len(all_bars_m))
                     ax_m.set_title("연도별 감염병 환자 발생 비교 (Matplotlib 막대)")
                     ax_m.set_xticks(range(len(years)))
                     ax_m.set_xticklabels(year_labels, rotation=0)
@@ -3867,6 +3918,7 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                 plt.tight_layout()
 
                 st.pyplot(fig_m, use_container_width=True)
+                st.caption("💡 **가독성 최적화 안내**: 막대 밀집 시 글자가 서로 겹치지 않도록 수치가 '만' 단위로 자동 스마트 축약 및 수직 정렬됩니다. 정밀 숫자는 '1. Plotly' 탭 마우스 호버 또는 하단 데이터 표에서 100% 확인하실 수 있습니다.")
                 buf_m = io.BytesIO()
                 fig_m.savefig(buf_m, format="png", dpi=200, bbox_inches="tight")
                 buf_m.seek(0)
@@ -3950,17 +4002,16 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     fig_p = px.bar(age_melted, x="감염병명", y="환자수", color="연령대", barmode="group", text_auto=',d', title="감염병별 5개 연령대 세분화 묶은 막대 (Plotly)", template="plotly_dark", color_discrete_sequence=palette_colors)
                     fig_p.update_traces(
                         textposition='outside',
-                        textangle=0,
                         cliponaxis=False,
                         textfont=dict(size=9.5, color='#ffffff', family='Pretendard, sans-serif')
                     )
                     max_age_p = age_melted["환자수"].max() if not age_melted.empty else 0
                     if max_age_p > 0:
-                        fig_p.update_yaxes(range=[0, max_age_p * 1.18])
+                        fig_p.update_yaxes(range=[0, max_age_p * 1.25])
                 else:
                     st.markdown("###### ⚡ Plotly: 5개 연령대별 누적 영역 구성 (마우스 호버 시 세부 환자 수 표시)")
                     fig_p = px.area(age_melted, x="연령대", y="환자수", color="감염병명", markers=True, title="연령대별 감염병 누적 환자 구성 (Plotly 누적 영역)", template="plotly_dark", color_discrete_sequence=palette_colors)
-                fig_p.update_layout(xaxis_title="연령대 구간" if "막대" not in chart_style else "감염병명", yaxis_title="환자 수(명)", height=390, margin=dict(l=40, r=20, t=40, b=60))
+                fig_p.update_layout(xaxis_title="연령대 구간" if "막대" not in chart_style else "감염병명", yaxis_title="환자 수(명)", height=390, margin=dict(l=40, r=20, t=40, b=60), uniformtext_minsize=7, uniformtext_mode='hide')
                 fig_p.update_xaxes(tickangle=0)
                 fig_p.update_yaxes(tickformat=',d')
                 st.plotly_chart(fig_p, use_container_width=True, key="plotly_v2_main")
@@ -3979,24 +4030,9 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     ax_s.set_title("감염병별 연령대 환자 분포 비교 (Seaborn)")
                     max_age_val = age_melted["환자수"].max() if not age_melted.empty else 0
                     if max_age_val > 0:
-                        ax_s.set_ylim(0, max_age_val * 1.35)
-                    # 막대 위 숫자를 40도 회전 및 2.5px 다크 테두리 적용하여 겹침 원천 방지
+                        ax_s.set_ylim(0, max_age_val * 1.38)
                     valid_patches = sorted([p for p in ax_s.patches if p.get_height() > 0], key=lambda p: p.get_x())
-                    for p in valid_patches:
-                        h = p.get_height()
-                        ax_s.annotate(
-                            f"{int(h):,}",
-                            (p.get_x() + p.get_width() / 2, h),
-                            textcoords="offset points",
-                            xytext=(2, 4),
-                            ha='left',
-                            va='bottom',
-                            rotation=40,
-                            fontsize=7.5,
-                            color='#ffffff',
-                            weight='bold',
-                            path_effects=[pe.withStroke(linewidth=2.5, foreground='#0f172a')]
-                        )
+                    smart_annotate_bars(ax_s, valid_patches, total_bars=len(valid_patches))
                     ax_s.set_xlabel("감염병명")
                 else:
                     st.markdown("###### 🎨 Seaborn: 5개 연령대별 누적 스택 막대")
@@ -4035,7 +4071,11 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                         sub_vals = age_grp[age_grp["감염병명"] == d_name][age_cols].values[0]
                         ax_m.plot(age_cols, sub_vals, marker='s', markersize=7, linewidth=2.2, label=d_name, color=palette_colors[i % len(palette_colors)])
                         for col_idx, v in enumerate(sub_vals):
-                            ax_m.annotate(f"{int(v):,}", (col_idx, v), textcoords="offset points", xytext=(0, 6), ha='center', fontsize=8, color='#ffffff', weight='bold')
+                            lbl = format_smart_label(v, compact=True)
+                            if lbl:
+                                y_off = 6 if i % 2 == 0 else -14
+                                va_pos = 'bottom' if i % 2 == 0 else 'top'
+                                ax_m.annotate(lbl, (col_idx, v), textcoords="offset points", xytext=(0, y_off), ha='center', va=va_pos, fontsize=7.5, color='#ffffff', weight='bold', path_effects=[pe.withStroke(linewidth=2.0, foreground='#0f172a')])
                     ax_m.set_title("감염병별 5개 연령대 취약도 추세 (Matplotlib)")
                     ax_m.set_xlabel("연령대 구간")
                 elif "막대" in chart_style:
@@ -4045,26 +4085,13 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     bar_w = 0.8 / n_sub
                     max_age_val_m = age_grp[age_cols].values.max() if not age_grp.empty else 0
                     if max_age_val_m > 0:
-                        ax_m.set_ylim(0, max_age_val_m * 1.35)
+                        ax_m.set_ylim(0, max_age_val_m * 1.38)
+                    all_age_bars = []
                     for i, c_name in enumerate(age_cols):
                         offsets = [idx + (i - n_sub / 2 + 0.5) * bar_w for idx in range(n_groups)]
                         bars_m = ax_m.bar(offsets, age_grp[c_name], width=bar_w, label=c_name, color=palette_colors[i % len(palette_colors)], edgecolor="#1e293b")
-                        for b in bars_m:
-                            h = b.get_height()
-                            if h > 0:
-                                ax_m.annotate(
-                                    f"{int(h):,}",
-                                    (b.get_x() + b.get_width() / 2, h),
-                                    textcoords="offset points",
-                                    xytext=(2, 4),
-                                    ha='left',
-                                    va='bottom',
-                                    rotation=40,
-                                    fontsize=7.5,
-                                    color='#ffffff',
-                                    weight='bold',
-                                    path_effects=[pe.withStroke(linewidth=2.5, foreground='#0f172a')]
-                                )
+                        all_age_bars.extend(bars_m)
+                    smart_annotate_bars(ax_m, all_age_bars, total_bars=len(all_age_bars))
                     ax_m.set_title("감염병별 5개 연령대 환자 비교 (Matplotlib 막대)")
                     ax_m.set_xticks(range(n_groups))
                     ax_m.set_xticklabels(age_grp["감염병명"], rotation=0)
@@ -4084,6 +4111,7 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                 ax_m.legend(title="연령대", bbox_to_anchor=(1.02, 1), loc='upper left', facecolor='#1e293b', edgecolor='#475569', labelcolor='#f8fafc', fontsize=8)
                 plt.tight_layout()
                 st.pyplot(fig_m, use_container_width=True)
+                st.caption("💡 **가독성 최적화 안내**: 막대 밀집 시 글자가 서로 겹치지 않도록 수치가 '만' 단위로 자동 스마트 축약 및 수직 정렬됩니다. 정밀 숫자는 '1. Plotly' 탭 마우스 호버 또는 하단 데이터 표에서 100% 확인하실 수 있습니다.")
                 buf_m = io.BytesIO()
                 fig_m.savefig(buf_m, format="png", dpi=200, bbox_inches="tight")
                 buf_m.seek(0)
@@ -4168,7 +4196,7 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     max_g_p = global_df["신규환자수"].max() if not global_df.empty else 0
                     if max_g_p > 0:
                         fig_p.update_xaxes(range=[0, max_g_p * 1.18], tickformat=',d')
-                    fig_p.update_layout(xaxis_title="신규 환자 수(명)", yaxis_title="국가명", showlegend=False, height=390, margin=dict(l=40, r=20, t=40, b=60))
+                    fig_p.update_layout(xaxis_title="신규 환자 수(명)", yaxis_title="국가명", showlegend=False, height=390, margin=dict(l=40, r=20, t=40, b=60), uniformtext_minsize=7, uniformtext_mode='hide')
                     st.plotly_chart(fig_p, use_container_width=True, key="plotly_v3_bar")
                 else:
                     st.markdown("###### ⚡ Plotly: 해외 주요 10개국 연도별 누적 발생 구성 (호버 시 세부 수치 표시)")
@@ -4200,11 +4228,9 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     ax_s.set_title("해외 주요 발생국별 환자 발생 비교 (Seaborn)")
                     max_g_s = global_df["신규환자수"].max() if not global_df.empty else 0
                     if max_g_s > 0:
-                        ax_s.set_xlim(0, max_g_s * 1.25)
-                    for p in ax_s.patches:
-                        w = p.get_width()
-                        if w > 0:
-                            ax_s.annotate(f"{int(w):,}명", (w, p.get_y() + p.get_height() / 2), textcoords="offset points", xytext=(5, 0), va='center', fontsize=7.5, color='#ffffff', weight='bold')
+                        ax_s.set_xlim(0, max_g_s * 1.30)
+                    valid_patches = [p for p in ax_s.patches if p.get_width() > 0]
+                    smart_annotate_bars(ax_s, valid_patches, total_bars=len(valid_patches), is_horizontal=True, max_val=max_g_s)
                     ax_s.set_xlabel("신규 환자 수(명)")
                     ax_s.set_ylabel("국가명")
                     ax_s.xaxis.set_major_formatter(ticker.FuncFormatter(lambda x, p: f"{int(x):,}"))
@@ -4260,9 +4286,9 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     st.markdown("###### 📉 Matplotlib: 정확한 환자 수 레이블이 표기된 정밀 가로 막대")
                     bars = ax_m.barh(global_df["지역"], global_df["신규환자수"], color="#0284c7", edgecolor="#38bdf8")
                     max_val = max(global_df["신규환자수"]) if not global_df.empty else 0
-                    for bar in bars:
-                        w = bar.get_width()
-                        ax_m.text(w + (max_val*0.01), bar.get_y() + bar.get_height()/2, f"{int(w):,}명", va='center', fontsize=7.5, color='#ffffff', weight='bold')
+                    if max_val > 0:
+                        ax_m.set_xlim(0, max_val * 1.30)
+                    smart_annotate_bars(ax_m, bars, total_bars=len(bars), is_horizontal=True, max_val=max_val)
                     ax_m.set_title("해외 주요 10개국 감염병 발생 현황 (Matplotlib)")
                     ax_m.set_xlabel("신규 환자 수(명)")
                     ax_m.set_ylabel("국가명")
@@ -4360,14 +4386,13 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     fig_p = px.bar(korea_df, x="지역", y="신규환자수", color="지역", text_auto=',d', title="국내 17개 시도별 감염병 환자 발생 현황 (Plotly)", template="plotly_dark", color_discrete_sequence=palette_colors)
                     fig_p.update_traces(
                         textposition='outside',
-                        textangle=0,
                         cliponaxis=False,
                         textfont=dict(size=9.5, color='#ffffff', family='Pretendard, sans-serif')
                     )
                     max_k_p = korea_df["신규환자수"].max() if not korea_df.empty else 0
                     if max_k_p > 0:
-                        fig_p.update_yaxes(range=[0, max_k_p * 1.18])
-                    fig_p.update_layout(xaxis_title="지역(시도)", yaxis_title="신규 환자 수(명)", showlegend=False, height=390, margin=dict(l=40, r=20, t=40, b=60))
+                        fig_p.update_yaxes(range=[0, max_k_p * 1.25])
+                    fig_p.update_layout(xaxis_title="지역(시도)", yaxis_title="신규 환자 수(명)", showlegend=False, height=390, margin=dict(l=40, r=20, t=40, b=60), uniformtext_minsize=7, uniformtext_mode='hide')
                     fig_p.update_xaxes(tickangle=0)
                     fig_p.update_yaxes(tickformat=',d')
                     st.plotly_chart(fig_p, use_container_width=True, key="plotly_v4_bar")
@@ -4398,26 +4423,12 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     ax_s.set_title("국내 17개 시도별 환자 분포 (Seaborn)")
                     max_k_s = korea_df["신규환자수"].max() if not korea_df.empty else 0
                     if max_k_s > 0:
-                        ax_s.set_ylim(0, max_k_s * 1.35)
+                        ax_s.set_ylim(0, max_k_s * 1.38)
                     valid_patches = sorted([p for p in ax_s.patches if p.get_height() > 0], key=lambda p: p.get_x())
-                    for p in valid_patches:
-                        h = p.get_height()
-                        ax_s.annotate(
-                            f"{int(h):,}",
-                            (p.get_x() + p.get_width() / 2, h),
-                            textcoords="offset points",
-                            xytext=(2, 4),
-                            ha='left',
-                            va='bottom',
-                            rotation=40,
-                            fontsize=7.5,
-                            color='#ffffff',
-                            weight='bold',
-                            path_effects=[pe.withStroke(linewidth=2.5, foreground='#0f172a')]
-                        )
+                    smart_annotate_bars(ax_s, valid_patches, total_bars=len(valid_patches))
                     ax_s.set_xlabel("지역(시도)")
                     ax_s.set_ylabel("신규 환자 수(명)")
-                    ax_s.tick_params(axis='x', rotation=45, labelsize=8)
+                    plt.setp(ax_s.get_xticklabels(), rotation=45, ha='right', rotation_mode='anchor', fontsize=8)
                     ax_s.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, p: f"{int(x):,}"))
                 else:
                     st.markdown("###### 🎨 Seaborn: 국내 상위 6대 시도 누적 영역 그래프")
@@ -4469,27 +4480,12 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     bars_km = ax_m.bar(korea_df["지역"], korea_df["신규환자수"], color=bar_colors, edgecolor="#1e293b")
                     max_k_m = korea_df["신규환자수"].max() if not korea_df.empty else 0
                     if max_k_m > 0:
-                        ax_m.set_ylim(0, max_k_m * 1.35)
-                    for b in bars_km:
-                        h = b.get_height()
-                        if h > 0:
-                            ax_m.annotate(
-                                f"{int(h):,}",
-                                (b.get_x() + b.get_width() / 2, h),
-                                textcoords="offset points",
-                                xytext=(2, 4),
-                                ha='left',
-                                va='bottom',
-                                rotation=40,
-                                fontsize=7.5,
-                                color='#ffffff',
-                                weight='bold',
-                                path_effects=[pe.withStroke(linewidth=2.5, foreground='#0f172a')]
-                            )
+                        ax_m.set_ylim(0, max_k_m * 1.38)
+                    smart_annotate_bars(ax_m, bars_km, total_bars=len(bars_km))
                     ax_m.set_title("국내 17개 시도별 환자 발생 통계 (Matplotlib 상위 시도 강조)")
                     ax_m.set_xlabel("지역(시도)")
                     ax_m.set_ylabel("신규 환자 수(명)")
-                    ax_m.tick_params(axis='x', rotation=45, labelsize=8)
+                    plt.setp(ax_m.get_xticklabels(), rotation=45, ha='right', rotation_mode='anchor', fontsize=8)
                     ax_m.yaxis.set_major_formatter(ticker.FuncFormatter(lambda x, p: f"{int(x):,}"))
                 else:
                     k_pivot = k_top_ts.pivot(index="연도", columns="지역", values="신규환자수").reindex(k_years).fillna(0)
@@ -4504,6 +4500,7 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     ax_m.legend(title="지역", bbox_to_anchor=(1.02, 1), loc='upper left', facecolor='#1e293b', edgecolor='#475569', labelcolor='#f8fafc', fontsize=8)
                 plt.tight_layout()
                 st.pyplot(fig_m, use_container_width=True)
+                st.caption("💡 **가독성 최적화 안내**: 막대 밀집 시 글자가 서로 겹치지 않도록 수치가 '만' 단위로 자동 스마트 축약 및 수직 정렬됩니다. 정밀 숫자는 '1. Plotly' 탭 마우스 호버 또는 하단 데이터 표에서 100% 확인하실 수 있습니다.")
                 buf_m = io.BytesIO()
                 fig_m.savefig(buf_m, format="png", dpi=200, bbox_inches="tight")
                 buf_m.seek(0)
