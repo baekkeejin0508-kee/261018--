@@ -3357,7 +3357,8 @@ if menu == "1. 수업 안내 및 데이터 개요":
     """, unsafe_allow_html=True)
 
     # 1행: 1급~4급 원클릭 탐색 필터 및 검색
-    m1_f_col1, m1_f_col2 = st.columns([1.6, 1.2])
+    # 1행: 1급~4급 원클릭 탐색 필터 및 감염병 종류 드롭다운 연동 선택
+    m1_f_col1, m1_f_col2 = st.columns([1.5, 1.3])
     with m1_f_col1:
         tier_choice = st.radio(
             "🏷️ 법정감염병 급수 필터",
@@ -3365,8 +3366,36 @@ if menu == "1. 수업 안내 및 데이터 개요":
             horizontal=True,
             key="m1_tier_filter_radio"
         )
+
+    # 급수별 감염병 목록 매핑
+    tier_map_key = {
+        "🔴 제1급 감염병": "제1급 감염병 (국내발생·유입관리 7종)",
+        "🟠 제2급 감염병": "제2급 감염병 (국내발생 18종)",
+        "🟡 제3급 감염병": "제3급 감염병 (국내발생 17종)",
+        "🔵 제4급 감염병": "제4급 감염병 (국내발생 21종)"
+    }
+
+    if tier_choice in tier_map_key:
+        t_key = tier_map_key[tier_choice]
+        dis_list = TIER_DISEASE_MAP.get(t_key, [])
+        tier_short = tier_choice.split()[1]  # '제1급', '제2급' 등
+        dis_opts = [f"전체 ({tier_short} 감염병 전체 보기)"] + dis_list
+        lbl_text = f"🔎 {tier_short} 감염병 종류 드롭다운 선택 ({len(dis_list)}종)"
+    else:
+        all_dis = []
+        for lst in TIER_DISEASE_MAP.values():
+            all_dis.extend(lst)
+        dis_opts = ["전체 (63종 전체 보기)"] + sorted(list(set(all_dis)))
+        lbl_text = "🔎 감염병명 드롭다운 선택 (63종)"
+
     with m1_f_col2:
-        search_kw = st.text_input("🔎 감염병명 빠른 검색", placeholder="예: 코로나19, 수두, 백일해, 인플루엔자, B형간염...", key="m1_search_kw")
+        selected_m1_disease = st.selectbox(
+            lbl_text,
+            options=dis_opts,
+            index=0,
+            key=f"m1_disease_sel_{tier_choice}",
+            help="급수를 선택하면 해당 급수에 속한 감염병들이 나열됩니다. 원하는 질환을 선택하거나 타이핑하여 빠르게 검색할 수 있습니다."
+        )
 
     # 2행: 연도 선택, 정렬 기준, 표시 건수 조절 (2019~2025 전 연도 탐색 완비)
     m1_opt1, m1_opt2, m1_opt3 = st.columns([1.2, 1.2, 1.0])
@@ -3393,8 +3422,8 @@ if menu == "1. 수업 안내 및 데이터 개요":
         tier_kw = tier_choice.split()[1]  # '제1급', '제2급' 등
         view_df = view_df[view_df["법정감염병군"].str.contains(tier_kw, na=False)]
     
-    if search_kw.strip():
-        view_df = view_df[view_df["감염병명"].str.contains(search_kw.strip(), na=False)]
+    if not selected_m1_disease.startswith("전체 ("):
+        view_df = view_df[view_df["감염병명"] == selected_m1_disease]
 
     if sel_year != "전체 (2019~2025년)":
         target_y = int(sel_year.replace("년", "").strip())
@@ -3461,10 +3490,9 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
     if "m2_tier_dropdown" not in st.session_state:
         st.session_state["m2_tier_dropdown"] = st.session_state["selected_tier_btn"]
 
-    # 버튼 클릭 시 즉각 session_state와 selectbox를 동기화하는 콜백 함수
+    # 버튼 클릭 시 즉각 session_state와 동기화하는 콜백 함수
     def select_m2_tier(t_name):
         st.session_state["selected_tier_btn"] = t_name
-        st.session_state["m2_tier_dropdown"] = t_name
 
     # 업로드된 파일 감염병의 급수로 자동 연동
     if is_uploaded_data and uploaded_diseases:
@@ -3474,99 +3502,90 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
             for t_k in tier_list_keys:
                 if detected_tier in t_k or t_k.split()[0] in detected_tier:
                     st.session_state["selected_tier_btn"] = t_k
-                    st.session_state["m2_tier_dropdown"] = t_k
                     break
 
     # 1단계: 4대 급수 원클릭 전환 버튼 바
-    st.markdown("##### 🏷️ [1단계] 법정감염병 급수 선택 (버튼 클릭 시 해당 급수 드롭다운 연동)")
+    st.markdown("##### 🏷️ [1단계] 법정감염병 급수 선택 (버튼 클릭 시 우측 드롭다운에 해당 급수 감염병 즉시 나열)")
     b_c1, b_c2, b_c3, b_c4 = st.columns(4)
     
-    cur_tier_state = st.session_state.get("selected_tier_btn", tier_list_keys[3])
+    cur_tier_state = st.session_state.get("selected_tier_btn", tier_list_keys[2])  # 기본값: 제3급 감염병 (17종)
 
     with b_c1:
-        t1 = tier_list_keys[0]  # 제1급 감염병 (18종)
+        t1 = tier_list_keys[0]  # 제1급 감염병 (국내발생·유입관리 7종)
         st.button(f"🔴 {t1}", use_container_width=True, key="m2_btn_t1",
-                  type="primary" if t1 in cur_tier_state else "secondary",
+                  type="primary" if t1 == cur_tier_state else "secondary",
                   on_click=select_m2_tier, args=(t1,))
     with b_c2:
-        t2 = tier_list_keys[1]  # 제2급 감염병 (22종)
+        t2 = tier_list_keys[1]  # 제2급 감염병 (국내발생 18종)
         st.button(f"🟠 {t2}", use_container_width=True, key="m2_btn_t2",
-                  type="primary" if t2 in cur_tier_state else "secondary",
+                  type="primary" if t2 == cur_tier_state else "secondary",
                   on_click=select_m2_tier, args=(t2,))
     with b_c3:
-        t3 = tier_list_keys[2]  # 제3급 감염병 (32종)
+        t3 = tier_list_keys[2]  # 제3급 감염병 (국내발생 17종)
         st.button(f"🟡 {t3}", use_container_width=True, key="m2_btn_t3",
-                  type="primary" if t3 in cur_tier_state else "secondary",
+                  type="primary" if t3 == cur_tier_state else "secondary",
                   on_click=select_m2_tier, args=(t3,))
     with b_c4:
-        t4 = tier_list_keys[3]  # 제4급 감염병 (61종)
+        t4 = tier_list_keys[3]  # 제4급 감염병 (국내발생 21종)
         st.button(f"🔵 {t4}", use_container_width=True, key="m2_btn_t4",
-                  type="primary" if t4 in cur_tier_state else "secondary",
+                  type="primary" if t4 == cur_tier_state else "secondary",
                   on_click=select_m2_tier, args=(t4,))
 
     if is_uploaded_data:
         st.success(f"📂 **업로드 데이터 연동 완료**: `{', '.join(uploaded_diseases)}` (총 {len(working_df):,}건 분석 준비 완료)")
 
-    sel_c1, sel_c2 = st.columns([1, 1.2])
-    with sel_c1:
-        # 업로드된 질병이 2개 이상이면 '복수 감염병 비교 분석'을 기본 활성화
-        default_analysis_idx = 1 if (is_uploaded_data and len(uploaded_diseases) >= 2) else 0
-        analysis_type = st.selectbox(
-            "📌 분석 모드 선택",
-            ["단일 감염병 집중 분석", "복수 감염병 비교 분석"],
-            index=default_analysis_idx,
-            help="1개 질병을 집중 분석하거나 2~3개 질병을 나란히 비교합니다."
-        )
+    # 선택된 급수에 속한 감염병 목록 산출
+    scoped_diseases = list(TIER_DISEASE_MAP.get(cur_tier_state, []))
 
-    def on_m2_dropdown_change():
-        st.session_state["selected_tier_btn"] = st.session_state["m2_tier_dropdown"]
-
-    with sel_c2:
-        all_opts = tier_list_keys + ["전체 133종 보기"]
-        cur_dd_val = st.session_state.get("m2_tier_dropdown", tier_list_keys[1] if is_uploaded_data else tier_list_keys[3])
-        cur_t_idx = all_opts.index(cur_dd_val) if cur_dd_val in all_opts else 1
-        tier_filter = st.selectbox(
-            "🏷️ 법정감염병 급수 확인 및 드롭다운 선택",
-            options=all_opts,
-            index=cur_t_idx,
-            key="m2_tier_dropdown",
-            on_change=on_m2_dropdown_change
-        )
-
-    if tier_filter == "전체 133종 보기":
-        scoped_diseases = []
-        for dis_list in TIER_DISEASE_MAP.values():
-            scoped_diseases.extend(dis_list)
-        scoped_diseases = sorted(list(set(scoped_diseases)))
-    else:
-        scoped_diseases = list(TIER_DISEASE_MAP.get(tier_filter, []))
-
-    # 업로드된 파일의 감염병이 있을 경우 scoped_diseases 최우선 배치 및 미포함 질병도 강제 추가
+    # 업로드된 파일의 감염병이 있을 경우 최우선 배치
     if is_uploaded_data and uploaded_diseases:
         for ud in reversed(uploaded_diseases):
             if ud in scoped_diseases:
                 scoped_diseases.remove(ud)
             scoped_diseases.insert(0, ud)
 
-    # 2단계: 대상 감염병 설정
-    st.markdown(f"##### ⚙️ 2단계: 대상 감염병 선택 ({len(scoped_diseases)}종)")
-    if analysis_type == "단일 감염병 집중 분석":
-        chosen_single = st.selectbox("🦠 분석 대상 감염병 선택", options=scoped_diseases, index=0 if scoped_diseases else None)
-        target_diseases = [chosen_single] if chosen_single else []
-    else:
-        # 업로드된 질병들이 있다면 우선적으로 모두 기본값으로 선택하여 바로 비교되도록 지원
-        if is_uploaded_data and uploaded_diseases:
-            default_targets = [d for d in uploaded_diseases if d in scoped_diseases]
-            if not default_targets:
-                default_targets = uploaded_diseases[:3]
-        else:
-            default_targets = scoped_diseases[:2] if len(scoped_diseases) >= 2 else scoped_diseases
+    tier_short_name = cur_tier_state.split()[0]  # '제1급', '제2급', '제3급', '제4급'
 
-        target_diseases = st.multiselect(
-            "🦠 비교할 감염병 선택 (2~4개 선택 가능)",
-            options=scoped_diseases,
-            default=default_targets
+    sel_c1, sel_c2 = st.columns([1, 1.4])
+    with sel_c1:
+        default_analysis_idx = 1 if (is_uploaded_data and len(uploaded_diseases) >= 2) else 0
+        analysis_type = st.selectbox(
+            "📌 분석 모드 선택",
+            ["단일 감염병 집중 분석", "복수 감염병 비교 분석"],
+            index=default_analysis_idx,
+            key="m2_analysis_type",
+            help="1개 질병을 집중 분석하거나 2~4개 질병을 나란히 비교합니다."
         )
+
+    with sel_c2:
+        # 사용자 요청 1: 3급 감염병 클릭 시 우측 드롭다운에서 17종 3급 감염병이 나열되어 하나 선택하여 분석
+        if analysis_type == "단일 감염병 집중 분석":
+            chosen_single = st.selectbox(
+                f"🏷️ 법정감염병 급수 확인 및 드롭다운 선택 ({tier_short_name} {len(scoped_diseases)}종)",
+                options=scoped_diseases,
+                index=0 if scoped_diseases else None,
+                key=f"m2_disease_select_{cur_tier_state}",
+                help=f"상단에서 [{cur_tier_state}]을 선택하셨습니다. 분석할 감염병 1종을 선택하세요."
+            )
+            target_diseases = [chosen_single] if chosen_single else []
+        else:
+            default_targets = [d for d in uploaded_diseases if d in scoped_diseases] if (is_uploaded_data and uploaded_diseases) else (scoped_diseases[:2] if len(scoped_diseases) >= 2 else scoped_diseases)
+            target_diseases = st.multiselect(
+                f"🏷️ 법정감염병 급수 확인 및 비교 선택 ({tier_short_name} {len(scoped_diseases)}종)",
+                options=scoped_diseases,
+                default=default_targets,
+                key=f"m2_multi_select_{cur_tier_state}",
+                help=f"비교할 2~4개의 감염병을 선택하세요."
+            )
+
+    # 선택된 감염병 정보 브리핑 바
+    if target_diseases:
+        tier_badges = " ・ ".join([f"<code>{d}</code>" for d in target_diseases])
+        st.markdown(f"""
+        <div style="background: rgba(15, 23, 42, 0.5); border: 1px solid #334155; border-radius: 8px; padding: 6px 14px; font-size: 0.85rem; color: #cbd5e1; margin-top: 6px; margin-bottom: 12px;">
+            🔍 <strong>현재 분석 대상</strong>: {tier_badges} &nbsp;<span style="color: #38bdf8;">({cur_tier_state})</span>
+        </div>
+        """, unsafe_allow_html=True)
 
     # 데이터 필터링 적용
     df_filtered = working_df.copy()
