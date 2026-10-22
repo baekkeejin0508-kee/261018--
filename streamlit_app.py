@@ -3417,9 +3417,8 @@ if menu == "1. 수업 안내 및 데이터 개요":
         st.markdown("""
         <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 8px; padding: 16px 18px; min-height: 295px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box;">
             <div>
-                <div style="font-size: 1.02rem; font-weight: 700; color: #4ade80; margin-bottom: 12px; line-height: 1.35;">
-                    <div>📚 질병관리청 최신 법정감염병 1급~4급 분류 체계</div>
-                    <div style="font-size: 0.84rem; color: #86efac; font-weight: 500; margin-top: 3px; text-align: center;">(대한민국 발생 질환 중심)</div>
+                <div style="font-size: 0.96rem; font-weight: 700; color: #4ade80; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; white-space: nowrap; letter-spacing: -0.02em;">
+                    <span>📚</span> <span>질병관리청 최신 법정감염병 1급~4급 분류 체계(국내 발생 질환 중심)</span>
                 </div>
                 <ul style="margin: 0; padding-left: 18px; color: #e2e8f0; font-size: 0.86rem; line-height: 1.65;">
                     <li style="margin-bottom: 6px;"><strong>제1급 감염병 (국내발생·유입관리 7종)</strong>: 치명률 높고 집단발생 우려, 발생 즉시 <br>신고, 음압격리 <span style="color: #cbd5e1; font-size: 0.82rem;">(MERS, 신종인플루엔자, 신종감염병증후군, 탄저, 보툴리눔 등)</span></li>
