@@ -3393,29 +3393,48 @@ st.write("")
 # ----------------------------------------------------
 if menu == "1. 수업 안내 및 데이터 개요":
     st.subheader("📋 2022 개정 교육과정 연계 보건·정보 융합 수업 안내")
-    c1, c2 = st.columns(2)
-    with c1:
-        st.markdown("""
-        <div style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-left: 4px solid #38bdf8; border-radius: 8px; padding: 16px 18px; min-height: 295px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box;">
+    st.markdown("""
+    <style>
+    .curriculum-grid-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        align-items: stretch;
+        margin-bottom: 8px;
+    }
+    @media (max-width: 820px) {
+        .curriculum-grid-wrapper {
+            grid-template-columns: 1fr;
+        }
+    }
+    .curriculum-card-box {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        box-sizing: border-box;
+        border-radius: 8px;
+        padding: 16px 18px;
+    }
+    </style>
+    <div class="curriculum-grid-wrapper">
+        <div class="curriculum-card-box" style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-left: 4px solid #38bdf8;">
             <div>
                 <div style="font-size: 1.02rem; font-weight: 700; color: #38bdf8; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
                     <span>🎯</span> <span>2022 개정 교육과정 핵심 성취기준 및 준용 근거</span>
                 </div>
-                <ul style="margin: 0; padding-left: 18px; color: #e2e8f0; font-size: 0.86rem; line-height: 1.65;">
-                    <li style="margin-bottom: 6px;"><strong>보건과 [12보건04-03]</strong>: 감염병과 면역의 원리를 이해하고 개인과 공동체가 지켜야 할 건강수칙과 대응 방안을 사회적 차원에서 비판적으로 탐색하여 생활에 적용한다. <span style="color: #94a3b8; font-size: 0.78rem;">*(출처: 2022 개정 고등학교 보건과 성취수준)*</span></li>
-                    <li style="margin-bottom: 6px;"><strong>정보과 [12정02-03]</strong>: 빅데이터의 개념과 특징에 대한 이해를 바탕으로, 문제 해결에 적합한 데이터를 수집한다.</li>
-                    <li style="margin-bottom: 6px;"><strong>정보과 [12정02-04]</strong>: 빅데이터 분석 도구를 활용하여 데이터를 시각화하고<br>그 의미와 가치를 해석한다. <span style="color: #94a3b8; font-size: 0.78rem;">*(출처: 2022 개정 정보과 성취평가 기준)*</span></li>
+                <ul style="margin: 0; padding-left: 18px; color: #e2e8f0; font-size: 0.86rem; line-height: 1.75;">
+                    <li style="margin-bottom: 8px;"><strong>보건과 [12보건04-03]</strong>: 감염병과 면역의 원리를 이해하고 개인과 공동체가 지켜야 할 건강수칙과 대응 방안을 사회적 차원에서 비판적으로 탐색하여 생활에 적용한다. <span style="color: #94a3b8; font-size: 0.78rem;">*(출처: 2022 개정 고등학교 보건과 성취수준)*</span></li>
+                    <li style="margin-bottom: 8px;"><strong>정보과 [12정02-03]</strong>: 빅데이터의 개념과 특징에 대한 이해를 바탕으로, 문제 해결에 적합한 데이터를 수집한다.</li>
+                    <li style="margin-bottom: 8px;"><strong>정보과 [12정02-04]</strong>: 빅데이터 분석 도구를 활용하여 데이터를 시각화하고<br>그 의미와 가치를 해석한다. <span style="color: #94a3b8; font-size: 0.78rem;">*(출처: 2022 개정 정보과 성취평가 기준)*</span></li>
                     <li><strong>3학년 전문교과 준용</strong>: 보건간호 [보간 22-04](감염 관리와 질환별 진단/관리), 공중보건 [12공보 04-01](감염병 발생 요인과 전염 경로 파악)의 고2 수준 맞춤<br> 재구성</li>
                 </ul>
             </div>
-            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(56, 189, 248, 0.2); font-size: 0.8rem; color: #94a3b8;">
+            <div style="margin-top: 14px; padding-top: 8px; border-top: 1px dashed rgba(56, 189, 248, 0.25); font-size: 0.8rem; color: #94a3b8;">
                 💡 보건간호과 2학년 보건·정보 교과 융합 실습 수업 설계
             </div>
         </div>
-        """, unsafe_allow_html=True)
-    with c2:
-        st.markdown("""
-        <div style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981; border-radius: 8px; padding: 16px 18px; min-height: 295px; height: 100%; display: flex; flex-direction: column; justify-content: space-between; box-sizing: border-box;">
+        <div class="curriculum-card-box" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981;">
             <div>
                 <div style="font-size: 0.96rem; font-weight: 700; color: #4ade80; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; white-space: nowrap; letter-spacing: -0.02em;">
                     <span>📚</span> <span>질병관리청 최신 법정감염병 1급~4급 분류 체계(국내 발생 질환 중심)</span>
@@ -3427,11 +3446,12 @@ if menu == "1. 수업 안내 및 데이터 개요":
                     <li><strong>제4급 감염병 (국내발생 21종)</strong>: 1~3급 외 표본감시 활동 <span style="color: #cbd5e1; font-size: 0.82rem;">(코로나19, 인플루엔자,<br> 수족구병, 노로바이러스, RSV, 마이코플라스마 등)</span></li>
                 </ul>
             </div>
-            <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(16, 185, 129, 0.2); font-size: 0.8rem; color: #94a3b8;">
+            <div style="margin-top: 14px; padding-top: 8px; border-top: 1px dashed rgba(16, 185, 129, 0.25); font-size: 0.8rem; color: #94a3b8;">
                 ※ 대한민국 질병관리청에서 실제로 환자가 신고·발생하고 집중 관리하는 1~4급 주요 <br>법정감염병 전체 체계화
             </div>
         </div>
-        """, unsafe_allow_html=True)
+    </div>
+    """, unsafe_allow_html=True)
 
     st.markdown(f"""
     <div style="background:#0f172a; border-left:4px solid #38bdf8; padding:12px 16px; border-radius:6px; margin-top:8px; margin-bottom:14px; font-size:0.88rem; color:#cbd5e1; line-height:1.6;">
