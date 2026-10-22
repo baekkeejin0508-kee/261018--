@@ -3419,10 +3419,10 @@ if menu == "1. 수업 안내 및 데이터 개요":
             <div>
                 <div style="font-size: 1.02rem; font-weight: 700; color: #4ade80; margin-bottom: 12px; line-height: 1.35;">
                     <div>📚 질병관리청 최신 법정감염병 1급~4급 분류 체계</div>
-                    <div style="font-size: 0.84rem; color: #86efac; font-weight: 500; margin-top: 3px;">(대한민국 발생 질환 중심)</div>
+                    <div style="font-size: 0.84rem; color: #86efac; font-weight: 500; margin-top: 3px; text-align: center;">(대한민국 발생 질환 중심)</div>
                 </div>
                 <ul style="margin: 0; padding-left: 18px; color: #e2e8f0; font-size: 0.86rem; line-height: 1.65;">
-                    <li style="margin-bottom: 6px;"><strong>제1급 감염병 (국내발생·유입관리 7종)</strong>: 치명률 높고 집단발생 우려, 발생 즉시 신<br>고, 음압격리 <span style="color: #cbd5e1; font-size: 0.82rem;">(MERS, 신종인플루엔자, 신종감염병증후군, 탄저, 보툴리눔 등)</span></li>
+                    <li style="margin-bottom: 6px;"><strong>제1급 감염병 (국내발생·유입관리 7종)</strong>: 치명률 높고 집단발생 우려, 발생 즉시 <br>신고, 음압격리 <span style="color: #cbd5e1; font-size: 0.82rem;">(MERS, 신종인플루엔자, 신종감염병증후군, 탄저, 보툴리눔 등)</span></li>
                     <li style="margin-bottom: 6px;"><strong>제2급 감염병 (국내발생 18종)</strong>: 전파가능성 고려, 24시간 이내 신고, 격리 필요<br> <span style="color: #cbd5e1; font-size: 0.82rem;">(수두, 백일해, 홍역, 유행성이하선염, 결핵, A형간염 등)</span></li>
                     <li style="margin-bottom: 6px;"><strong>제3급 감염병 (국내발생 17종)</strong>: 발생 시 24시간 이내 신고, 발생 계속 감시<br> <span style="color: #cbd5e1; font-size: 0.82rem;">(쯔쯔가무시증, 말라리아, SFTS, 일본뇌염, B/C형간염, 매독 등)</span></li>
                     <li><strong>제4급 감염병 (국내발생 21종)</strong>: 1~3급 외 표본감시 활동 <span style="color: #cbd5e1; font-size: 0.82rem;">(코로나19, 인플루엔자,<br> 수족구병, 노로바이러스, RSV, 마이코플라스마 등)</span></li>
