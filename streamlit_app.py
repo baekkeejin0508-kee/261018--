@@ -503,6 +503,15 @@ def get_emblem_base64():
     return ""
 
 
+# AI 보건튜터 로봇 마스코트 아이콘 base64 인코딩
+def get_ai_tutor_icon_base64():
+    robot_path = ASSETS_DIR / "ai_tutor_robot.png"
+    if robot_path.exists():
+        with open(robot_path, "rb") as f:
+            return base64.b64encode(f.read()).decode("utf-8")
+    return ""
+
+
 # 대한민국 질병관리청 실제 발생 및 집중 관리 기준 1~4급 법정감염병 (대한민국 발생 질환 중심 구성)
 TIER_DISEASE_MAP = {
     "제1급 감염병 (국내발생·유입관리 7종)": [
@@ -2288,7 +2297,7 @@ with st.sidebar:
             "2. 감염병 발생 현황 & 시각화",
             "3. 지역/감염병 비교 심층 탐구",
             "4. 학교 집단감염 예방 시뮬레이터",
-            "5. AI_보건튜터(Q&A)"
+            "5. AI 보건튜터(Q&A)"
         ],
         key="main_nav_menu"
     )
@@ -2627,7 +2636,7 @@ def generate_worksheet_html() -> str:
     <!-- 2단계 카드 -->
     <div class="section-card sec-purple">
         <div class="sec-header">
-            <span>■</span> [2단계] 보건 근거와 AI_보건튜터 도움 검토하기 (메뉴 5 연계)
+            <span>■</span> [2단계] 보건 근거와 AI 보건튜터 도움 검토하기 (메뉴 5 연계)
         </div>
         <div class="sec-body">
             <div class="q-row">
@@ -2647,11 +2656,11 @@ def generate_worksheet_html() -> str:
                 <div class="q-line">출처 제목:<br>확인 날짜: </div>
             </div>
             <div class="q-row">
-                <div class="q-label">5. AI_보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명 (가설):</div>
+                <div class="q-label">5. AI 보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명 (가설):</div>
                 <div class="q-box" style="min-height: 55px; color: #6b7280;">(여기에 내용을 직접 입력하세요)</div>
             </div>
             <div class="q-row">
-                <div class="q-label">6. AI_보건튜터에게 입력한 구체적 질문 또는 교사에게 문의한 질문:</div>
+                <div class="q-label">6. AI 보건튜터에게 입력한 구체적 질문 또는 교사에게 문의한 질문:</div>
                 <div class="q-line">질문: </div>
             </div>
             <div class="q-row">
@@ -2775,7 +2784,7 @@ def generate_worksheet_markdown() -> str:
 
 ---
 
-### ■ [2단계] 보건 근거와 AI_보건튜터 도움 검토하기 (메뉴 5 연계)
+### ■ [2단계] 보건 근거와 AI 보건튜터 도움 검토하기 (메뉴 5 연계)
 1. **관심 감염병의 원인 병원체 및 주요 전파 경로**:  
    - 병원체: ____________________________________________________
    - 전파 경로: _________________________________________________
@@ -2787,9 +2796,9 @@ def generate_worksheet_markdown() -> str:
 4. **교과서 및 질병관리청 공식 출처 확인**:  
    - 출처 제목: _________________________________________________
    - 확인 날짜: _________________________________________________
-5. **AI_보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명 (가설)**:  
+5. **AI 보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명 (가설)**:  
    - (여기에 내용을 직접 입력하세요)
-6. **AI_보건튜터에게 입력한 구체적 질문 또는 교사에게 문의한 질문**:  
+6. **AI 보건튜터에게 입력한 구체적 질문 또는 교사에게 문의한 질문**:  
    - 질문: ______________________________________________________
 7. **AI 답변에서 확인한 핵심 주장과 공식 자료의 해당 근거**:  
    - (여기에 내용을 직접 입력하세요)
@@ -3090,7 +3099,7 @@ table {
 <table class="outer-box" width="100%" border="1" bordercolor="#333333" cellpadding="0" cellspacing="0">
     <tr>
         <td class="step-bar-2">
-            ■ [2단계] 보건 근거와 AI_보건튜터 도움 검토하기 (메뉴 5 연계)
+            ■ [2단계] 보건 근거와 AI 보건튜터 도움 검토하기 (메뉴 5 연계)
         </td>
     </tr>
     <tr>
@@ -3117,12 +3126,12 @@ table {
                 확인 날짜: 
             </div>
 
-            <div class="q-head">5. AI_보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명 (가설)</div>
+            <div class="q-head">5. AI 보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명 (가설)</div>
             <div class="q-write" style="height: 38px;">
                 (여기에 내용을 직접 입력하세요)
             </div>
 
-            <div class="q-head">6. AI_보건튜터에게 입력한 구체적 질문 또는 교사에게 문의한 질문</div>
+            <div class="q-head">6. AI 보건튜터에게 입력한 구체적 질문 또는 교사에게 문의한 질문</div>
             <div class="q-text">
                 질문: 
             </div>
@@ -3301,14 +3310,14 @@ def show_worksheet_dialog():
         """)
 
     # 2단계 카드 (퍼플)
-    with st.expander("■ [2단계] 보건 근거와 AI_보건튜터 도움 검토하기 (메뉴 5 연계)", expanded=True):
+    with st.expander("■ [2단계] 보건 근거와 AI 보건튜터 도움 검토하기 (메뉴 5 연계)", expanded=True):
         st.markdown("""
         - **1. 관심 감염병의 원인 병원체 및 주요 전파 경로**: 병원체 (________), 전파 경로 (호흡기 비말/공기/접촉/수인성 등)
         - **2. 주요 임상 증상 및 학교 보건실·의료기관 도움 요청 상황**: 임상 증상 (________), 대처 (보건관찰실 격리 및 의료기관 진료 안내)
         - **3. 전파 경로와 연결되는 핵심 예방 행동 및 이유**: *(여기에 내용을 직접 입력하세요)*
         - **4. 교과서 및 질병관리청 공식 출처 확인**: 출처 제목 / 확인 날짜
-        - **5. AI_보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명 (가설)**: *(여기에 내용을 직접 입력하세요)*
-        - **6. AI_보건튜터에게 입력한 구체적 질문 또는 교사에게 문의한 질문**: *(질문 입력)*
+        - **5. AI 보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명 (가설)**: *(여기에 내용을 직접 입력하세요)*
+        - **6. AI 보건튜터에게 입력한 구체적 질문 또는 교사에게 문의한 질문**: *(질문 입력)*
         - **7. AI 답변에서 확인한 핵심 주장과 공식 자료의 해당 근거**: *(여기에 내용을 직접 입력하세요)*
         - **8. [비판적 검토] AI 답변 중 받아들인 내용 / 고친 내용 / 확인하지 못한 내용**: *(여기에 내용을 직접 입력하세요)*
         """)
@@ -3371,7 +3380,7 @@ with head_c2:
         show_worksheet_dialog()
     st.caption("📥 양식 열람 & 인쇄/다운로드")
 
-st.caption("공공 보건의료 데이터를 시각화하고, 학교 집단감염 전파 차단 모델을 시뮬레이션하며, AI_보건튜터와 함께 탐구합니다.")
+st.caption("공공 보건의료 데이터를 시각화하고, 학교 집단감염 전파 차단 모델을 시뮬레이션하며, AI 보건튜터와 함께 탐구합니다.")
 st.write("")
 
 
@@ -3395,8 +3404,8 @@ if menu == "1. 수업 안내 및 데이터 개요":
                 <ul style="margin: 0; padding-left: 18px; color: #e2e8f0; font-size: 0.86rem; line-height: 1.65;">
                     <li style="margin-bottom: 6px;"><strong>보건과 [12보건04-03]</strong>: 감염병과 면역의 원리를 이해하고 개인과 공동체가 지켜야 할 건강수칙과 대응 방안을 사회적 차원에서 비판적으로 탐색하여 생활에 적용한다. <span style="color: #94a3b8; font-size: 0.78rem;">*(출처: 2022 개정 고등학교 보건과 성취수준)*</span></li>
                     <li style="margin-bottom: 6px;"><strong>정보과 [12정02-03]</strong>: 빅데이터의 개념과 특징에 대한 이해를 바탕으로, 문제 해결에 적합한 데이터를 수집한다.</li>
-                    <li style="margin-bottom: 6px;"><strong>정보과 [12정02-04]</strong>: 빅데이터 분석 도구를 활용하여 데이터를 시각화하고 그 의미와 가치를 해석한다. <span style="color: #94a3b8; font-size: 0.78rem;">*(출처: 2022 개정 정보과 성취평가 기준)*</span></li>
-                    <li><strong>3학년 전문교과 준용</strong>: 보건간호 [보간 22-04](감염 관리와 질환별 진단/관리), 공중보건 [12공보 04-01](감염병 발생 요인과 전염 경로 파악)의 고2 수준 맞춤 재구성</li>
+                    <li style="margin-bottom: 6px;"><strong>정보과 [12정02-04]</strong>: 빅데이터 분석 도구를 활용하여 데이터를 시각화하고<br>그 의미와 가치를 해석한다. <span style="color: #94a3b8; font-size: 0.78rem;">*(출처: 2022 개정 정보과 성취평가 기준)*</span></li>
+                    <li><strong>3학년 전문교과 준용</strong>: 보건간호 [보간 22-04](감염 관리와 질환별 진단/관리), 공중보건 [12공보 04-01](감염병 발생 요인과 전염 경로 파악)의 고2 수준 맞춤<br> 재구성</li>
                 </ul>
             </div>
             <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(56, 189, 248, 0.2); font-size: 0.8rem; color: #94a3b8;">
@@ -3413,21 +3422,21 @@ if menu == "1. 수업 안내 및 데이터 개요":
                     <div style="font-size: 0.84rem; color: #86efac; font-weight: 500; margin-top: 3px;">(대한민국 발생 질환 중심)</div>
                 </div>
                 <ul style="margin: 0; padding-left: 18px; color: #e2e8f0; font-size: 0.86rem; line-height: 1.65;">
-                    <li style="margin-bottom: 6px;"><strong>제1급 감염병 (국내발생·유입관리 7종)</strong>: 치명률 높고 집단발생 우려, 발생 즉시 신고, 음압격리 <span style="color: #cbd5e1; font-size: 0.82rem;">(MERS, 신종인플루엔자, 신종감염병증후군, 탄저, 보툴리눔 등)</span></li>
-                    <li style="margin-bottom: 6px;"><strong>제2급 감염병 (국내발생 18종)</strong>: 전파가능성 고려, 24시간 이내 신고, 격리 필요 <span style="color: #cbd5e1; font-size: 0.82rem;">(수두, 백일해, 홍역, 유행성이하선염, 결핵, A형간염 등)</span></li>
-                    <li style="margin-bottom: 6px;"><strong>제3급 감염병 (국내발생 17종)</strong>: 발생 시 24시간 이내 신고, 발생 계속 감시 <span style="color: #cbd5e1; font-size: 0.82rem;">(쯔쯔가무시증, 말라리아, SFTS, 일본뇌염, B/C형간염, 매독 등)</span></li>
-                    <li><strong>제4급 감염병 (국내발생 21종)</strong>: 1~3급 외 표본감시 활동 <span style="color: #cbd5e1; font-size: 0.82rem;">(코로나19, 인플루엔자, 수족구병, 노로바이러스, RSV, 마이코플라스마 등)</span></li>
+                    <li style="margin-bottom: 6px;"><strong>제1급 감염병 (국내발생·유입관리 7종)</strong>: 치명률 높고 집단발생 우려, 발생 즉시 신<br>고, 음압격리 <span style="color: #cbd5e1; font-size: 0.82rem;">(MERS, 신종인플루엔자, 신종감염병증후군, 탄저, 보툴리눔 등)</span></li>
+                    <li style="margin-bottom: 6px;"><strong>제2급 감염병 (국내발생 18종)</strong>: 전파가능성 고려, 24시간 이내 신고, 격리 필요<br> <span style="color: #cbd5e1; font-size: 0.82rem;">(수두, 백일해, 홍역, 유행성이하선염, 결핵, A형간염 등)</span></li>
+                    <li style="margin-bottom: 6px;"><strong>제3급 감염병 (국내발생 17종)</strong>: 발생 시 24시간 이내 신고, 발생 계속 감시<br> <span style="color: #cbd5e1; font-size: 0.82rem;">(쯔쯔가무시증, 말라리아, SFTS, 일본뇌염, B/C형간염, 매독 등)</span></li>
+                    <li><strong>제4급 감염병 (국내발생 21종)</strong>: 1~3급 외 표본감시 활동 <span style="color: #cbd5e1; font-size: 0.82rem;">(코로나19, 인플루엔자,<br> 수족구병, 노로바이러스, RSV, 마이코플라스마 등)</span></li>
                 </ul>
             </div>
             <div style="margin-top: 10px; padding-top: 8px; border-top: 1px dashed rgba(16, 185, 129, 0.2); font-size: 0.8rem; color: #94a3b8;">
-                ※ 대한민국 질병관리청에서 실제로 환자가 신고·발생하고 집중 관리하는 1~4급 주요 법정감염병 전체 체계화
+                ※ 대한민국 질병관리청에서 실제로 환자가 신고·발생하고 집중 관리하는 1~4급 주요 <br>법정감염병 전체 체계화
             </div>
         </div>
         """, unsafe_allow_html=True)
 
     st.markdown(f"""
     <div style="background:#0f172a; border-left:4px solid #38bdf8; padding:12px 16px; border-radius:6px; margin-top:8px; margin-bottom:14px; font-size:0.88rem; color:#cbd5e1; line-height:1.6;">
-        💡 <strong>데이터 투명성 및 출처 안내</strong>: 본 대시보드의 데이터셋(총 {len(working_df):,}건, 대한민국 발생 1~4급 주요 법정감염병 완비)은 <strong>질병관리청(KDCA) 감염병포털 및 공공데이터포털</strong>의 실제 발생 통계를 기반으로, 고등학교 2학년 융합수업의 4대 관점(연도별·5대 연령대별·해외10개국·국내17개시도) 비교 실습을 위해 체계화한 <strong>대한민국 실제 발생 감염병 교육용 표준 데이터셋</strong>입니다.
+        💡 <strong>데이터 투명성 및 출처 안내</strong>: 본 대시보드의 데이터셋(총 {len(working_df):,}건, 대한민국 발생 1~4급 주요 법정감염병 완비)은 <strong>질병관리청(KDCA) 감염병포털 및 공공데이터포털</strong>의 실제 발생 통계를 기반으로, 고등학교 2학년 융합수업의 4대 관점(연도별·5대 연령대별·해외10개국·국내17개시도) 비교 실습을 위해 체계화한 <strong>대한민국 실제 발생 감염병 교육용 표준 데이터셋<br>입니다.</strong>
     </div>
     """, unsafe_allow_html=True)
 
@@ -3604,9 +3613,13 @@ if menu == "1. 수업 안내 및 데이터 개요":
         show_df = view_df.head(limit_num)
 
     st.dataframe(show_df[valid_cols], use_container_width=True)
-    st.caption(
-        f"💡 현재 조건({tier_choice}, {sel_year})의 총 {len(view_df):,}건 중 {len(show_df):,}건이 표시 중입니다. "
-        f"(2019~2025년 7개년 국내 17개 시도 및 해외 10개국 전체 데이터가 완비되어 있으며, 스크롤을 내려 전체 기간을 자유롭게 탐색할 수 있습니다.)"
+    safe_tier_str = str(tier_choice).replace("~", "～")
+    safe_year_str = str(sel_year).replace("~", "～")
+    st.markdown(
+        f"""<div style="font-size: 0.84rem; color: #94a3b8; margin-top: 5px; margin-bottom: 8px; line-height: 1.55;">
+        💡 현재 조건({safe_tier_str}, {safe_year_str})의 총 {len(view_df):,}건 중 {len(show_df):,}건이 표시 중입니다. (2019～2025년 7개년 국내 17개 시도 및 해외 10개국 전체 데이터가 완비되어 있으며, 스크롤을 내려 전체 기간을 자유롭게 탐색할 수 있습니다.)
+        </div>""",
+        unsafe_allow_html=True
     )
 
 
@@ -4786,7 +4799,7 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     <tr style="border-bottom:1px solid #334155;">
                         <td style="padding:14px 8px; width:95px; min-width:90px; font-weight:700; color:#38bdf8; text-align:center; vertical-align:middle; background:rgba(15,23,42,0.45); line-height:1.45;">주요<br>특징</td>
                         <td style="padding:12px 16px; line-height:1.6; color:#38bdf8; vertical-align:middle;">웹 브라우저나 대시보드(Streamlit)에서 사용자가 그래프 위 특정 지점을 클릭하고 마우스를 올려 값을 탐색할 수 있어 대시보드 제작에 가장 추천되는 라이브러리입니다.</td>
-                        <td style="padding:12px 16px; line-height:1.6; vertical-align:middle;">통계 분포(히스토그램, 박스플롯, 히트맵 등)를 색상 팔레트와 함께 예쁘게 나타낼 때 편리합니다.</td>
+                        <td style="padding:12px 14px; line-height:1.6; vertical-align:middle;">통계 분포(히스토그램, 박스플롯, 히트맵 등)를<br><span style="white-space:nowrap;">색상 팔레트와 함께 예쁘게 나타낼 때 편리합니다.</span></td>
                         <td style="padding:12px 16px; line-height:1.6; vertical-align:middle;">논문이나 보고서에 들어가는 전통적이고 정적인 도표를 만들 때 표준으로 쓰입니다.</td>
                     </tr>
                     <tr style="border-bottom:1px solid #334155;">
@@ -4799,11 +4812,11 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                         <td style="padding:14px 8px; width:95px; min-width:90px; font-weight:700; color:#38bdf8; text-align:center; vertical-align:middle; background:rgba(15,23,42,0.45); line-height:1.45;">주요<br>장점</td>
                         <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">마우스 호버만으로 정확한 환자 수 실시간 확인</td>
                         <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">적은 코드로 미려한 통계 회귀선 및 분포 표현</td>
-                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">픽셀 단위 축, 눈금, 폰트, 레이아웃의 완전한 제어 가능</td>
+                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">픽셀 단위 축, 눈금, 폰트, 레이아웃의 완전한<br> 제어 가능</td>
                     </tr>
                     <tr>
                         <td style="padding:14px 8px; width:95px; min-width:90px; font-weight:700; color:#38bdf8; text-align:center; vertical-align:middle; background:rgba(15,23,42,0.45); line-height:1.45;">수업 활용<br>추천</td>
-                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">학급 웹 대시보드 발표, 학생 실시간 데이터 탐구 실습</td>
+                        <td style="padding:12px 14px; line-height:1.55; vertical-align:middle; white-space:nowrap;">학급 웹 대시보드 발표, 학생 실시간 데이터 탐구 실습</td>
                         <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">역학 상관관계 분석, 연령대별 다변량 분포 탐색</td>
                         <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">학술 보고서 제출, 정밀 인쇄물·연구 포스터 제작</td>
                     </tr>
@@ -5049,7 +5062,7 @@ elif menu == "4. 학교 집단감염 예방 시뮬레이터":
 
     st.markdown("""
     <div style="background:#0f172a; border-left:4px solid #64748b; padding:10px 14px; border-radius:6px; margin-bottom:14px; font-size:0.85rem; color:#cbd5e1; line-height:1.6;">
-        💡 <strong>교육용 시뮬레이터 수리 모형 안내</strong>: 본 시뮬레이터는 질병별 기초감염재생산수(R0)와 학교 방역 수칙(맞통풍 환기, KF94 마스크 착용률, 올바른 손 씻기 실천율, 유증상자 보건실 조기 격리)에 따른 유효 재생산지수(Rt)의 이론적 감폭 효과를 탐구하는 <strong>수업 실습용 교육 모형</strong>입니다. 실제 교실의 유행 예측이나 환자 수 감소를 직접 검증한 역학 실측치는 아니며, 질환별 예방접종(백신) 완료율과 교실 용적, 접촉 양상 등 모형 외 환경 변수에 따라 실제 전파 양상은 달라질 수 있습니다.
+        💡 <strong>교육용 시뮬레이터 수리 모형 안내</strong>: 본 시뮬레이터는 질병별 기초감염재생산수(R0)와 학교 방역 수칙(맞통풍 환기, KF94 마스크 착용률, 올바른 손 씻기 실천율, 유증상자 보건실 조기 격리)에 따른 유효 재생산지수(Rt)의 이론적 감폭 효과를 탐구하는 <strong>수업 실습용 교육 모형</strong>입니다. 실제 교실의 유행 예측이나 환자 수 감소를 직접 검증한 역학 실측치는 아니며, 질환별 예방접종<br>(백신) 완료율과 교실 용적, 접촉 양상 등 모형 외 환경 변수에 따라 실제 전파 양상은 달라질 수 있습니다.
     </div>
     """, unsafe_allow_html=True)
 
@@ -5109,16 +5122,30 @@ elif menu == "4. 학교 집단감염 예방 시뮬레이터":
 
 
 # ----------------------------------------------------
-# [메뉴 5] AI_보건튜터(Q&A) - 질병 선택에 100% 동적 연동되는 맞춤형 실시간 응답
+# [메뉴 5] AI 보건튜터(Q&A) - 질병 선택에 100% 동적 연동되는 맞춤형 실시간 응답
 # ----------------------------------------------------
-elif menu in ["5. AI 보건 튜터(Q&A)", "5. AI_보건튜터(Q&A)"]:
-    st.subheader("🤖 AI_보건튜터(Q&A): 대한민국 법정감염병 1급~4급 종합 탐구실")
+elif menu in ["5. AI 보건 튜터(Q&A)", "5. AI_보건튜터(Q&A)", "5. AI 보건튜터(Q&A)"]:
+    tutor_icon_b64 = get_ai_tutor_icon_base64()
+    if tutor_icon_b64:
+        st.markdown(f"""
+        <div style="display:flex; align-items:center; gap:12px; margin-top:2px; margin-bottom:12px;">
+            <img src="data:image/png;base64,{tutor_icon_b64}" style="width:44px; height:44px; border-radius:10px; object-fit:cover; box-shadow:0 0 14px rgba(56,189,248,0.45); display:block;" alt="AI 보건튜터 마스코트">
+            <span style="font-size:1.45rem; font-weight:700; color:#f8fafc; letter-spacing:-0.01em;">AI 보건튜터(Q&A): 법정감염병 1급~4급 종합 탐구실</span>
+        </div>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+        <div style="display:flex; align-items:center; gap:10px; margin-top:2px; margin-bottom:12px;">
+            <span style="font-size:1.6rem;">🩺</span>
+            <span style="font-size:1.45rem; font-weight:700; color:#f8fafc;">AI 보건튜터(Q&A): 법정감염병 1급~4급 종합 탐구실</span>
+        </div>
+        """, unsafe_allow_html=True)
     st.markdown("""
     법정감염병 급수 버튼 또는 드롭다운에서 질병을 선택하면, 해당 질병의 병원체, 전파 경로, 원인, 증상, 최근 추세, 예방법 및 관리 대책을 체계적으로 종합 분석합니다.
     """)
 
-    # 1단계, 2단계 드롭다운 UI (대한민국 발생 1급, 2급, 3급, 4급 법정감염병)
-    st.markdown("##### 🔍 [1단계] 탐구할 법정감염병 선택 【대한민국 발생 1~4급 법정감염병 완비】")
+    # 1단계, 2단계 드롭다운 UI (발생 1급, 2급, 3급, 4급 법정감염병)
+    st.markdown("##### 🔍 [1단계] 탐구할 법정감염병 선택 【발생 1~4급 법정감염병 완비】")
 
     tier_col, disease_col = st.columns(2)
     with tier_col:
@@ -5174,7 +5201,7 @@ elif menu in ["5. AI 보건 튜터(Q&A)", "5. AI_보건튜터(Q&A)"]:
     st.divider()
     c_head1, c_head2 = st.columns([3, 1])
     with c_head1:
-        st.markdown(f"##### 💬 [2단계] AI_보건튜터에게 질문하기 【현재 대상: **{selected_disease_name}**】")
+        st.markdown(f"##### 💬 [2단계] AI 보건튜터에게 질문하기 【현재 대상: **{selected_disease_name}**】")
         st.caption(f"선택하신 '{selected_disease_name}'에 대해 더 깊이 알고 싶은 점을 아래 버튼 또는 입력창으로 질문해 보세요.")
     with c_head2:
         if st.button("🔄 대화 내용 초기화", use_container_width=True):
@@ -5215,7 +5242,7 @@ elif menu in ["5. AI 보건 튜터(Q&A)", "5. AI_보건튜터(Q&A)"]:
         else:
             rep = ""
             if api_k:
-                with st.spinner(f"AI_보건튜터가 질병관리청 최신 역학 데이터 및 교과서 지침을 분석 중입니다..."):
+                with st.spinner(f"AI 보건튜터가 질병관리청 최신 역학 데이터 및 교과서 지침을 분석 중입니다..."):
                     rep = query_gemini_ai(api_k, quick_q, selected_disease_name)
             if not rep:
                 rep = generate_detailed_tutor_answer(selected_disease_name, quick_q, dis_info)
@@ -5238,7 +5265,7 @@ elif menu in ["5. AI 보건 튜터(Q&A)", "5. AI_보건튜터(Q&A)"]:
         else:
             rep = ""
             if api_k:
-                with st.spinner(f"AI_보건튜터가 {selected_disease_name} 관련 질병관리청 역학 지침을 분석 중입니다..."):
+                with st.spinner(f"AI 보건튜터가 {selected_disease_name} 관련 질병관리청 역학 지침을 분석 중입니다..."):
                     rep = query_gemini_ai(api_k, user_q, selected_disease_name)
             if not rep:
                 rep = generate_detailed_tutor_answer(selected_disease_name, user_q, dis_info)
