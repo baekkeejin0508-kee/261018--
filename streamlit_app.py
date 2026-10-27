@@ -62,7 +62,7 @@ setup_korean_font()
 # 1. 페이지 기본 설정 및 눈이 편안한 에듀테크 디지털 학습지 스타일
 # ==========================================
 st.set_page_config(
-    page_title="보건·정보 융합 디지털 탐구 학습지 - 서울의료보건고",
+    page_title="AI융합 디지털 학습 - 서울의료보건고",
     page_icon="📝",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -2426,7 +2426,7 @@ with st.sidebar:
     # 2. AI 보건 탐구 (띄어쓰기 및 가운데 정렬)
     st.markdown("""
     <div style="text-align: center; font-size: 1.4rem; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; margin-bottom: 4px;">
-        📝 디지털 보건 탐구
+        📝 AI 보건 탐구
     </div>
     <div style="text-align: center; font-size: 0.84rem; color: #38bdf8; font-weight: 600; line-height: 1.5; margin-bottom: 14px;">
         서울의료보건고 보건간호과<br>데이터 기반 융합수업 활동지
@@ -3468,7 +3468,7 @@ with head_c1:
                 <img src="data:image/png;base64,{b64_emblem}" style="height: 38px; width: 38px; object-fit: contain; display: block;" alt="서울의료보건고 로고 마크">
             </div>
             <div style="display: flex; flex-direction: column; justify-content: center; min-width: 0;">
-                <div class="one-line-title">보건·정보 융합 디지털 탐구</div>
+                <div class="one-line-title">AI융합 디지털 학습</div>
                 <div style="font-size: 0.88rem; color: #38bdf8; font-weight: 700; margin-top: 3px;">서울의료보건고등학교 보건간호과 스마트 활동지</div>
             </div>
         </div>
@@ -3477,7 +3477,7 @@ with head_c1:
         st.markdown("""
         <div class="header-card">
             <div style="display: flex; flex-direction: column; justify-content: center; min-width: 0;">
-                <div class="one-line-title">보건·정보 융합 디지털 탐구</div>
+                <div class="one-line-title">AI융합 디지털 학습</div>
                 <div style="font-size: 0.88rem; color: #38bdf8; font-weight: 700; margin-top: 3px;">서울의료보건고등학교 보건간호과 스마트 활동지</div>
             </div>
         </div>
