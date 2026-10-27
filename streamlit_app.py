@@ -2,11 +2,13 @@ import io
 import os
 import re
 import json
+import html
 import urllib.request
 import urllib.error
 import base64
 from datetime import datetime, timezone, timedelta
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -57,14 +59,89 @@ setup_korean_font()
 
 
 # ==========================================
-# 1. 페이지 기본 설정 및 눈이 편안한 다크 테마 스타일
+# 1. 페이지 기본 설정 및 눈이 편안한 에듀테크 디지털 학습지 스타일
 # ==========================================
 st.set_page_config(
-    page_title="AI 보건 탐구 - 감염병 데이터 대시보드",
-    page_icon="🏥",
+    page_title="보건·정보 융합 디지털 탐구 학습지 - 서울의료보건고",
+    page_icon="📝",
     layout="wide",
     initial_sidebar_state="expanded"
 )
+
+components.html("""
+<script>
+(function(){
+    try {
+        var topDocs = [document];
+        try { if (window.top && window.top.document) topDocs.push(window.top.document); } catch(e){}
+        try { if (window.parent && window.parent.document && !topDocs.includes(window.parent.document)) topDocs.push(window.parent.document); } catch(e){}
+        
+        topDocs.forEach(function(d){
+            if (!d) return;
+            d.documentElement.setAttribute('translate', 'no');
+            d.documentElement.classList.add('notranslate');
+            if (d.body) {
+                d.body.setAttribute('translate', 'no');
+                d.body.classList.add('notranslate');
+            }
+        });
+
+        // React reconciliation 에러 방어
+        topDocs.forEach(function(d){
+            var win = d.defaultView || window;
+            if (win && win.Node && win.Node.prototype) {
+                if (!win.Node.prototype._origRemoveChildPatched) {
+                    var _origRemoveChild = win.Node.prototype.removeChild;
+                    win.Node.prototype.removeChild = function(child) {
+                        if (child && child.parentNode !== this) return child;
+                        return _origRemoveChild.apply(this, arguments);
+                    };
+                    win.Node.prototype._origRemoveChildPatched = true;
+                }
+                if (!win.Node.prototype._origInsertBeforePatched) {
+                    var _origInsertBefore = win.Node.prototype.insertBefore;
+                    win.Node.prototype.insertBefore = function(newNode, referenceNode) {
+                        if (referenceNode && referenceNode.parentNode !== this) return newNode;
+                        return _origInsertBefore.apply(this, arguments);
+                    };
+                    win.Node.prototype._origInsertBeforePatched = true;
+                }
+            }
+        });
+
+        // MutationObserver: 동적 드롭다운 팝오버 메뉴 번역 차단 및 '형간염' -> 'A형간염' 복구
+        var protectNodes = function(root) {
+            if (!root || !root.querySelectorAll) return;
+            var elements = root.querySelectorAll('[data-baseweb="popover"], [data-baseweb="select"], [data-baseweb="menu"], ul, li, div, span');
+            elements.forEach(function(el){
+                el.setAttribute('translate', 'no');
+                el.classList.add('notranslate');
+                if (el.textContent && el.textContent.trim() === '형간염') {
+                    el.textContent = 'A형간염';
+                }
+            });
+        };
+
+        topDocs.forEach(function(d){
+            if (!d || d._notranslateObserverSet) return;
+            d._notranslateObserverSet = true;
+            var observer = new MutationObserver(function(mutations){
+                mutations.forEach(function(mutation){
+                    mutation.addedNodes.forEach(function(node){
+                        if (node.nodeType === 1) {
+                            node.setAttribute('translate', 'no');
+                            node.classList.add('notranslate');
+                            protectNodes(node);
+                        }
+                    });
+                });
+            });
+            observer.observe(d.body || d.documentElement, { childList: true, subtree: true });
+        });
+    } catch(e) {}
+})();
+</script>
+""", height=0, width=0)
 
 st.markdown("""
 <style>
@@ -93,17 +170,70 @@ st.markdown("""
         letter-spacing: -0.5px;
     }
     
-    /* 상단 헤더 카드 */
+    /* 디지털 학습지 상단 헤더 배너 */
     .header-card {
         background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%) !important;
         padding: 14px 22px !important;
         border-radius: 14px !important;
         border: 1px solid #334155 !important;
-        margin-bottom: 16px !important;
+        margin-bottom: 14px !important;
         box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3) !important;
         display: flex;
         align-items: center;
         gap: 16px;
+    }
+    
+    /* 디지털 학습지 학생 메타 바 (이름/학번/진도) */
+    .student-meta-bar {
+        background: #1e293b !important;
+        border: 1px solid #38bdf8 !important;
+        border-left: 5px solid #38bdf8 !important;
+        border-radius: 10px !important;
+        padding: 10px 16px !important;
+        margin-bottom: 16px !important;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 10px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25) !important;
+    }
+
+    /* 학생 탐구 메모 상자 */
+    .student-memo-card {
+        background: rgba(30, 41, 59, 0.85) !important;
+        border: 1.5px dashed #38bdf8 !important;
+        border-radius: 12px !important;
+        padding: 14px 18px !important;
+        margin-top: 14px !important;
+        margin-bottom: 14px !important;
+    }
+
+    /* 법정감염병 4대 급수 직관적 요약 카드 */
+    .tier-summary-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+        margin-top: 8px;
+        margin-bottom: 14px;
+    }
+    @media (max-width: 900px) {
+        .tier-summary-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+    @media (max-width: 550px) {
+        .tier-summary-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+    .tier-summary-card {
+        border-radius: 10px;
+        padding: 12px 14px;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
     
     /* 학교 로고 네모 바탕 박스 (헤더용) */
@@ -160,13 +290,28 @@ st.markdown("""
         font-weight: bold !important;
     }
     
-    /* 지표 메트릭 카드 */
+    /* 지표 메트릭 카드 - 짤림 방지 */
     .stMetric {
         background-color: #1e293b !important;
-        padding: 12px 16px !important;
+        padding: 10px 14px !important;
         border-radius: 10px !important;
         border: 1px solid #334155 !important;
         box-shadow: 0 2px 6px rgba(0,0,0,0.2) !important;
+    }
+    div[data-testid="stMetricValue"] > div {
+        font-size: 1.25rem !important;
+        font-weight: 700 !important;
+        white-space: nowrap !important;
+        overflow: hidden !important;
+        text-overflow: ellipsis !important;
+    }
+    div[data-testid="stMetricLabel"] > div {
+        font-size: 0.82rem !important;
+        color: #94a3b8 !important;
+        white-space: nowrap !important;
+    }
+    button[data-testid="baseButton-secondary"], button[data-testid="baseButton-primary"] {
+        white-space: nowrap !important;
     }
 
     /* 요약 정보 1줄 바 (길이 초과 방지) */
@@ -1333,6 +1478,11 @@ DISEASE_INFO_DB = {
 }
 
 def get_disease_info(tier, name):
+    if not name:
+        name = ""
+    # 브라우저 번역기 오역('형간염') 및 띄어쓰기('A형 간염') 방어 fallback
+    if name in ["형간염", "A형 간염", "A형간염", "a형간염", "a형 간염"]:
+        name = "A형간염"
     clean_name = name.split("(")[0].strip() if name else ""
     if name in DISEASE_INFO_DB:
         return DISEASE_INFO_DB[name]
@@ -2275,29 +2425,25 @@ with st.sidebar:
 
     # 2. AI 보건 탐구 (띄어쓰기 및 가운데 정렬)
     st.markdown("""
-    <div style="text-align: center; font-size: 1.55rem; font-weight: 800; color: #ffffff; letter-spacing: 0.5px; margin-bottom: 6px;">
-        AI 보건 탐구
+    <div style="text-align: center; font-size: 1.4rem; font-weight: 800; color: #ffffff; letter-spacing: -0.3px; margin-bottom: 4px;">
+        📝 디지털 보건 탐구
     </div>
-    """, unsafe_allow_html=True)
-
-    # 3. 사용자 요청: " | " 기호 제거 및 데이터 기반부터 아래줄로 균등하게 2줄 배치, 가운데 정렬
-    st.markdown("""
-    <div style="text-align: center; font-size: 0.88rem; color: #94a3b8; font-weight: 600; line-height: 1.55; margin-bottom: 14px;">
-        서울의료보건고등학교 보건간호과<br>데이터 기반 융합수업
+    <div style="text-align: center; font-size: 0.84rem; color: #38bdf8; font-weight: 600; line-height: 1.5; margin-bottom: 14px;">
+        서울의료보건고 보건간호과<br>데이터 기반 융합수업 활동지
     </div>
     """, unsafe_allow_html=True)
 
     st.divider()
 
-    # 4. 메뉴 선택
+    # 4. 메뉴 선택 (중학생도 직관적으로 이해하는 깔끔한 1줄 메뉴)
     menu = st.radio(
         "📌 학습 단계 선택",
         [
-            "1. 수업 안내 및 데이터 개요",
-            "2. 감염병 발생 현황 & 시각화",
-            "3. 지역/감염병 비교 심층 탐구",
-            "4. 학교 집단감염 예방 시뮬레이터",
-            "5. AI 보건튜터(Q&A)"
+            "1. 법정감염병 탐구",
+            "2. 데이터시각화 실험실",
+            "3. 감염병 발생지역 비교",
+            "4. 학교방역 시뮬레이터",
+            "5. AI 보건튜터"
         ],
         key="main_nav_menu"
     )
@@ -2362,7 +2508,7 @@ with st.sidebar:
     else:
         st.session_state["use_preset_multi_csv"] = False
         working_df = df_all
-        st.success("표준 데이터 (56,700건 완비) 적용 중")
+        st.success("✅ 표준 데이터 56,700건 완비")
 
     st.divider()
     st.subheader("🏫 수업 진행 & AI 활성화 현황")
@@ -2406,7 +2552,7 @@ with st.sidebar:
 # 3.8 학생 탐구 활동지 양식 생성 및 다운로드 지원 (PDF 계획안 8쪽 기반)
 # ==========================================
 def generate_worksheet_html() -> str:
-    """PDF 프로젝트 계획안 8쪽 학생 탐구 활동지를 고품질 인쇄/PDF용으로 렌더링하는 HTML 생성"""
+    """PDF 프로젝트 계획안 8쪽 학생 탐구 활동지를 고품질 인쇄/PDF용으로 렌더링하는 표준 양식 HTML 생성"""
     return """<!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -2744,6 +2890,8 @@ def generate_worksheet_html() -> str:
 </div>
 </body>
 </html>"""
+
+
 
 
 def generate_worksheet_markdown() -> str:
@@ -3242,14 +3390,25 @@ table {
 # ==========================================
 @st.dialog("📋 [보건간호과 융합수업] 학생 탐구 활동지 열람 및 다운로드", width="large")
 def show_worksheet_dialog():
-    st.markdown("""
-    <div style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%); border: 1.5px solid #38bdf8; border-radius: 12px; padding: 14px 18px; margin-bottom: 16px;">
+    completed_steps = 0
+    if st.session_state.get("wb_step1_note", "").strip(): completed_steps += 1
+    if st.session_state.get("wb_step2_note", "").strip(): completed_steps += 1
+    if st.session_state.get("wb_step3_note", "").strip(): completed_steps += 1
+    if st.session_state.get("wb_step4_note", "").strip(): completed_steps += 1
+    if st.session_state.get("wb_step5_note", "").strip(): completed_steps += 1
+    progress_pct = int((completed_steps / 5.0) * 100)
+
+    st.markdown(f"""
+    <div style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.15) 0%, rgba(99, 102, 241, 0.15) 100%); border: 1.5px solid #38bdf8; border-radius: 12px; padding: 14px 18px; margin-bottom: 14px;">
         <div style="font-size: 1.15rem; font-weight: 800; color: #38bdf8; margin-bottom: 4px;">
-            🏥 서울의료보건고등학교 보건간호과 2학년 보건·정보 융합수업 활동지
+            🏥 서울의료보건고등학교 보건간호과 학생 탐구 활동지
         </div>
-        <div style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.55;">
+        <div style="font-size: 0.88rem; color: #cbd5e1; line-height: 1.6;">
             공공 감염병 데이터와 예방 시뮬레이션으로 설계하는 우리 학교 감염병 예방 제안 활동지입니다.<br>
-            아래에서 활동지 내용을 미리 확인하고, <b>표준 인쇄/PDF 양식</b> 또는 <b>한글 파일(.HWP)</b>로 바로 다운로드받을 수 있습니다.
+            아래 <b>[👀 내가 작성한 1~5단계 활동내역 모아보기]</b>를 확인한 후, <b>표준 인쇄/PDF 양식</b> 또는 <b>한글 파일(.HWP)</b>을 다운로드받아 활동지에 직접 입력·작성해 보세요.
+        </div>
+        <div style="margin-top: 8px; font-size: 0.86rem; font-weight: 700; color: #38bdf8;">
+            📈 현재 나의 활동지 작성 진도율: {progress_pct}% ({completed_steps}/5단계 완료)
         </div>
     </div>
     """, unsafe_allow_html=True)
@@ -3264,7 +3423,7 @@ def show_worksheet_dialog():
             mime="text/html",
             type="primary",
             use_container_width=True,
-            help="고화질 표준 양식 웹 문서로 다운로드됩니다. 브라우저에서 열고 Ctrl+P를 누르면 고화질 PDF로 저장하거나 인쇄할 수 있습니다.",
+            help="고화질 표준 양식 웹 문서로 다운로드됩니다. 브라우저에서 열고 Ctrl+P를 누르면 고화질 PDF로 저장하거나 인쇄하여 직접 작성할 수 있습니다.",
             key="dl_ws_html_top"
         )
     with dl_c2:
@@ -3274,80 +3433,30 @@ def show_worksheet_dialog():
             file_name="학생_탐구_활동지_서울의료보건고.hwp",
             mime="application/x-hwp",
             use_container_width=True,
-            help="더블클릭하면 한컴오피스 한글 프로그램에서 바로 열려 내용을 직접 입력하고 저장할 수 있습니다.",
+            help="한컴오피스 한글 프로그램에서 바로 열리는 .hwp 파일입니다. 다운로드 후 자신의 탐구 내용을 직접 입력하여 저장할 수 있습니다.",
             key="dl_ws_hwp_top"
         )
 
     st.caption("💡 **활용 팁**: 왼쪽 버튼을 누르면 표준 인쇄/PDF 양식이 다운로드되며, 오른쪽 버튼을 누르면 한컴오피스 한글 프로그램에서 바로 열리는 .hwp 파일이 다운로드됩니다.")
-    st.divider()
 
-    # 2. 활동지 미리보기 화면 (가독성 높은 전문 카드 스타일)
-    st.markdown("### 📝 활동지 내용 미리보기")
-
-    # 기본 정보 카드
-    st.markdown("""
-    <div style="background: #1e293b; border: 1px solid #475569; border-radius: 10px; padding: 12px 18px; margin-bottom: 14px;">
-        <span style="font-weight: bold; color: #38bdf8;">📌 기본 정보 입력란:</span> &nbsp;&nbsp;
-        모둠: <code>[ &nbsp;&nbsp;&nbsp;&nbsp; 모둠 ]</code> &nbsp;|&nbsp; 
-        작성자: <code>[ 학번: ________ &nbsp; 성명: ________ ]</code> &nbsp;|&nbsp; 
-        관심 감염병: <code>[ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; ]</code> &nbsp;|&nbsp; 
-        탐구일: <code>2026. __. __.</code>
-    </div>
-    """, unsafe_allow_html=True)
-
-    # 1단계 카드 (시안)
-    with st.expander("■ [1단계] 자료를 읽고 질문 만들기 (대시보드 메뉴 1, 2, 3 연계)", expanded=True):
-        st.markdown("""
-        - **1. 자료 제목 및 제공기관**: 질병관리청 감염병포털 및 공공데이터 대시보드 (2019~2025)
-        - **2. 원자료 URL 및 확인 일자**: `https://261018-aihealthtutor.streamlit.app/` (확인 일자: 2026. 10. 20.)
-        - **3. 자료의 범위 및 기본 단위**: 기간(2019~2025년), 지역(국내 17개 시도 및 해외 10개국), 단위(신규 환자 수(명))
-        - **4. 데이터 종류 확인**: `[ ] 공식 전수·표본감시 통계` &nbsp; `[ ] 수업 실습용 가상 모의 데이터`
-        - **5. 비교 조건을 동일하게 맞춘 두 시점 또는 두 지역의 수치**: 수치 A / 수치 B
-        - **6. 변화 추세를 설명하는 완성된 문장 작성**: *"________년 ________명(%)에서 ________년 ________명(%)으로 총 ________명(%) (증가 / 감소)하였다."*
-        - **7. 원자료를 확인한 대시보드 위치 및 그래프 제목**: 대시보드 메뉴: 2. 감염병 발생 현황 & 시각화
-        - **8. 그래프를 관찰하며 생긴 나의 핵심 탐구 질문**: *(여기에 질문을 직접 입력하세요)*
-        - **9. 관찰 사실만으로 알 수 없는 점과 추가로 필요한 근거 자료**: *(여기에 내용을 직접 입력하세요)*
-        """)
-
-    # 2단계 카드 (퍼플)
-    with st.expander("■ [2단계] 보건 근거와 AI 보건튜터 도움 검토하기 (메뉴 5 연계)", expanded=True):
-        st.markdown("""
-        - **1. 관심 감염병의 원인 병원체 및 주요 전파 경로**: 병원체 (________), 전파 경로 (호흡기 비말/공기/접촉/수인성 등)
-        - **2. 주요 임상 증상 및 학교 보건실·의료기관 도움 요청 상황**: 임상 증상 (________), 대처 (보건관찰실 격리 및 의료기관 진료 안내)
-        - **3. 전파 경로와 연결되는 핵심 예방 행동 및 이유**: *(여기에 내용을 직접 입력하세요)*
-        - **4. 교과서 및 질병관리청 공식 출처 확인**: 출처 제목 / 확인 날짜
-        - **5. AI 보건튜터에게 질문하기 전, 내가 먼저 작성해 본 설명 (가설)**: *(여기에 내용을 직접 입력하세요)*
-        - **6. AI 보건튜터에게 입력한 구체적 질문 또는 교사에게 문의한 질문**: *(질문 입력)*
-        - **7. AI 답변에서 확인한 핵심 주장과 공식 자료의 해당 근거**: *(여기에 내용을 직접 입력하세요)*
-        - **8. [비판적 검토] AI 답변 중 받아들인 내용 / 고친 내용 / 확인하지 못한 내용**: *(여기에 내용을 직접 입력하세요)*
-        """)
-
-    # 3단계 카드 (오렌지)
-    with st.expander("■ [3단계] 예방 모형에서 조건을 비교하기 (메뉴 4 시뮬레이터 연계)", expanded=True):
-        st.markdown("""
-        | 중재 조건 항목 | 기준 상태 (A) | 변경 상태 (B) |
-        | :--- | :--- | :--- |
-        | **감염병명 및 나머지 고정 조건** | *(예: 홍역, 기본 조건)* | *(동일 유지)* |
-        | **이번에 바꾸는 조건 한 가지 (환기/마스크/손씻기/격리 중)** | *(예: 환기 2회/교시)* | *(예: 환기 5회/교시)* |
-        | **사전 예상 및 보건학적 이유** | *(예: Rt 유지)* | *(예: 공기 전파 차단으로 Rt 감소 예상)* |
-        | **앱이 계산한 유효 재생산지수 (Rt)** | **Rt = ________** | **Rt = ________** |
-
-        - **2. 결과 해석 (조건 A와 B의 비교를 바탕으로)**: *"이 [ ____________ ] 모형의 [ ____________ ] 조건에서 ________________________________"*
-        - **3. 모형의 한계 (실제 학교 교실에 그대로 적용하기 어려운 이유)**: *(여기에 내용을 직접 입력하세요)*
-        - **4. 우리 학교를 위한 감염병 예방 대책 최종 제안 및 근거**: *(여기에 내용을 직접 입력하세요)*
-        - **5. 모둠 동료 및 교사 피드백 후 수정한 문장과 수정 이유**: *(여기에 내용을 직접 입력하세요)*
-        """)
-
-    # 하단 유의사항
-    st.markdown("""
-    <div style="background: rgba(245, 158, 11, 0.1); border-left: 4px solid #f59e0b; padding: 10px 14px; border-radius: 6px; font-size: 0.83rem; color: #fde68a;">
-        ※ <b>보건의료 데이터 탐구 윤리 및 활동 안내</b>: 친구의 실제 질환·이름을 입력하지 않으며, 집계된 통계와 가상 상황을 기반으로 탐구합니다. 특정 환자나 집단을 낙인찍지 않습니다.
-    </div>
-    """, unsafe_allow_html=True)
+    # 2. 내가 작성한 1~5단계 활동내역 모아보기 (제출 전 확인용 접이식 창)
+    with st.expander("👀 내가 작성한 1~5단계 활동내역 모아보기 (활동지 작성 참고용)", expanded=True):
+        st.markdown(f"""
+        <div style="font-size: 0.88rem; line-height: 1.7; color: #e2e8f0;">
+            <p><strong>👤 학생 인적사항:</strong> <span style="color:#38bdf8;">{st.session_state.get('wb_student_id', '-')} / {st.session_state.get('wb_student_name', '-')}</span></p>
+            <p><strong>1️⃣ [1단계] 선정 감염병 및 선정이유 / 질문:</strong><br><span style="color:#93c5fd;">{st.session_state.get('wb_step1_note', '').strip() or '*(아직 작성되지 않음)*'}</span></p>
+            <p><strong>2️⃣ [2단계] 데이터 시각화 차트 분석 & 관찰 사실:</strong><br><span style="color:#93c5fd;">{st.session_state.get('wb_step2_note', '').strip() or '*(아직 작성되지 않음)*'}</span></p>
+            <p><strong>3️⃣ [3단계] 지역 역학 및 전파 경로 분석:</strong><br><span style="color:#93c5fd;">{st.session_state.get('wb_step3_note', '').strip() or '*(아직 작성되지 않음)*'}</span></p>
+            <p><strong>4️⃣ [4단계] 학교 방역 시뮬레이션 예방 제안:</strong><br><span style="color:#93c5fd;">{st.session_state.get('wb_step4_note', '').strip() or '*(아직 작성되지 않음)*'}</span></p>
+            <p><strong>5️⃣ [5단계] AI 보건 튜터 인터뷰 배움 기록:</strong><br><span style="color:#93c5fd;">{st.session_state.get('wb_step5_note', '').strip() or '*(아직 작성되지 않음)*'}</span></p>
+        </div>
+        """, unsafe_allow_html=True)
 
 
 # ==========================================
 # 4. 메인 화면 헤더 (우측 맨 위: 학생 탐구 활동지 버튼 배치)
+# ==========================================
+# 4. 메인 화면 헤더 (디지털 학습지 헤더 & 학생 인적사항/진도율 바)
 # ==========================================
 head_c1, head_c2 = st.columns([3.8, 1.2])
 
@@ -3359,8 +3468,8 @@ with head_c1:
                 <img src="data:image/png;base64,{b64_emblem}" style="height: 38px; width: 38px; object-fit: contain; display: block;" alt="서울의료보건고 로고 마크">
             </div>
             <div style="display: flex; flex-direction: column; justify-content: center; min-width: 0;">
-                <div class="one-line-title">특성화고 데이터 기반 감염병 보건 탐구 대시보드</div>
-                <div style="font-size: 0.88rem; color: #38bdf8; font-weight: 700; margin-top: 3px;">서울의료보건고등학교 보건간호과 데이터 기반 융합수업</div>
+                <div class="one-line-title">보건·정보 융합 디지털 탐구</div>
+                <div style="font-size: 0.88rem; color: #38bdf8; font-weight: 700; margin-top: 3px;">서울의료보건고등학교 보건간호과 스마트 활동지</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -3368,8 +3477,8 @@ with head_c1:
         st.markdown("""
         <div class="header-card">
             <div style="display: flex; flex-direction: column; justify-content: center; min-width: 0;">
-                <div class="one-line-title">특성화고 데이터 기반 감염병 보건 탐구 대시보드</div>
-                <div style="font-size: 0.88rem; color: #38bdf8; font-weight: 700; margin-top: 3px;">서울의료보건고등학교 보건간호과 데이터 기반 융합수업</div>
+                <div class="one-line-title">보건·정보 융합 디지털 탐구</div>
+                <div style="font-size: 0.88rem; color: #38bdf8; font-weight: 700; margin-top: 3px;">서울의료보건고등학교 보건간호과 스마트 활동지</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -3378,9 +3487,38 @@ with head_c2:
     st.markdown("<div style='height: 4px;'></div>", unsafe_allow_html=True)
     if st.button("📋 학생 탐구 활동지", use_container_width=True, type="primary", key="btn_open_worksheet_top"):
         show_worksheet_dialog()
-    st.caption("📥 양식 열람 & 인쇄/다운로드")
+    st.caption("📥 인쇄/PDF 및 한글(.HWP) 다운로드")
 
-st.caption("공공 보건의료 데이터를 시각화하고, 학교 집단감염 전파 차단 모델을 시뮬레이션하며, AI 보건튜터와 함께 탐구합니다.")
+# 학생 인적사항 입력 및 5단계 진도율 실시간 계산
+st.session_state.setdefault("wb_student_name", "고보건")
+st.session_state.setdefault("wb_student_id", "보건간호과 1반 15번 (1모둠)")
+st.session_state.setdefault("wb_step1_note", "")
+st.session_state.setdefault("wb_step2_note", "")
+st.session_state.setdefault("wb_step3_note", "")
+st.session_state.setdefault("wb_step4_note", "")
+st.session_state.setdefault("wb_step5_note", "")
+
+# 단계별 완료 여부 체크
+completed_steps = 0
+if st.session_state.get("wb_step1_note", "").strip(): completed_steps += 1
+if st.session_state.get("wb_step2_note", "").strip(): completed_steps += 1
+if st.session_state.get("wb_step3_note", "").strip(): completed_steps += 1
+if st.session_state.get("wb_step4_note", "").strip(): completed_steps += 1
+if st.session_state.get("wb_step5_note", "").strip(): completed_steps += 1
+
+progress_pct = int((completed_steps / 5.0) * 100)
+
+s_bar_col1, s_bar_col2, s_bar_col3 = st.columns([1.5, 1.5, 2.0])
+with s_bar_col1:
+    new_s_name = st.text_input("👤 학생 이름", value=st.session_state["wb_student_name"], key="input_wb_student_name", help="작성하신 이름이 최종 활동지에 자동 반영됩니다.")
+    st.session_state["wb_student_name"] = new_s_name
+with s_bar_col2:
+    new_s_id = st.text_input("🏷️ 학년/반/모둠", value=st.session_state["wb_student_id"], key="input_wb_student_id", help="예: 2학년 2반 3번 (보건지킴이 모둠)")
+    st.session_state["wb_student_id"] = new_s_id
+with s_bar_col3:
+    st.markdown(f"<div style='font-size:0.83rem; color:#94a3b8; font-weight:600; margin-bottom:5px;'>📈 디지털 학습지 작성 진도율: <b style='color:#38bdf8;'>{progress_pct}%</b> ({completed_steps}/5단계 완료)</div>", unsafe_allow_html=True)
+    st.progress(progress_pct / 100.0)
+
 st.write("")
 
 
@@ -3389,94 +3527,85 @@ st.write("")
 # ==========================================
 
 # ----------------------------------------------------
-# [메뉴 1] 수업 안내 및 데이터 개요 & CSV 다운로드
+# [메뉴 1] STEP 1. 감염병 개념 & 데이터 탐색소
 # ----------------------------------------------------
-if menu == "1. 수업 안내 및 데이터 개요":
-    st.subheader("📋 2022 개정 교육과정 연계 보건·정보 융합 수업 안내")
+if menu.startswith("1.") or menu == "1. 수업 안내 및 데이터 개요":
     st.markdown("""
-    <style>
-    .curriculum-grid-wrapper {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 16px;
-        align-items: stretch;
-        margin-bottom: 8px;
-    }
-    @media (max-width: 820px) {
-        .curriculum-grid-wrapper {
-            grid-template-columns: 1fr;
-        }
-    }
-    .curriculum-card-box {
-        height: 100%;
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        box-sizing: border-box;
-        border-radius: 8px;
-        padding: 16px 18px;
-    }
-    </style>
-    <div class="curriculum-grid-wrapper">
-        <div class="curriculum-card-box" style="background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(56, 189, 248, 0.3); border-left: 4px solid #38bdf8;">
-            <div>
-                <div style="font-size: 1.02rem; font-weight: 700; color: #38bdf8; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
-                    <span>🎯</span> <span>2022 개정 교육과정 핵심 성취기준 및 준용 근거</span>
-                </div>
-                <ul style="margin: 0; padding-left: 18px; color: #e2e8f0; font-size: 0.86rem; line-height: 1.75;">
-                    <li style="margin-bottom: 8px;"><strong>보건과 [12보건04-03]</strong>: 감염병과 면역의 원리를 이해하고 개인과 공동체가 지켜야 할 건강수칙과 대응 방안을 사회적 차원에서 비판적으로 탐색하여 생활에 적용한다. <span style="color: #94a3b8; font-size: 0.78rem;">*(출처: 2022 개정 고등학교 보건과 성취수준)*</span></li>
-                    <li style="margin-bottom: 8px;"><strong>정보과 [12정02-03]</strong>: 빅데이터의 개념과 특징에 대한 이해를 바탕으로, 문제 해결에 적합한 데이터를 수집한다.</li>
-                    <li style="margin-bottom: 8px;"><strong>정보과 [12정02-04]</strong>: 빅데이터 분석 도구를 활용하여 데이터를 시각화하고<br>그 의미와 가치를 해석한다. <span style="color: #94a3b8; font-size: 0.78rem;">*(출처: 2022 개정 정보과 성취평가 기준)*</span></li>
-                    <li><strong>3학년 전문교과 준용</strong>: 보건간호 [보간 22-04](감염 관리와 질환별 진단/관리), 공중보건 [12공보 04-01](감염병 발생 요인과 전염 경로 파악)의 고2 수준 맞춤<br> 재구성</li>
-                </ul>
-            </div>
-            <div style="margin-top: 14px; padding-top: 8px; border-top: 1px dashed rgba(56, 189, 248, 0.25); font-size: 0.8rem; color: #94a3b8;">
-                💡 보건간호과 2학년 보건·정보 교과 융합 실습 수업 설계
-            </div>
+    <div style="background: linear-gradient(135deg, rgba(56, 189, 248, 0.12) 0%, rgba(30, 41, 59, 0.6) 100%); border-left: 5px solid #38bdf8; border-radius: 10px; padding: 14px 18px; margin-bottom: 14px;">
+        <div style="font-size: 1.12rem; font-weight: 700; color: #38bdf8; margin-bottom: 4px;">
+            STEP 1. 감염병 기본 개념 다지기 & 실제 데이터 탐색
         </div>
-        <div class="curriculum-card-box" style="background: rgba(16, 185, 129, 0.08); border: 1px solid rgba(16, 185, 129, 0.3); border-left: 4px solid #10b981;">
-            <div>
-                <div style="font-size: 0.96rem; font-weight: 700; color: #4ade80; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; white-space: nowrap; letter-spacing: -0.02em;">
-                    <span>📚</span> <span>질병관리청 최신 법정감염병 1급~4급 분류 체계(국내 발생 질환 중심)</span>
-                </div>
-                <ul style="margin: 0; padding-left: 18px; color: #e2e8f0; font-size: 0.86rem; line-height: 1.65;">
-                    <li style="margin-bottom: 6px;"><strong>제1급 감염병 (국내발생·유입관리 7종)</strong>: 치명률 높고 집단발생 우려, 발생 즉시 <br>신고, 음압격리 <span style="color: #cbd5e1; font-size: 0.82rem;">(MERS, 신종인플루엔자, 신종감염병증후군, 탄저, 보툴리눔 등)</span></li>
-                    <li style="margin-bottom: 6px;"><strong>제2급 감염병 (국내발생 18종)</strong>: 전파가능성 고려, 24시간 이내 신고, 격리 필요<br> <span style="color: #cbd5e1; font-size: 0.82rem;">(수두, 백일해, 홍역, 유행성이하선염, 결핵, A형간염 등)</span></li>
-                    <li style="margin-bottom: 6px;"><strong>제3급 감염병 (국내발생 17종)</strong>: 발생 시 24시간 이내 신고, 발생 계속 감시<br> <span style="color: #cbd5e1; font-size: 0.82rem;">(쯔쯔가무시증, 말라리아, SFTS, 일본뇌염, B/C형간염, 매독 등)</span></li>
-                    <li><strong>제4급 감염병 (국내발생 21종)</strong>: 1~3급 외 표본감시 활동 <span style="color: #cbd5e1; font-size: 0.82rem;">(코로나19, 인플루엔자,<br> 수족구병, 노로바이러스, RSV, 마이코플라스마 등)</span></li>
-                </ul>
-            </div>
-            <div style="margin-top: 14px; padding-top: 8px; border-top: 1px dashed rgba(16, 185, 129, 0.25); font-size: 0.8rem; color: #94a3b8;">
-                ※ 대한민국 질병관리청에서 실제로 환자가 신고·발생하고 집중 관리하는 1~4급 주요 <br>법정감염병 전체 체계화
-            </div>
+        <div style="font-size: 0.88rem; color: #e2e8f0; line-height: 1.6;">
+            💡 <strong>오늘의 탐구 미션</strong>: 질병관리청 법정감염병 1~4급의 핵심 분류 기준(신고 시한 및 격리 수준)을 구별하고, 2019~2025년 실제 발생 데이터에서 내가 탐구할 감염병을 선정해 보세요.
         </div>
     </div>
     """, unsafe_allow_html=True)
 
-    st.markdown(f"""
-    <div style="background:#0f172a; border-left:4px solid #38bdf8; padding:12px 16px; border-radius:6px; margin-top:8px; margin-bottom:14px; font-size:0.88rem; color:#cbd5e1; line-height:1.6;">
-        💡 <strong>데이터 투명성 및 출처 안내</strong>: 본 대시보드의 데이터셋(총 {len(working_df):,}건, 대한민국 발생 1~4급 주요 법정감염병 완비)은 <strong>질병관리청(KDCA) 감염병포털 및 공공데이터포털</strong>의 실제 발생 통계를 기반으로, 고등학교 2학년 융합수업의 4대 관점(연도별·5대 연령대별·해외10개국·국내17개시도) 비교 실습을 위해 체계화한 <strong>대한민국 실제 발생 감염병 교육용 표준 데이터셋<br>입니다.</strong>
+    # 1. 교사용 교육과정 근거 (필요할 때만 펼쳐보는 아코디언 수납 - 학생 시각적 부담 제로화)
+    with st.expander("📖 2022 개정 교육과정 핵심 성취기준"):
+        st.markdown("""
+        <div style="font-size: 0.88rem; line-height: 1.8; color: #e2e8f0;">
+            <div style="margin-bottom: 6px;">• <strong>보건과 [12보건04-03]</strong>: 감염병과 면역의 원리를 이해하고 개인과 공동체가 지켜야 할 건강수칙과 대응 방안을 사회적 차원에서 비판적으로 탐색하여 생활에 적용한다. <em>(출처: 2022 개정 고등학교 보건과 성취수준)</em></div>
+            <div style="white-space: nowrap; margin-bottom: 6px;">• <strong>정보과 [12정02-03]</strong>: 빅데이터의 개념과 특징에 대한 이해를 바탕으로, 문제 해결에 적합한 데이터를 수집한다.</div>
+            <div style="margin-bottom: 6px;">• <strong>정보과 [12정02-04]</strong>: 빅데이터 분석 도구를 활용하여 데이터를 시각화하고 그 의미와 가치를 해석한다.<br>&nbsp;&nbsp;&nbsp;&nbsp;<em>(출처: 2022 개정 정보과 성취평가 기준)</em></div>
+            <div style="white-space: nowrap;">• 보건간호 [보간 22-04](감염 관리와 질환별 진단/관리), 공중보건 [12공보 04-01](감염병 발생 요인과 전염 경로 파악)</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # 2. 클릭하면 쏙 나오는 직관적인 법정감염병 급수 탐구 (중학교 수준의 극단적 단순화 & React DOM 에러 원천 방지)
+    st.markdown("##### 📚 알아보고 싶은 감염병 급수를 클릭해 보세요")
+    tab_t1, tab_t2, tab_t3, tab_t4 = st.tabs(["🔴 제1급 감염병", "🟠 제2급 감염병", "🟡 제3급 감염병", "🔵 제4급 감염병"])
+    with tab_t1:
+        st.error("""🔴 **제1급 감염병 (국내발생·유입관리 7종)**  
+• **핵심 기준**: 치명률이 매우 높거나 집단 발생 우려가 커서 **발생 즉시 신고**하고 **음압격리**가 필요합니다.  
+• **대표 질환**: 에볼라, 사스(SARS), 메르스(MERS), 신종인플루엔자, 탄저, 보툴리눔독소증, 페스트""")
+    with tab_t2:
+        st.warning("""🟠 **제2급 감염병 (국내발생 18종 - 학교 빈발)**  
+• **핵심 기준**: 전파 위험이 높아 **24시간 이내에 보건소에 신고**하고 **격리 치료(등교 중지)**가 필요합니다.  
+• **대표 질환**: 수두, 홍역, 백일해, 유행성이하선염(볼거리), 결핵, A형간염, 성홍열 등""")
+    with tab_t3:
+        st.warning("""🟡 **제3급 감염병 (국내발생 17종)**  
+• **핵심 기준**: 24시간 이내 신고 대상이나, 전파력이 낮아 격리보다는 **지속적 발생 감시**가 주 목적입니다.  
+• **대표 질환**: 쯔쯔가무시증, 말라리아, 일본뇌염, SFTS(중증열성혈소판감소증후군), 파상풍, B형/C형간염""")
+    with tab_t4:
+        st.info("""🔵 **제4급 감염병 (국내발생 21종)**  
+• **핵심 기준**: 1~3급 외에 유행 여부를 조사하기 위해 표본감시 기관에서 **7일 이내에 신고**합니다.  
+• **대표 질환**: 코로나19, 인플루엔자(독감), 수족구병, 노로바이러스 감염증, 급성호흡기감염증(RSV 등)""")
+
+    # 3. 인터랙티브 1분 쏙쏙 개념 체크 퀴즈 (정답 스포일러 완전 제거!)
+    st.markdown("""
+    <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid #475569; border-radius: 8px; padding: 10px 16px; margin-top: 6px; margin-bottom: 8px;">
+        <div style="font-size: 0.92rem; font-weight: 700; color: #38bdf8;">
+            💡 [1분 쏙쏙 퀴즈] 학교 교실에서 환자가 생겼을 때, <b>24시간 내 신고하고 등교 중지(격리)해야 하는 급수</b>는?
+        </div>
     </div>
     """, unsafe_allow_html=True)
+    q_cols = st.columns(4)
+    if q_cols[0].button("🔴 제1급", use_container_width=True, key="quiz_btn_1"):
+        st.warning("⚠️ 아쉽네요! 제1급은 치명률이 높아 '발생 즉시 신고 및 음압격리' 대상입니다.")
+    if q_cols[1].button("🟠 제2급", use_container_width=True, key="quiz_btn_2"):
+        st.success("🎉 정답입니다! 수두, 백일해, 홍역 등 교내 집단유행 질환은 '24시간 이내 신고 및 격리 치료'가 필요한 제2급 감염병입니다.")
+    if q_cols[2].button("🟡 제3급", use_container_width=True, key="quiz_btn_3"):
+        st.info("ℹ️ 제3급은 24시간 이내 신고하지만 격리보다는 '지속적 발생 감시' 목적입니다.")
+    if q_cols[3].button("🔵 제4급", use_container_width=True, key="quiz_btn_4"):
+        st.info("ℹ️ 제4급은 표본감시 기관에서 7일 이내에 신고합니다.")
 
     st.divider()
-    st.markdown("##### 📥 [수업 실습용] 질병관리청 공공데이터 개별 CSV 다운로드")
-    st.caption("아래 버튼을 눌러 원하는 질병 CSV 파일을 다운로드받은 뒤, 왼쪽 사이드바의 '내 CSV 파일 직접 업로드'에 올려서 실습해 보세요!")
-
+    st.markdown("##### 📥 [실습용] 감염병 CSV 파일 다운로드")
     d_btn1, d_btn2, d_btn3, d_btn4, d_btn5 = st.columns(5)
     sample_targets = [
-        ("코로나19 (제4급)", "코로나19_발생현황_2019_2025.csv", d_btn1),
-        ("인플루엔자 (제4급)", "인플루엔자_발생현황_2019_2025.csv", d_btn2),
-        ("백일해 (제2급)", "백일해_발생현황_2019_2025.csv", d_btn3),
-        ("홍역 (제2급)", "홍역_발생현황_2019_2025.csv", d_btn4),
-        ("수두 (제2급)", "수두_발생현황_2019_2025.csv", d_btn5)
+        ("💾 코로나19", "코로나19_발생현황_2019_2025.csv", d_btn1),
+        ("💾 인플루엔자", "인플루엔자_발생현황_2019_2025.csv", d_btn2),
+        ("💾 백일해", "백일해_발생현황_2019_2025.csv", d_btn3),
+        ("💾 홍역", "홍역_발생현황_2019_2025.csv", d_btn4),
+        ("💾 수두", "수두_발생현황_2019_2025.csv", d_btn5)
     ]
     for d_name, f_name, col_btn in sample_targets:
         f_path = DATA_DIR / f_name
         if f_path.exists():
             with open(f_path, "rb") as f:
                 col_btn.download_button(
-                    label=f"💾 {d_name}",
+                    label=d_name,
                     data=f.read(),
                     file_name=f_name,
                     mime="text/csv",
@@ -3488,45 +3617,33 @@ if menu == "1. 수업 안내 및 데이터 개요":
     
     num_dis = working_df["감염병명"].nunique() if "감염병명" in working_df.columns else 0
     total_rows = len(working_df)
-    
-    # 연도별 데이터 수집 건수 통계 생성
-    year_stats = []
-    if "연도" in working_df.columns:
-        for y in sorted(working_df["연도"].dropna().unique(), reverse=True):
-            y_int = int(y)
-            y_cnt = len(working_df[working_df["연도"] == y])
-            year_stats.append(f"{y_int}년: {y_cnt:,}건")
-    year_stats_str = " ・ ".join(year_stats) if year_stats else "2019년 ~ 2025년 완비"
 
     st.markdown(f"""
-    <div class="single-line-badge-bar" style="margin-bottom: 8px;">
+    <div class="single-line-badge-bar" style="margin-bottom: 14px;">
         <span>📊 <strong>총 데이터</strong>: {total_rows:,}건 (대한민국 1~4급 주요 법정감염병 {num_dis}종 완비)</span>
         <span>📅 <strong>수집 기간</strong>: 2019년 ~ 2025년</span>
         <span>👥 <strong>연령대 5단계</strong>: 0-9세 ・ 10-19세 ・ 20-49세 ・ 50-64세 ・ 65세 이상</span>
         <span>💉 <strong>관리 구분</strong>: 예방접종 및 격리여부 포함</span>
     </div>
-    <div style="background: rgba(15, 23, 42, 0.6); border: 1px solid #334155; border-radius: 8px; padding: 6px 14px; font-size: 0.82rem; color: #94a3b8; margin-bottom: 14px;">
-        📈 <strong>연도별 완비 현황</strong>: {year_stats_str}
-    </div>
     """, unsafe_allow_html=True)
 
-    # 1행: 1급~4급 원클릭 탐색 필터 및 검색
-    # 1행: 1급~4급 원클릭 탐색 필터 및 감염병 종류 드롭다운 연동 선택
-    m1_f_col1, m1_f_col2 = st.columns([1.5, 1.3])
+    # 1행: 1급, 2급, 3급, 4급 나오고 줄바꿈 후 전체(1급~4급 법정감염병) 배치
+    m1_f_col1, m1_f_col2 = st.columns([1.75, 1.25])
     with m1_f_col1:
         tier_choice = st.radio(
             "🏷️ 법정감염병 급수 필터",
-            ["전체 (1~4급 전체)", "🔴 제1급 감염병", "🟠 제2급 감염병", "🟡 제3급 감염병", "🔵 제4급 감염병"],
+            ["🔴 제1급", "🟠 제2급", "🟡 제3급", "🔵 제4급", "전체 (1급~4급 법정감염병)"],
+            index=4,
             horizontal=True,
             key="m1_tier_filter_radio"
         )
 
     # 급수별 감염병 목록 매핑
     tier_map_key = {
-        "🔴 제1급 감염병": "제1급 감염병 (국내발생·유입관리 7종)",
-        "🟠 제2급 감염병": "제2급 감염병 (국내발생 18종)",
-        "🟡 제3급 감염병": "제3급 감염병 (국내발생 17종)",
-        "🔵 제4급 감염병": "제4급 감염병 (국내발생 21종)"
+        "🔴 제1급": "제1급 감염병 (국내발생·유입관리 7종)",
+        "🟠 제2급": "제2급 감염병 (국내발생 18종)",
+        "🟡 제3급": "제3급 감염병 (국내발생 17종)",
+        "🔵 제4급": "제4급 감염병 (국내발생 21종)"
     }
 
     if tier_choice in tier_map_key:
@@ -3573,9 +3690,9 @@ if menu == "1. 수업 안내 및 데이터 개요":
         )
 
     view_df = working_df.copy()
-    if tier_choice != "전체 (1~4급 전체)":
-        tier_kw = tier_choice.split()[1]  # '제1급', '제2급' 등
-        view_df = view_df[view_df["법정감염병군"].str.contains(tier_kw, na=False)]
+    if tier_choice in tier_map_key:
+        tier_kw = tier_choice.split()[1]  # '제1급', '제2급', '제3급', '제4급'
+        view_df = view_df[view_df["법정감염병군"].str.contains(tier_kw, na=False, regex=False)]
     
     if not selected_m1_disease.startswith("전체 ("):
         view_df = view_df[view_df["감염병명"] == selected_m1_disease]
@@ -3631,26 +3748,54 @@ if menu == "1. 수업 안내 및 데이터 개요":
             limit_num = int(num_m.group())
         show_df = view_df.head(limit_num)
 
-    st.dataframe(show_df[valid_cols], use_container_width=True)
-    safe_tier_str = str(tier_choice).replace("~", "～")
-    safe_year_str = str(sel_year).replace("~", "～")
-    st.markdown(
-        f"""<div style="font-size: 0.84rem; color: #94a3b8; margin-top: 5px; margin-bottom: 8px; line-height: 1.55;">
-        💡 현재 조건({safe_tier_str}, {safe_year_str})의 총 {len(view_df):,}건 중 {len(show_df):,}건이 표시 중입니다. (2019～2025년 7개년 국내 17개 시도 및 해외 10개국 전체 데이터가 완비되어 있으며, 스크롤을 내려 전체 기간을 자유롭게 탐색할 수 있습니다.)
-        </div>""",
-        unsafe_allow_html=True
-    )
+    # 3. 데이터 표 펼쳐보기 컨트롤 (사용자 요청: 기본 상태에서는 숨기고 클릭 시 펼쳐지게 하여 복잡도 해소)
+    show_m1_table = st.checkbox("📊 조건별 63종 감염병 전체 데이터 표 펼쳐보기 (클릭 시 열림)", value=False, key="chk_m1_show_table")
+    if show_m1_table:
+        st.dataframe(show_df[valid_cols], use_container_width=True)
+        safe_tier_str = str(tier_choice).replace("~", "～")
+        safe_year_str = str(sel_year).replace("~", "～")
+        st.caption(f"💡 현재 조건({safe_tier_str}, {safe_year_str})의 총 {len(view_df):,}건 중 {len(show_df):,}건이 표시 중입니다. (2019～2025년 7개년 국내 17개 시도 및 해외 10개국 전체 데이터 완비)")
+    else:
+        st.info("💡 **데이터 표 숨김 상태**: 상단 조회 조건(연도, 정렬 기준 등)을 확인한 뒤 위의 **`[📊 전체 데이터 표 펼쳐보기]`**  \n체크박스를 누르시면 상세 데이터가 펼쳐집니다.")
+
+    # [디지털 학습지 STEP 1] 학생 직접 기록 활동란
+    st.write("")
+    st.markdown("##### 📝 [1단계 탐구 활동지] 나의 감염병 탐구 선정 기록장")
+    st.caption("보건간호과 학생으로서 오늘 깊이 있게 분석하고 싶은 감염병(예: 수두, 백일해, 코로나19 등)과 선정한 이유를 한 줄로 정리해 보세요.")
+
+    memo1_col1, memo1_col2 = st.columns([3.1, 1.7])
+    with memo1_col1:
+        s1_input = st.text_area(
+            "1단계 기록 내용",
+            value=st.session_state.get("wb_step1_note", ""),
+            placeholder="예시: 최근 교내에서 발생 위험이 커진 '백일해(제2급)'를 선정함. 청소년기 백신 추가접종 효과와 실제 유행 추세를 데이터로 검증하고 싶기 때문임.",
+            label_visibility="collapsed",
+            key="area_step1_memo",
+            height=70
+        )
+    with memo1_col2:
+        st.write("")
+        if st.button("💾 1단계 저장 & 수행평가 연동", use_container_width=True, type="primary", key="btn_save_step1"):
+            st.session_state["wb_step1_note"] = s1_input
+            st.toast("✅ 1단계 기록이 저장되었으며 학생 활동지 및 수행평가에 자동 연동되었습니다!")
+            st.success("연동 완료! 🟢")
+            st.rerun()
 
 
 # ----------------------------------------------------
-# [메뉴 2] 감염병 발생 현황 & 시각화 (사용자 요청: Matplotlib, Seaborn, Plotly 3대 라이브러리 비교)
+# [메뉴 2] STEP 2. 데이터 시각화 탐구 (3대 차트 라이브러리 비교)
 # ----------------------------------------------------
-elif menu == "2. 감염병 발생 현황 & 시각화":
-    st.markdown('<div class="title-compare-libs">📊 3대 시각화 라이브러리(Matplotlib vs Seaborn vs Plotly) 비교 분석</div>', unsafe_allow_html=True)
+elif menu.startswith("2.") or menu in ["2. 차트 시각화 실험실", "2. 데이터시각화 실험실", "2. 감염병 발생 현황 & 시각화"]:
     st.markdown("""
-    동일한 공공 보건 데이터를 **파이썬의 3대 대표 시각화 라이브러리**(Plotly, Seaborn, Matplotlib)로 각각 구현하여 
-    시각화 도구별 표현력과 특징을 비교 탐구합니다.
-    """)
+    <div style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(30, 41, 59, 0.6) 100%); border-left: 5px solid #0284c7; border-radius: 10px; padding: 14px 18px; margin-bottom: 14px;">
+        <div style="font-size: 1.12rem; font-weight: 700; color: #38bdf8; margin-bottom: 4px;">
+            STEP 2. 데이터 시각화 탐구 (Plotly vs Seaborn vs Matplotlib)
+        </div>
+        <div style="font-size: 0.88rem; color: #e2e8f0; line-height: 1.6;">
+            💡 <strong>오늘의 탐구 미션</strong>: 동일한 질병관리청 보건 데이터를 3대 시각화 도구로 표현해 보며, <b>도구별 특징(인터랙티브 반응 vs 통계적 분포 vs 정통 학술 그래프)</b>과 차트 형태별 전달력을 비교 분석해 보세요.
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
 
     # 업로드 데이터 감염병 자동 감지 및 스마트 선택 동기화
     uploaded_diseases = [d for d in working_df["감염병명"].dropna().unique() if str(d).strip()] if "감염병명" in working_df.columns else []
@@ -3710,9 +3855,6 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                   on_click=select_m2_tier, args=(t_all_key,),
                   help="제1급, 제2급, 제3급, 제4급을 넘나들며 서로 다른 급수의 법정감염병을 자유롭게 교차 비교 분석합니다.")
 
-    if is_uploaded_data:
-        st.success(f"📂 **업로드 데이터 연동 완료**: `{', '.join(uploaded_diseases)}` (총 {len(working_df):,}건 분석 준비 완료)")
-
     sel_c1, sel_c2 = st.columns([1, 1.4])
     with sel_c1:
         default_analysis_idx = 1 if (is_uploaded_data and len(uploaded_diseases) >= 2) else 0
@@ -3754,32 +3896,24 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
 
     with sel_c2:
         # 단일 집중 분석 또는 복수 비교 분석 드롭다운
+        placeholder_text = "👉 [탐구할 감염병을 먼저 선택하세요]"
         if analysis_type == "단일 감염병 집중 분석":
+            single_options = [placeholder_text] + scoped_diseases
             chosen_single = st.selectbox(
-                f"🏷️ 법정감염병 급수 확인 및 드롭다운 선택 ({tier_short_name} {len(scoped_diseases)}종)",
-                options=scoped_diseases,
-                index=0 if scoped_diseases else None,
+                f"🏷️ 감염병 선택 ({tier_short_name} {len(scoped_diseases)}종)",
+                options=single_options,
+                index=0,
                 key=f"m2_disease_select_{cur_tier_state}_{cross_tier_active}",
-                help=f"분석할 감염병 1종을 선택하세요. (상단 급수 버튼으로 즉시 전환됩니다)"
+                help="분석할 감염병 1종을 선택하세요."
             )
-            target_diseases = [chosen_single] if chosen_single else []
+            target_diseases = [chosen_single] if (chosen_single and chosen_single != placeholder_text) else []
         else:
-            if is_uploaded_data and uploaded_diseases:
-                default_targets = [d for d in uploaded_diseases if d in scoped_diseases]
-                if not default_targets:
-                    default_targets = uploaded_diseases[:3]
-            elif cur_tier_state == t_all_key or cross_tier_active:
-                # 전체 교차 비교 시 서로 다른 급수의 대표적 비교 조합 추천
-                default_targets = ["신종인플루엔자", "인플루엔자"] if ("신종인플루엔자" in scoped_diseases and "인플루엔자" in scoped_diseases) else scoped_diseases[:2]
-            else:
-                default_targets = scoped_diseases[:2] if len(scoped_diseases) >= 2 else scoped_diseases
-
             target_diseases = st.multiselect(
-                f"🏷️ 법정감염병 급수 확인 및 비교 선택 ({tier_short_name} {len(scoped_diseases)}종)",
+                f"🏷️ 비교할 감염병 선택 ({tier_short_name} {len(scoped_diseases)}종)",
                 options=scoped_diseases,
-                default=default_targets,
+                default=[],
                 key=f"m2_multi_select_{cur_tier_state}_{cross_tier_active}",
-                help="서로 다른 급수의 법정감염병(예: 신종인플루엔자 1급 vs 인플루엔자 4급)을 자유롭게 2~4개 선택하여 비교하세요."
+                help="비교할 법정감염병을 2~4개 선택하세요."
             )
 
     # 선택된 감염병 정보 브리핑 바 (각 감염병의 급수를 직관적으로 안내)
@@ -3804,8 +3938,10 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
 
     st.write("")
 
-    if df_filtered.empty or not target_diseases:
-        st.warning("⚠️ 선택하신 감염병에 해당하는 데이터가 없습니다. 상단 감염병을 선택해 주세요.")
+    if not target_diseases:
+        st.info("👆 **[감염병 선택 대기 중]**: 위 드롭다운에서 탐구하고 싶은 감염병(예: 수두, 백일해, 코로나19, 인플루엔자 등)을 선택해 보세요. 선택 즉시 환자 발생 추이, 청소년 비중 및 3대 시각화 그래프(Plotly, Seaborn, Matplotlib)가 화면에 펼쳐집니다! 📊")
+    elif df_filtered.empty:
+        st.warning("⚠️ 선택하신 감염병에 해당하는 데이터가 없습니다. 상단 감염병을 다시 선택해 주세요.")
     else:
         # 요약 통계 지표 카드
         tot_cnt = int(df_filtered["신규환자수"].sum())
@@ -3865,7 +4001,7 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
                     "📏 일반 스케일 (선형 Linear)",
                     "🔍 로그 스케일 (소규모 감염병 확대 Log)"
                 ],
-                index=1 if is_huge_gap else 0,
+                index=0,
                 horizontal=True,
                 help="수백 명 단위의 소규모 감염병(디프테리아 등)과 수십만 명 단위의 대규모 감염병(인플루엔자 등)을 함께 비교할 때, 막대가 바닥에 묻히지 않도록 로그 스케일로 모든 막대를 선명하게 확대합니다."
             )
@@ -3888,8 +4024,8 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
             "🍩 4. 원/도넛형 점유율 분석"
         ])
 
-        # 조화로운 보건 의료 컬러 팔레트
-        palette_colors = ["#38bdf8", "#818cf8", "#34d399", "#fbbf24", "#f87171", "#a855f7", "#06b6d4"]
+        # 감염병 간 명확한 시각적 구분을 위한 고대비 비비드 카테고리 컬러 팔레트 (청록, 주황, 녹색, 빨강, 보라, 황금 등)
+        palette_colors = ["#00b4d8", "#f77f00", "#10b981", "#e63946", "#8338ec", "#ffb703", "#06d6a0", "#d62828"]
 
         # ==================================================================
         # 관점 1: 연도별 발생 추이 분석 (2019 ~ 2025)
@@ -4787,103 +4923,160 @@ elif menu == "2. 감염병 발생 현황 & 시각화":
         # ------------------------------------------------------------------
         st.write("")
         st.markdown("""
-        <div style="background:#1e293b; border:1px solid #38bdf8; border-radius:12px; padding:16px 20px; margin-top:10px; margin-bottom:14px; box-shadow:0 3px 10px rgba(0,0,0,0.25);">
-            <div style="font-size:1.05rem; font-weight:bold; color:#38bdf8; margin-bottom:8px;">
+        <div style="background:#1e293b; border:1px solid #38bdf8; border-radius:10px; padding:12px 18px; margin-top:8px; margin-bottom:12px; box-shadow:0 3px 10px rgba(0,0,0,0.25);">
+            <div style="font-size:0.98rem; font-weight:bold; color:#38bdf8; margin-bottom:6px;">
                 💡 [보건간호과 학생용 데이터 시각화 길잡이: 차트별 최적 분석 목적]
             </div>
-            <div style="font-size:0.88rem; color:#e2e8f0; line-height:1.7;">
-                • 📈 <strong>꺾은선 추세 그래프 (Line Chart)</strong>: 시간(연도, 월)의 흐름에 따른 감염병 발생 추세, 유행 정점(Peak), 계절적 파동을 분석할 때 가장 적합합니다.<br>
-                • 📊 <strong>막대 비교 그래프 (Bar Chart)</strong>: 서로 다른 감염병 간 또는 시도별 환자 수의 절대적 대소를 직관적으로 비교할 때 최적입니다.<br>
-                • 🏔️ <strong>누적 영역/분포 그래프 (Stacked Chart)</strong>: 전체 감염병 환자 발생 총량의 변동과 그 안에서 각 질병 또는 연령대의 기여도를 함께 파악할 때 효과적입니다.<br>
-                • 🍩 <strong>원/도넛형 점유율 차트 (Donut/Pie Chart)</strong>: 전체 환자(100%) 중 특정 질병이나 고위험 연령층이 차지하는 상대적 비중을 시각적으로 전달할 때 탁월합니다.
+            <div style="font-size:0.85rem; color:#e2e8f0; line-height:1.65;">
+                • 📈 <strong>꺾은선 추세 그래프 (Line Chart)</strong>: 시간 흐름에 따른 감염병 발생 추세, 유행 정점(Peak), 계절적 파동 분석에 최적입니다.<br>
+                • 📊 <strong>막대 비교 그래프 (막대 차트)</strong>: 감염병 간 또는 시도별 환자 수의 절대적 크기를 직관적으로 비교할 때 최적입니다.<br>
+                • 🏔️ <strong>누적 영역/분포 그래프 (Stacked Chart)</strong>: 전체 감염병 총량의 변동과 각 질병·연령대 기여도를 함께 파악할 때 효과적입니다.<br>
+                • 🍩 <strong>원/도넛형 점유율 차트 (Donut Chart)</strong>: 전체 환자 중 특정 질병이나 고위험층이 차지하는 상대적 비중 전달에 탁월합니다.
             </div>
         </div>
         """, unsafe_allow_html=True)
 
         # ------------------------------------------------------------------
-        # 사용자 요청: 비교 항목 열 모두 위아래 좌우 균등 & 2줄 줄바꿈 배치
+        # 사용자 요청: "Plotly", "Seaborn" 등 해당 글자를 클릭하면 아래에 설명이 나오는 인터랙티브 UI & 콤팩트 축소 도표
         # ------------------------------------------------------------------
-        st.markdown("""
-        <div style="background:#1e293b; border:1px solid #334155; border-radius:12px; overflow:hidden; margin-top:16px; margin-bottom:16px; box-shadow:0 4px 14px rgba(0,0,0,0.3);">
-            <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.88rem; color:#f8fafc;">
-                <thead>
-                    <tr style="background:#0f172a; border-bottom:2px solid #38bdf8;">
-                        <th style="padding:14px 8px; width:95px; min-width:90px; text-align:center; vertical-align:middle; color:#38bdf8; font-weight:700; line-height:1.45;">비교<br>항목</th>
-                        <th style="padding:12px 16px; width:31%; color:#38bdf8; font-weight:700; text-align:center; vertical-align:middle;" class="notranslate" translate="no">⚡ Plotly</th>
-                        <th style="padding:12px 16px; width:29%; color:#f8fafc; font-weight:700; text-align:center; vertical-align:middle;" class="notranslate" translate="no">🎨 Seaborn</th>
-                        <th style="padding:12px 16px; width:29%; color:#f8fafc; font-weight:700; text-align:center; vertical-align:middle;" class="notranslate" translate="no">📉 Matplotlib</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr style="border-bottom:1px solid #334155;">
-                        <td style="padding:14px 8px; width:95px; min-width:90px; font-weight:700; color:#38bdf8; text-align:center; vertical-align:middle; background:rgba(15,23,42,0.45); line-height:1.45;">주요<br>특징</td>
-                        <td style="padding:12px 16px; line-height:1.6; color:#38bdf8; vertical-align:middle;">웹 브라우저나 대시보드(Streamlit)에서 사용자가 그래프 위 특정 지점을 클릭하고 마우스를 올려 값을 탐색할 수 있어 대시보드 제작에 가장 추천되는 라이브러리입니다.</td>
-                        <td style="padding:12px 14px; line-height:1.6; vertical-align:middle;">통계 분포(히스토그램, 박스플롯, 히트맵 등)를<br><span style="white-space:nowrap;">색상 팔레트와 함께 예쁘게 나타낼 때 편리합니다.</span></td>
-                        <td style="padding:12px 16px; line-height:1.6; vertical-align:middle;">논문이나 보고서에 들어가는 전통적이고 정적인 도표를 만들 때 표준으로 쓰입니다.</td>
-                    </tr>
-                    <tr style="border-bottom:1px solid #334155;">
-                        <td style="padding:14px 8px; width:95px; min-width:90px; font-weight:700; color:#38bdf8; text-align:center; vertical-align:middle; background:rgba(15,23,42,0.45); line-height:1.45;">상호<br>작용성</td>
-                        <td style="padding:12px 16px; color:#38bdf8; font-weight:600; vertical-align:middle;">동적 인터랙티브 (줌, 팬, 툴팁, 범례 클릭 토글)</td>
-                        <td style="padding:12px 16px; vertical-align:middle;">정적 이미지 (Static Image)</td>
-                        <td style="padding:12px 16px; vertical-align:middle;">정적 이미지 (Static Image)</td>
-                    </tr>
-                    <tr style="border-bottom:1px solid #334155;">
-                        <td style="padding:14px 8px; width:95px; min-width:90px; font-weight:700; color:#38bdf8; text-align:center; vertical-align:middle; background:rgba(15,23,42,0.45); line-height:1.45;">주요<br>장점</td>
-                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">마우스 호버만으로 정확한 환자 수 실시간 확인</td>
-                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">적은 코드로 미려한 통계 회귀선 및 분포 표현</td>
-                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">픽셀 단위 축, 눈금, 폰트, 레이아웃의 완전한<br> 제어 가능</td>
-                    </tr>
-                    <tr>
-                        <td style="padding:14px 8px; width:95px; min-width:90px; font-weight:700; color:#38bdf8; text-align:center; vertical-align:middle; background:rgba(15,23,42,0.45); line-height:1.45;">수업 활용<br>추천</td>
-                        <td style="padding:12px 14px; line-height:1.55; vertical-align:middle; white-space:nowrap;">학급 웹 대시보드 발표, 학생 실시간 데이터 탐구 실습</td>
-                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">역학 상관관계 분석, 연령대별 다변량 분포 탐색</td>
-                        <td style="padding:12px 16px; line-height:1.55; vertical-align:middle;">학술 보고서 제출, 정밀 인쇄물·연구 포스터 제작</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        """, unsafe_allow_html=True)
+        st.markdown("##### 🔍 시각화 라이브러리 도구 선택 (클릭하여 특징 탐색)")
+        tab_p, tab_s, tab_m, tab_tbl = st.tabs([
+            "⚡ Plotly (인터랙티브 웹)", 
+            "🎨 Seaborn (통계 분포)", 
+            "📉 Matplotlib (정밀 출판)", 
+            "📋 3대 도구 콤팩트 비교표"
+        ])
+
+        with tab_p:
+            st.markdown("""
+            <div style="background:rgba(56,189,248,0.08); border-left:4px solid #38bdf8; border-radius:8px; padding:12px 16px; margin-bottom:10px;">
+                <div style="font-size:1.02rem; font-weight:700; color:#38bdf8; margin-bottom:6px;">⚡ Plotly: 실시간 인터랙티브 웹 시각화의 최강자</div>
+                <div style="font-size:0.86rem; color:#f1f5f9; line-height:1.65;">
+                    • <strong>주요 특징</strong>: 웹 대시보드에서 마우스 호버로 특정 연도/월의 정확한 환자 수를 실시간 확인<br>
+                    • <strong>상호작용</strong>: 동적 줌(확대/축소), 화면 이동(팬), 툴팁 안내, 범례 클릭 시 특정 감염병 On/Off 토글<br>
+                    • <strong>수업 활용</strong>: 학급 웹 대시보드 발표, 학생 실시간 데이터 탐구 실습에 가장 추천!
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with tab_s:
+            st.markdown("""
+            <div style="background:rgba(247,127,0,0.08); border-left:4px solid #f77f00; border-radius:8px; padding:12px 16px; margin-bottom:10px;">
+                <div style="font-size:1.02rem; font-weight:700; color:#f77f00; margin-bottom:6px;">🎨 Seaborn: 미려한 색상 팔레트와 정밀 통계 분석</div>
+                <div style="font-size:0.86rem; color:#f1f5f9; line-height:1.65;">
+                    • <strong>주요 특징</strong>: 히스토그램, 박스플롯, 히트맵 등 통계 분포를 세련된 색채로 자동 표현<br>
+                    • <strong>상호작용</strong>: 정적 이미지 (고화질 통계 시각화)<br>
+                    • <strong>수업 활용</strong>: 연령대별 다변량 역학 상관관계 분석 및 통계적 데이터 분포 탐색에 적합!
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with tab_m:
+            st.markdown("""
+            <div style="background:rgba(16,185,129,0.08); border-left:4px solid #10b981; border-radius:8px; padding:12px 16px; margin-bottom:10px;">
+                <div style="font-size:1.02rem; font-weight:700; color:#10b981; margin-bottom:6px;">📉 Matplotlib: 파이썬 정통 표준 및 픽셀 단위 정밀 제어</div>
+                <div style="font-size:0.86rem; color:#f1f5f9; line-height:1.65;">
+                    • <strong>주요 특징</strong>: 픽셀 단위 축, 눈금, 폰트, 다중 축(Dual-axis), 레이아웃의 완전한 제어 가능<br>
+                    • <strong>상호작용</strong>: 정적 이미지 (출판 및 논문 표준 포맷)<br>
+                    • <strong>수업 활용</strong>: 학술 보고서 제출, 인쇄용 연구 포스터, 이중 축 정밀 그래프 제작에 최적!
+                </div>
+            </div>
+            """, unsafe_allow_html=True)
+
+        with tab_tbl:
+            st.markdown("""
+            <div style="background:#1e293b; border:1px solid #334155; border-radius:8px; overflow:hidden; margin-bottom:10px;" class="notranslate" translate="no">
+                <table style="width:100%; border-collapse:collapse; text-align:left; font-size:0.80rem; color:#f8fafc;">
+                    <thead>
+                        <tr style="background:#0f172a; border-bottom:1px solid #38bdf8;">
+                            <th style="padding:8px 4px; width:68px; min-width:68px; text-align:center; vertical-align:middle; color:#38bdf8; font-weight:700; line-height:1.35;">비교<br>항목</th>
+                            <th style="padding:8px 10px; width:34%; color:#38bdf8; font-weight:700; text-align:center;">⚡ Plotly</th>
+                            <th style="padding:8px 10px; width:29%; color:#f77f00; font-weight:700; text-align:center;">🎨 Seaborn</th>
+                            <th style="padding:8px 10px; width:29%; color:#10b981; font-weight:700; text-align:center;">📉 Matplotlib</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr style="border-bottom:1px solid #334155;">
+                            <td style="padding:8px 4px; width:68px; min-width:68px; font-weight:700; color:#38bdf8; text-align:center; vertical-align:middle; background:rgba(15,23,42,0.45); line-height:1.35;">주요<br>특징</td>
+                            <td style="padding:6px 8px; line-height:1.45; white-space:nowrap;">마우스 호버 및 인터랙티브 탐색 (웹 최적화)</td>
+                            <td style="padding:6px 8px; line-height:1.45;">통계 분포 및 고급 색상 팔레트 자동 지원</td>
+                            <td style="padding:6px 8px; line-height:1.45;">전통적 표준 도표, 픽셀 단위 정밀 제어</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #334155;">
+                            <td style="padding:8px 4px; width:68px; min-width:68px; font-weight:700; color:#38bdf8; text-align:center; vertical-align:middle; background:rgba(15,23,42,0.45); line-height:1.35;">상호<br>작용</td>
+                            <td style="padding:6px 8px; color:#38bdf8; font-weight:600; white-space:nowrap;">동적 인터랙티브 (줌, 툴팁, 토글)</td>
+                            <td style="padding:6px 8px;">정적 이미지 (Static)</td>
+                            <td style="padding:6px 8px;">정적 이미지 (Static)</td>
+                        </tr>
+                        <tr style="border-bottom:1px solid #334155;">
+                            <td style="padding:8px 4px; width:68px; min-width:68px; font-weight:700; color:#38bdf8; text-align:center; vertical-align:middle; background:rgba(15,23,42,0.45); line-height:1.35;">주요<br>장점</td>
+                            <td style="padding:6px 8px; line-height:1.45; white-space:nowrap;">마우스만으로 정확한 환자 수 실시간 확인</td>
+                            <td style="padding:6px 8px; line-height:1.45;">적은 코드로 미려한 통계 분포·회귀선 구현</td>
+                            <td style="padding:6px 8px; line-height:1.45;">축·눈금·폰트 완전 제어, 이중축 구현</td>
+                        </tr>
+                        <tr>
+                            <td style="padding:8px 4px; width:68px; min-width:68px; font-weight:700; color:#38bdf8; text-align:center; vertical-align:middle; background:rgba(15,23,42,0.45); line-height:1.35;">수업<br>추천</td>
+                            <td style="padding:6px 8px; line-height:1.45; white-space:nowrap;">학급 웹 발표, 실시간 데이터 탐구</td>
+                            <td style="padding:6px 8px; line-height:1.45;">역학 상관관계, 연령대별 다변량 분석</td>
+                            <td style="padding:6px 8px; line-height:1.45;">학술 보고서 제출, 인쇄용 연구 포스터</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            """, unsafe_allow_html=True)
+
+    # [디지털 학습지 STEP 2] 학생 직접 기록 활동란
+    st.write("")
+    st.markdown("##### 📝 [2단계 탐구 활동지] 나의 시각화 도구 비교 관찰 기록장")
+
+    st.caption("동일한 감염병 데이터라도 시각화 도구(Plotly 인터랙티브 vs Seaborn 통계 분포 vs Matplotlib 정통 도표)나 차트 종류(꺾은선 vs 막대 vs 도넛)에 따른 특징과 차이를 한 줄로 기록해 보세요.")
+
+    memo2_col1, memo2_col2 = st.columns([3.6, 1.5])
+    with memo2_col1:
+        s2_input = st.text_area(
+            "2단계 기록 내용",
+            value=st.session_state.get("wb_step2_note", ""),
+            placeholder="예시: Plotly는 마우스 호버로 특정 연도/월의 급증 시점을 정확히 짚어낼 수 있어 교내 발표에 유리했고, Matplotlib은 이중축과 로그스케일로 환자 수 격차가 큰 질환을 객관적으로 비교하기 좋았음.",
+            label_visibility="collapsed",
+            key="area_step2_memo",
+            height=70
+        )
+    with memo2_col2:
+        st.write("")
+        if st.button("💾 2단계 저장 & 수행평가 연동", use_container_width=True, type="primary", key="btn_save_step2"):
+            st.session_state["wb_step2_note"] = s2_input
+            st.toast("✅ 2단계 기록이 저장되었으며 수행평가에 자동 연동되었습니다!")
+            st.success("연동 완료! 🟢")
+            st.rerun()
 
 
 # ----------------------------------------------------
-# [메뉴 3] 지역/감염병 비교 심층 탐구
+# [메뉴 3] STEP 3. 전국 지역 & 역학 비교 탐험실
 # ----------------------------------------------------
-elif menu == "3. 지역/감염병 비교 심층 탐구":
-    st.subheader("🔍 국내 대도시 및 해외 주요국 역학 비교 분석")
-
-    # 1) 원 도표 통계 산출 기준 및 데이터 근거 명시 카드
-    st.markdown("""
-    <div style="background: rgba(30, 41, 59, 0.7); border: 1px solid rgba(56, 189, 248, 0.3); border-left: 4px solid #38bdf8; border-radius: 8px; padding: 12px 18px; margin-bottom: 14px; line-height: 1.65;">
-        <div style="font-size: 0.95rem; font-weight: 700; color: #38bdf8; margin-bottom: 5px; display: flex; align-items: center; gap: 6px;">
-            <span>📊</span> <span>원 도표(도넛 차트) 통계 산출 기준 및 데이터 산출 근거</span>
-        </div>
-        <div style="font-size: 0.86rem; color: #e2e8f0;">
-            본 화면의 원 도표는 <strong>질병관리청 법정감염병 1급~4급(국내 발생 관리 63종 전체 질환)</strong>의 발생 데이터를 기반으로 분석한 결과입니다.<br>
-            • <strong style="color: #67e8f9;">🗓️ 집계 기간(연도) 기준</strong>: <strong>전체 7개년 누적(2019~2025년)</strong> 또는 <strong>선택한 개별 연도</strong>의 전수 신고 환자 합산<br>
-            • <strong style="color: #86efac;">🦠 대상 감염병 기준</strong>: 특정 단일 질환에 국한되지 않고, <strong>대한민국 발생 1~4급 법정감염병 63종 전체 질환</strong>을 종합 합산<br>
-            • <strong style="color: #fde047;">📍 산출 방식</strong>: 집계 대상 총 환자 수 대비 <strong>각 지역별 점유율(%)</strong> 및 <strong>주요 전파 경로별 비중(%)</strong>
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
+elif menu.startswith("3.") or menu == "3. 지역/감염병 비교 심층 탐구":
+    st.subheader("🗺️ 3단계: 전국 시도별 감염병 발생 비교")
+    st.info("💡 **오늘의 미션**: 우리 지역(서울/경기 등)과 다른 지역의 발생 차이를 비교하고, 호흡기 vs 수인성 전파 경로의 비중을 탐구해 보세요.")
 
     # 2) 분석 대상 기간(연도) 선택 필터 & 요약 메트릭
-    f_col1, f_col2 = st.columns([1.2, 2.3])
-    with f_col1:
-        year_list = sorted([int(y) for y in working_df["연도"].dropna().unique()], reverse=True) if "연도" in working_df.columns else []
-        year_opts = ["전체 기간 (2019~2025년 7개년 누적)"] + [f"{y}년 연간 집계" for y in year_list]
-        selected_period = st.selectbox("📅 분석 대상 기간 선택 (연도 필터)", year_opts, index=0)
+    # 2) 분석 대상 기간(연도) 선택 필터 (사용자 요청: 기간 선택 전에는 차트를 숨겨 복잡도 해소)
+    year_list = sorted([int(y) for y in working_df["연도"].dropna().unique()], reverse=True) if "연도" in working_df.columns else []
+    year_opts = ["👉 [분석 대상 기간(연도)을 선택하세요]"] + ["전체 기간 (2019~2025년 7개년 누적)"] + [f"{y}년 연간 집계" for y in year_list]
+    
+    selected_period = st.selectbox("📅 분석 대상 기간 선택 (연도 필터)", year_opts, index=0, key="m3_period_select")
 
-    if selected_period.startswith("전체 기간"):
-        m3_df = working_df
-        period_label = "2019~2025년 (7개년 전 기간 누적)"
+    if selected_period == "👉 [분석 대상 기간(연도)을 선택하세요]":
+        st.info("👆 **[기간 선택 대기 중]**: 위 드롭다운에서 분석할 대상 기간(특정 연도 또는 7개년 누적)을 선택해 주세요. 선택하시면 국내외 지역별 점유율과 전파 경로 원그래프 및 상세 통계가 화면에 펼쳐집니다! 🗺️")
     else:
-        chosen_y = int(selected_period.split("년")[0])
-        m3_df = working_df[working_df["연도"] == chosen_y]
-        period_label = f"{chosen_y}년 연간"
+        if selected_period.startswith("전체 기간"):
+            m3_df = working_df
+            period_label = "2019~2025년 (7개년 전 기간 누적)"
+        else:
+            chosen_y = int(selected_period.split("년")[0])
+            m3_df = working_df[working_df["연도"] == chosen_y]
+            period_label = f"{chosen_y}년 연간"
 
-    total_m3_cases = m3_df["신규환자수"].sum() if "신규환자수" in m3_df.columns else 0
+        total_m3_cases = m3_df["신규환자수"].sum() if "신규환자수" in m3_df.columns else 0
 
-    with f_col2:
         st.markdown(f"""
         <div style="background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 10px 14px; margin-top: 4px; display: flex; justify-content: space-around; align-items: center; text-align: center;">
             <div>
@@ -4903,187 +5096,196 @@ elif menu == "3. 지역/감염병 비교 심층 탐구":
         </div>
         """, unsafe_allow_html=True)
 
-    st.write("")
-    c_a, c_b = st.columns(2)
-    with c_a:
-        st.markdown(f'''
-        <div style="font-size: clamp(0.95rem, 1.1vw, 1.1rem); font-weight: 700; color: #f8fafc; margin-bottom: 2px;">
-            🗺️ 국내외 주요 지역별 환자 점유율
-        </div>
-        <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px;">
-            📌 산출 기준: <span style="color:#38bdf8; font-weight:600;">[{period_label}]</span> × <span style="color:#10b981; font-weight:600;">[법정감염병 63종 전체 합산]</span>
-        </div>
-        ''', unsafe_allow_html=True)
-        reg_pie_df = m3_df.groupby("지역")["신규환자수"].sum().reset_index().sort_values("신규환자수", ascending=False)
-        active_reg_pie = reg_pie_df[reg_pie_df["신규환자수"] > 0]
-        if active_reg_pie.empty or active_reg_pie["신규환자수"].sum() <= 0:
-            st.info("ℹ️ 지역별 누적 환자 데이터가 없습니다 (0명).")
-        else:
-            # 상위 6대 지역 + 기타로 정돈하여 도넛 차트 가독성 극대화
-            top_n = 6
-            if len(active_reg_pie) > top_n:
-                top_part = active_reg_pie.iloc[:top_n].copy()
-                other_val = active_reg_pie.iloc[top_n:]["신규환자수"].sum()
-                other_df = pd.DataFrame([{"지역": f"기타 {len(active_reg_pie) - top_n}개 지역", "신규환자수": other_val}])
-                plot_reg_df = pd.concat([top_part, other_df], ignore_index=True)
+        st.write("")
+        c_a, c_b = st.columns(2)
+        with c_a:
+            st.markdown(f'''
+            <div style="font-size: clamp(0.95rem, 1.1vw, 1.1rem); font-weight: 700; color: #f8fafc; margin-bottom: 2px;">
+                🗺️ 국내외 주요 지역별 환자 점유율
+            </div>
+            <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px;">
+                📌 산출 기준: <span style="color:#38bdf8; font-weight:600;">[{period_label}]</span> × <span style="color:#10b981; font-weight:600;">[법정감염병 63종 전체 합산]</span>
+            </div>
+            ''', unsafe_allow_html=True)
+            reg_pie_df = m3_df.groupby("지역")["신규환자수"].sum().reset_index().sort_values("신규환자수", ascending=False)
+            active_reg_pie = reg_pie_df[reg_pie_df["신규환자수"] > 0]
+            if active_reg_pie.empty or active_reg_pie["신규환자수"].sum() <= 0:
+                st.info("ℹ️ 지역별 누적 환자 데이터가 없습니다 (0명).")
             else:
-                plot_reg_df = active_reg_pie
+                top_n = 6
+                if len(active_reg_pie) > top_n:
+                    top_part = active_reg_pie.iloc[:top_n].copy()
+                    other_val = active_reg_pie.iloc[top_n:]["신규환자수"].sum()
+                    other_df = pd.DataFrame([{"지역": f"기타 {len(active_reg_pie) - top_n}개 지역", "신규환자수": other_val}])
+                    plot_reg_df = pd.concat([top_part, other_df], ignore_index=True)
+                else:
+                    plot_reg_df = active_reg_pie
 
-            fig_p1 = px.pie(
-                plot_reg_df,
-                values="신규환자수",
-                names="지역",
-                hole=0.45,
-                template="plotly_dark",
-                color_discrete_sequence=px.colors.qualitative.Plotly
-            )
-            fig_p1.update_traces(
-                textposition='inside',
-                textinfo='percent+label',
-                insidetextorientation='horizontal',
-                textfont=dict(size=12, color='#ffffff', family='Pretendard, sans-serif'),
-                marker=dict(line=dict(color='#0f172a', width=2))
-            )
-            fig_p1.update_layout(
-                showlegend=False,
-                margin=dict(l=10, r=10, t=15, b=15),
-                height=300
-            )
-            st.plotly_chart(fig_p1, use_container_width=True, key="plotly_menu3_region_pie")
+                fig_p1 = px.pie(
+                    plot_reg_df,
+                    values="신규환자수",
+                    names="지역",
+                    hole=0.45,
+                    template="plotly_dark",
+                    color_discrete_sequence=px.colors.qualitative.Plotly
+                )
+                fig_p1.update_traces(
+                    textposition='inside',
+                    textinfo='percent+label',
+                    insidetextorientation='horizontal',
+                    textfont=dict(size=12, color='#ffffff', family='Pretendard, sans-serif'),
+                    marker=dict(line=dict(color='#0f172a', width=2))
+                )
+                fig_p1.update_layout(
+                    showlegend=False,
+                    margin=dict(l=10, r=10, t=15, b=15),
+                    height=300
+                )
+                st.plotly_chart(fig_p1, use_container_width=True, key="plotly_menu3_region_pie")
 
-            # 상위 지역 요약 바
-            tot_reg_sum = active_reg_pie["신규환자수"].sum()
-            st.markdown('<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">', unsafe_allow_html=True)
-            top4_list = active_reg_pie.head(4).to_dict("records")
-            for r_item in top4_list:
-                pct = (r_item["신규환자수"] / tot_reg_sum) * 100 if tot_reg_sum > 0 else 0
-                st.markdown(f"""
-                <div style="flex:1; min-width:110px; background:#1e293b; border:1px solid #334155; border-radius:6px; padding:6px 10px; text-align:center;">
-                    <div style="font-size:0.78rem; color:#94a3b8; font-weight:600;">{r_item['지역']}</div>
-                    <div style="font-size:0.95rem; color:#38bdf8; font-weight:800;">{pct:.1f}%</div>
-                    <div style="font-size:0.75rem; color:#cbd5e1;">{r_item['신규환자수']:,}명</div>
-                </div>
-                """, unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-
-    with c_b:
-        st.markdown(f'''
-        <div style="font-size: clamp(0.95rem, 1.1vw, 1.1rem); font-weight: 700; color: #f8fafc; margin-bottom: 2px;">
-            🧬 전파 경로별 환자 비중 (공기, 비말, 접촉 등)
-        </div>
-        <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px;">
-            📌 산출 기준: <span style="color:#38bdf8; font-weight:600;">[{period_label}]</span> × <span style="color:#10b981; font-weight:600;">[법정감염병 63종 전체 합산]</span>
-        </div>
-        ''', unsafe_allow_html=True)
-        path_pie_df = m3_df.groupby("주요전파경로")["신규환자수"].sum().reset_index().sort_values("신규환자수", ascending=False)
-        active_path_pie = path_pie_df[path_pie_df["신규환자수"] > 0]
-        if active_path_pie.empty or active_path_pie["신규환자수"].sum() <= 0:
-            st.info("ℹ️ 전파 경로별 환자 데이터가 없습니다 (0명).")
-        else:
-            # 보건의료 테마 전파경로 색상 팔레트
-            route_colors = {
-                "호흡기 비말/공기 전파": "#38bdf8",     # 하늘색 (공기/호흡기)
-                "오염식음료/분변-구강": "#f97316",     # 주황색 (소화기계)
-                "접촉/피부/환경": "#10b981",          # 에메랄드그린 (접촉)
-                "혈액/체액/성접촉": "#ec4899",        # 핑크/로즈 (혈액/체액)
-                "모기/진드기/설치류 매개": "#a855f7"    # 보라색 (매개체)
-            }
-
-            fig_p2 = px.pie(
-                active_path_pie,
-                values="신규환자수",
-                names="주요전파경로",
-                hole=0.48,
-                template="plotly_dark",
-                color="주요전파경로",
-                color_discrete_map=route_colors
-            )
-            # 숫자가 세로로 길게 늘어지거나 작아지는 문제를 완전히 해결:
-            # 도넛 내부(inside)에 큼직한 퍼센트와 라벨 배치, 가로 텍스트 지향
-            fig_p2.update_traces(
-                textposition='inside',
-                textinfo='percent+label',
-                insidetextorientation='horizontal',
-                textfont=dict(size=13, color='#ffffff', family='Pretendard, sans-serif'),
-                marker=dict(line=dict(color='#0f172a', width=2))
-            )
-            fig_p2.update_layout(
-                showlegend=False,
-                margin=dict(l=10, r=10, t=15, b=15),
-                height=300
-            )
-            st.plotly_chart(fig_p2, use_container_width=True, key="plotly_menu3_route_pie")
-
-            # 전파 경로별 가독성 높은 비중 카드 (숫자와 대표 질환을 명쾌하게 배치)
-            tot_path_sum = active_path_pie["신규환자수"].sum()
-            rep_diseases_by_route = {
-                "호흡기 비말/공기 전파": ("🫁", "코로나19, 독감, 수두, 백일해, 홍역, 결핵"),
-                "오염식음료/분변-구강": ("🍽️", "노로바이러스, A형간염, 살모넬라, 장티푸스"),
-                "접촉/피부/환경": ("🤝", "수족구병, MRSA, 옴, 요충"),
-                "혈액/체액/성접촉": ("💉", "B/C형간염, AIDS, 매독, 엠폭스"),
-                "모기/진드기/설치류 매개": ("🦟", "쯔쯔가무시증, 말라리아, SFTS, 일본뇌염")
-            }
-            st.markdown('<div style="display:flex; flex-direction:column; gap:5px; margin-top:4px;">', unsafe_allow_html=True)
-            for _, row in active_path_pie.iterrows():
-                r_name = row["주요전파경로"]
-                cnt_val = row["신규환자수"]
-                pct_val = (cnt_val / tot_path_sum * 100) if tot_path_sum > 0 else 0
-                icon, eg_dis = rep_diseases_by_route.get(r_name, ("🔬", "기타 법정감염병"))
-                c_hex = route_colors.get(r_name, "#38bdf8")
-                st.markdown(f"""
-                <div style="background:#1e293b; border-left:4px solid {c_hex}; border-radius:6px; padding:6px 12px; display:flex; justify-content:space-between; align-items:center;">
-                    <div style="min-width:0;">
-                        <span style="font-weight:700; color:#f8fafc; font-size:0.86rem;">{icon} {r_name}</span>
-                        <span style="font-size:0.75rem; color:#94a3b8; margin-left:8px;">({eg_dis})</span>
+                tot_reg_sum = active_reg_pie["신규환자수"].sum()
+                st.markdown('<div style="display:flex; flex-wrap:wrap; gap:6px; margin-top:4px;">', unsafe_allow_html=True)
+                top4_list = active_reg_pie.head(4).to_dict("records")
+                for r_item in top4_list:
+                    pct = (r_item["신규환자수"] / tot_reg_sum) * 100 if tot_reg_sum > 0 else 0
+                    st.markdown(f"""
+                    <div style="flex:1; min-width:110px; background:#1e293b; border:1px solid #334155; border-radius:6px; padding:6px 10px; text-align:center;">
+                        <div style="font-size:0.78rem; color:#94a3b8; font-weight:600;">{r_item['지역']}</div>
+                        <div style="font-size:0.95rem; color:#38bdf8; font-weight:800;">{pct:.1f}%</div>
+                        <div style="font-size:0.75rem; color:#cbd5e1;">{r_item['신규환자수']:,}명</div>
                     </div>
-                    <div style="text-align:right; white-space:nowrap; margin-left:10px;">
-                        <span style="font-size:0.98rem; font-weight:800; color:{c_hex};">{pct_val:.1f}%</span>
-                        <span style="font-size:0.75rem; color:#cbd5e1; margin-left:6px;">({cnt_val:,}명)</span>
-                    </div>
-                </div>
-                """, unsafe_allow_html=True)
-            st.markdown('</div>', unsafe_allow_html=True)
+                    """, unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
 
-    st.divider()
-    st.markdown("##### 📥 전체 감염병 데이터 테이블 및 CSV 다운로드")
-    table_display_cols = [
-        "연도", "월", "법정감염병군", "감염병명", "지역", "신규환자수",
-        "0-9세", "10-19세", "20-49세", "50-64세", "65세 이상",
-        "주요전파경로", "예방접종 또는 격리여부"
-    ]
-    show_cols = [c for c in table_display_cols if c in working_df.columns]
-    st.dataframe(working_df[show_cols], use_container_width=True)
-    st.download_button(
-        "📥 2019~2025 전체 감염병 데이터 CSV 다운로드",
-        data=working_df.to_csv(index=False).encode("utf-8-sig"),
-        file_name="보건수업_종합_감염병통계_2019_2025.csv",
-        mime="text/csv"
-    )
+        with c_b:
+            st.markdown(f'''
+            <div style="font-size: clamp(0.95rem, 1.1vw, 1.1rem); font-weight: 700; color: #f8fafc; margin-bottom: 2px;">
+                🧬 전파 경로별 환자 비중 (공기, 비말, 접촉 등)
+            </div>
+            <div style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 8px;">
+                📌 산출 기준: <span style="color:#38bdf8; font-weight:600;">[{period_label}]</span> × <span style="color:#10b981; font-weight:600;">[법정감염병 63종 전체 합산]</span>
+            </div>
+            ''', unsafe_allow_html=True)
+            path_pie_df = m3_df.groupby("주요전파경로")["신규환자수"].sum().reset_index().sort_values("신규환자수", ascending=False)
+            active_path_pie = path_pie_df[path_pie_df["신규환자수"] > 0]
+            if active_path_pie.empty or active_path_pie["신규환자수"].sum() <= 0:
+                st.info("ℹ️ 전파 경로별 환자 데이터가 없습니다 (0명).")
+            else:
+                route_colors = {
+                    "호흡기 비말/공기 전파": "#38bdf8",
+                    "오염식음료/분변-구강": "#f97316",
+                    "접촉/피부/환경": "#10b981",
+                    "혈액/체액/성접촉": "#ec4899",
+                    "모기/진드기/설치류 매개": "#a855f7"
+                }
+
+                fig_p2 = px.pie(
+                    active_path_pie,
+                    values="신규환자수",
+                    names="주요전파경로",
+                    hole=0.48,
+                    template="plotly_dark",
+                    color="주요전파경로",
+                    color_discrete_map=route_colors
+                )
+                fig_p2.update_traces(
+                    textposition='inside',
+                    textinfo='percent+label',
+                    insidetextorientation='horizontal',
+                    textfont=dict(size=13, color='#ffffff', family='Pretendard, sans-serif'),
+                    marker=dict(line=dict(color='#0f172a', width=2))
+                )
+                fig_p2.update_layout(
+                    showlegend=False,
+                    margin=dict(l=10, r=10, t=15, b=15),
+                    height=300
+                )
+                st.plotly_chart(fig_p2, use_container_width=True, key="plotly_menu3_route_pie")
+
+                tot_path_sum = active_path_pie["신규환자수"].sum()
+                rep_diseases_by_route = {
+                    "호흡기 비말/공기 전파": ("🫁", "코로나19, 독감, 수두, 백일해, 홍역, 결핵"),
+                    "오염식음료/분변-구강": ("🍽️", "노로바이러스, A형간염, 살모넬라, 장티푸스"),
+                    "접촉/피부/환경": ("🤝", "수족구병, MRSA, 옴, 요충"),
+                    "혈액/체액/성접촉": ("💉", "B/C형간염, AIDS, 매독, 엠폭스"),
+                    "모기/진드기/설치류 매개": ("🦟", "쯔쯔가무시증, 말라리아, SFTS, 일본뇌염")
+                }
+                st.markdown('<div style="display:flex; flex-direction:column; gap:5px; margin-top:4px;">', unsafe_allow_html=True)
+                for _, row in active_path_pie.iterrows():
+                    r_name = row["주요전파경로"]
+                    cnt_val = row["신규환자수"]
+                    pct_val = (cnt_val / tot_path_sum * 100) if tot_path_sum > 0 else 0
+                    icon, eg_dis = rep_diseases_by_route.get(r_name, ("🔬", "기타 법정감염병"))
+                    c_hex = route_colors.get(r_name, "#38bdf8")
+                    st.markdown(f"""
+                    <div style="background:#1e293b; border-left:4px solid {c_hex}; border-radius:6px; padding:7px 12px; display:flex; justify-content:space-between; align-items:center;">
+                        <div style="min-width:0;">
+                            <div style="font-weight:700; color:#f8fafc; font-size:0.86rem; line-height:1.3;">{icon} {r_name}</div>
+                            <div style="font-size:0.75rem; color:#94a3b8; margin-top:3px; line-height:1.3;">({eg_dis})</div>
+                        </div>
+                        <div style="text-align:right; white-space:nowrap; margin-left:10px;">
+                            <span style="font-size:0.98rem; font-weight:800; color:{c_hex};">{pct_val:.1f}%</span>
+                            <span style="font-size:0.75rem; color:#cbd5e1; margin-left:6px;">({cnt_val:,}명)</span>
+                        </div>
+                    </div>
+                    """, unsafe_allow_html=True)
+                st.markdown('</div>', unsafe_allow_html=True)
+
+        st.divider()
+        st.markdown("##### 📥 전체 감염병 데이터 테이블 및 CSV 다운로드")
+        table_display_cols = [
+            "연도", "월", "법정감염병군", "감염병명", "지역", "신규환자수",
+            "0-9세", "10-19세", "20-49세", "50-64세", "65세 이상",
+            "주요전파경로", "예방접종 또는 격리여부"
+        ]
+        show_cols = [c for c in table_display_cols if c in working_df.columns]
+        st.dataframe(working_df[show_cols], use_container_width=True)
+        st.download_button(
+            "📥 2019~2025 전체 감염병 데이터 CSV 다운로드",
+            data=working_df.to_csv(index=False).encode("utf-8-sig"),
+            file_name="보건수업_종합_감염병통계_2019_2025.csv",
+            mime="text/csv"
+        )
+
+    # [디지털 학습지 STEP 3] 학생 직접 기록 활동란
+    st.write("")
+    st.markdown("##### 📝 [3단계 탐구 활동지] 지역 역학 및 전파 경로 분석 기록장")
+
+    st.caption("전국 17개 시도별 환자 분포와 전파 경로(호흡기 비말 vs 수인성·식품 vs 곤충 매개) 도넛 차트를 관찰하고, 수도권과 타 시도의 격차나 감염 경로별 역학적 특징을 한 줄로 기록해 보세요.")
+
+    memo3_col1, memo3_col2 = st.columns([3.6, 1.5])
+    with memo3_col1:
+        s3_input = st.text_area(
+            "3단계 기록 내용",
+            value=st.session_state.get("wb_step3_note", ""),
+            placeholder="예시: 인구 밀집도가 높은 서울·경기에 호흡기 비말 감염병(코로나19, 인플루엔자)이 집중 발생한 반면, 야외 활동과 매개 곤충이 많은 농촌 지역에서는 쯔쯔가무시증 비중이 두드러짐을 확인하였음.",
+            label_visibility="collapsed",
+            key="area_step3_memo",
+            height=70
+        )
+    with memo3_col2:
+        st.write("")
+        if st.button("💾 3단계 저장 & 수행평가 연동", use_container_width=True, type="primary", key="btn_save_step3"):
+            st.session_state["wb_step3_note"] = s3_input
+            st.toast("✅ 3단계 기록이 저장되었으며 수행평가에 자동 연동되었습니다!")
+            st.success("연동 완료! 🟢")
+            st.rerun()
 
 
 # ----------------------------------------------------
-# [메뉴 4] 학교 집단감염 예방 시뮬레이터
+# [메뉴 4] STEP 4. 교내 집단감염 시뮬레이터 (내가 학교 보건교사라면?)
 # ----------------------------------------------------
-elif menu == "4. 학교 집단감염 예방 시뮬레이터":
-    st.subheader("🧪 [참여형 실습] 교실 내 감염 전파 위험도 조작 시뮬레이터")
-    st.markdown("예방 수칙 실천율을 조정하여 학교 내 유효 재생산지수(Rt)와 유행 차단 효과를 직접 탐구해 보세요.")
+elif menu.startswith("4.") or menu == "4. 학교 집단감염 예방 시뮬레이터":
+    st.subheader("🧪 4단계: 교내 집단감염 예방 시뮬레이터")
+    st.info("💡 **오늘의 미션**: 내가 보건교사가 되어 환기, 마스크, 손 씻기 수칙을 조절해 유효 재생산지수(Rt)를 1.0 미만  \n(초록색)으로 낮춰보세요!")
 
-    # 유효 재생산지수(Rt) 알기 쉬운 교육 설명 카드
-    st.markdown("""
-    <div style="background:#1e293b; border:1px solid #334155; border-left:4px solid #38bdf8; border-radius:8px; padding:12px 16px; margin-bottom:12px; font-size:0.88rem; color:#e2e8f0; line-height:1.65;">
-        📌 <strong>유효 재생산지수(Rt, Effective Reproduction Number)란?</strong><br>
-        방역 조치(마스크 착용, 교실 환기, 손 씻기, 격리)나 면역(백신)이 형성된 집단에서, <strong>한 명의 감염자가 평균적으로 전파시킬 수 있는 2차 감염자의 수</strong>를 의미합니다.<br>
-        • <span style="color:#10b981; font-weight:700;">🟢 Rt &lt; 1.0 (감염 전파 차단)</span>: 2차 감염이 줄어들어 교내 유행이 자연 소멸됩니다. (학교 방역의 핵심 목표)<br>
-        • <span style="color:#f59e0b; font-weight:700;">🟡 Rt = 1.0 (정체 유지)</span>: 1명이 1명에게만 전파하여 환자 수가 지속되는 상태입니다.<br>
-        • <span style="color:#ef4444; font-weight:700;">🔴 Rt &gt; 1.0 (집단 유행 확산)</span>: 1명이 1명 이상을 감염시켜 교실과 학교 전체로 <strong>대규모 집단 유행</strong>이 번집니다.
-    </div>
-    """, unsafe_allow_html=True)
-
-    st.markdown("""
-    <div style="background:#0f172a; border-left:4px solid #64748b; padding:10px 14px; border-radius:6px; margin-bottom:14px; font-size:0.85rem; color:#cbd5e1; line-height:1.6;">
-        💡 <strong>교육용 시뮬레이터 수리 모형 안내</strong>: 본 시뮬레이터는 질병별 기초감염재생산수(R0)와 학교 방역 수칙(맞통풍 환기, KF94 마스크 착용률, 올바른 손 씻기 실천율, 유증상자 보건실 조기 격리)에 따른 유효 재생산지수(Rt)의 이론적 감폭 효과를 탐구하는 <strong>수업 실습용 교육 모형</strong>입니다. 실제 교실의 유행 예측이나 환자 수 감소를 직접 검증한 역학 실측치는 아니며, 질환별 예방접종<br>(백신) 완료율과 교실 용적, 접촉 양상 등 모형 외 환경 변수에 따라 실제 전파 양상은 달라질 수 있습니다.
-    </div>
-    """, unsafe_allow_html=True)
+    # 2. 수리 모형 상세 해설 아코디언 수납
+    with st.expander("📐 [이론 길라잡이] 감염병 수리 모형(기초 R0 vs 유효 Rt) 계산 원리 보기"):
+        st.markdown("""
+        - **기초감염재생산수(R0)**: 방역 조치가 없는 상태에서 감염자 1명이 전파시키는 평균 감염자 수 (홍역 15.0, 백일해 12.0, 수두 10.0 등)
+        - **유효재생산지수(Rt)**: 맞통풍 환기, KF94 마스크 착용, 올바른 손 씻기, 조기 격리 등 방역 중재 조치가 적용되었을 때의 실제 전파 지수
+        - **교내 목표**: Rt를 **1.0 미만**으로 감폭시켜 교내 2차 전파 고리를 끊어내는 것!
+        """)
 
     s_col1, s_col2 = st.columns([1, 1.2])
     with s_col1:
@@ -5139,159 +5341,204 @@ elif menu == "4. 학교 집단감염 예방 시뮬레이터":
         else:
             st.error(f"🚨 **집단 유행 위험 단계 (Rt = {rt_res} > 2.0)**: 교실 내 전파 위험이 매우 높습니다!")
 
+    # [디지털 학습지 STEP 4] 학생 직접 기록 활동란
+    st.write("")
+    st.markdown("##### 📝 [4단계 탐구 활동지] 학교 보건교사 교내 방역 처방전")
+
+    st.caption("선택한 질환의 교내 유행을 Rt < 1.0으로 억제하기 위해 내가 조작한 최적의 방역 조합(환기 횟수, 마스크 착용률, 손 씻기, 조기 격리)과 결정 근거를 한 줄로 기록해 보세요.")
+
+    memo4_col1, memo4_col2 = st.columns([3.6, 1.5])
+    with memo4_col1:
+        s4_input = st.text_area(
+            "4단계 기록 내용",
+            value=st.session_state.get("wb_step4_note", ""),
+            placeholder="예시: 전염력이 매우 높은 백일해(R0=12)의 경우, 마스크 80% 착용과 매 교시 2회 맞통풍 환기, 그리고 유증상자 즉시 보건실 격리를 병행했을 때 Rt가 0.84로 떨어져 교내 집단유행을 막을 수 있었음.",
+            label_visibility="collapsed",
+            key="area_step4_memo",
+            height=70
+        )
+    with memo4_col2:
+        st.write("")
+        if st.button("💾 4단계 저장 & 수행평가 연동", use_container_width=True, type="primary", key="btn_save_step4"):
+            st.session_state["wb_step4_note"] = s4_input
+            st.toast("✅ 4단계 기록이 저장되었으며 수행평가에 자동 연동되었습니다!")
+            st.success("연동 완료! 🟢")
+            st.rerun()
+
 
 # ----------------------------------------------------
-# [메뉴 5] AI 보건튜터(Q&A) - 질병 선택에 100% 동적 연동되는 맞춤형 실시간 응답
+# [메뉴 5] STEP 5. AI 보건 튜터 & 디지털 학습지 완성
 # ----------------------------------------------------
-elif menu in ["5. AI 보건 튜터(Q&A)", "5. AI_보건튜터(Q&A)", "5. AI 보건튜터(Q&A)"]:
-    tutor_icon_b64 = get_ai_tutor_icon_base64()
-    if tutor_icon_b64:
-        st.markdown(f"""
-        <div style="display:flex; align-items:center; gap:12px; margin-top:2px; margin-bottom:12px;">
-            <img src="data:image/png;base64,{tutor_icon_b64}" style="width:44px; height:44px; border-radius:10px; object-fit:cover; box-shadow:0 0 14px rgba(56,189,248,0.45); display:block;" alt="AI 보건튜터 마스코트">
-            <span style="font-size:1.45rem; font-weight:700; color:#f8fafc; letter-spacing:-0.01em;">AI 보건튜터(Q&A): 법정감염병 1급~4급 종합 탐구실</span>
-        </div>
-        """, unsafe_allow_html=True)
-    else:
-        st.markdown("""
-        <div style="display:flex; align-items:center; gap:10px; margin-top:2px; margin-bottom:12px;">
-            <span style="font-size:1.6rem;">🩺</span>
-            <span style="font-size:1.45rem; font-weight:700; color:#f8fafc;">AI 보건튜터(Q&A): 법정감염병 1급~4급 종합 탐구실</span>
-        </div>
-        """, unsafe_allow_html=True)
+elif menu.startswith("5.") or menu in ["5. AI 보건 튜터(Q&A)", "5. AI_보건튜터(Q&A)", "5. AI 보건튜터(Q&A)"]:
+    st.subheader("🩺 5단계: AI 보건 튜터 질의 & 학습지 최종 완성")
     st.markdown("""
-    법정감염병 급수 버튼 또는 드롭다운에서 질병을 선택하면, 해당 질병의 병원체, 전파 경로, 원인, 증상, 최근 추세, 예방법 및 관리 대책을 체계적으로 종합 분석합니다.
-    """)
-
-    # 1단계, 2단계 드롭다운 UI (발생 1급, 2급, 3급, 4급 법정감염병)
-    st.markdown("##### 🔍 [1단계] 탐구할 법정감염병 선택 【발생 1~4급 법정감염병 완비】")
-
-    tier_col, disease_col = st.columns(2)
-    with tier_col:
-        t_keys = list(TIER_DISEASE_MAP.keys())
-        default_tier_idx = 3 if len(t_keys) > 3 else 0  # 기본 제4급 감염병
-        selected_tier_name = st.selectbox("📌 1단계: 법정감염병 급수 선택 (1~4급 분리)", options=t_keys, index=default_tier_idx, key="tutor_tier_select")
-
-    with disease_col:
-        sub_diseases = TIER_DISEASE_MAP[selected_tier_name]
-        default_idx = 1 if ("제4급" in selected_tier_name and len(sub_diseases) > 1 and "인플루엔자" in sub_diseases) else 0
-        selected_disease_name = st.selectbox(f"🦠 2단계: 세부 감염병 선택 ({len(sub_diseases)}종)", options=sub_diseases, index=default_idx, key="tutor_disease_select")
-
-    dis_info = get_disease_info(selected_tier_name, selected_disease_name)
-
-    # 질병 변경 감지 시 대화창을 즉시 해당 질병 전용으로 실시간 갱신
-    if "tutor_current_disease" not in st.session_state or st.session_state["tutor_current_disease"] != selected_disease_name:
-        st.session_state["tutor_current_disease"] = selected_disease_name
-        st.session_state["chat_history"] = [
-            {
-                "role": "assistant",
-                "content": f"안녕하세요! 지금 선택하신 **{selected_disease_name}**({dis_info['tier']})에 대해 궁금한 점이나 역학적 의문이 있다면 질문해 주세요. 아래 추천 질문 버튼을 누르거나 직접 질문을 입력하시면 학교 보건실 관리 지침에 기반하여 실시간 맞춤 분석 답변을 제공합니다. 👩‍⚕️"
-            }
-        ]
-
-    # 실제 데이터셋에서 통계 연동
-    stat_df = working_df[working_df["감염병명"] == selected_disease_name]
-    if not stat_df.empty:
-        real_tot = stat_df["신규환자수"].sum()
-        real_youth = stat_df["10-19세"].sum() if "10-19세" in stat_df.columns else stat_df["청소년환자수"].sum()
-        youth_ratio = (real_youth / real_tot * 100) if real_tot > 0 else 0
-        real_cities = ", ".join(stat_df["지역"].unique()[:4])
-        data_stat_text = f"실제 데이터(2019~2025) 기준 총 {real_tot:,}명 발생, 청소년(10-19세) 환자 {real_youth:,}명(비중 {youth_ratio:.1f}%), 주요 발생지: {real_cities}"
-    else:
-        data_stat_text = dis_info["trend"]
-
-    # 종합 리포트 카드 렌더링
-    st.markdown(f"""
-    <div class="report-card">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-            <div class="report-title">📋 [{selected_disease_name}] 종합 역학 및 보건 관리 리포트</div>
-            <span class="badge-tier">{dis_info['tier']}</span>
-        </div>
-        <p><strong>1. 🦠 병원체 및 감염 원인:</strong><br>{dis_info['cause']} (병원체: <code>{dis_info['pathogen']}</code>)</p>
-        <p><strong>2. 🧬 전파 경로:</strong><br>{dis_info['route']}</p>
-        <p><strong>3. 🩺 주요 임상 증상 및 잠복기:</strong><br>{dis_info['symptoms']}</p>
-        <p><strong>4. 📈 최근 발생 추세 및 통계:</strong><br>{data_stat_text}</p>
-        <p><strong>5. 🛡️ 예방법 및 백신 접종:</strong><br>{dis_info['prevention']}</p>
-        <p><strong>6. 🏥 치료 및 학교 보건실 관리 대책:</strong><br>{dis_info['treatment']}</p>
+    <div style="background:rgba(56,189,248,0.08); border-left:4px solid #38bdf8; border-radius:8px; padding:10px 16px; margin-bottom:12px; font-size:0.90rem; color:#f8fafc; white-space:nowrap;">
+        💡 <strong>오늘의 미션</strong>: AI 보건 튜터에게 궁금한 감염병 질문을 하고, 오늘 작성한 나만의 디지털 활동지를 확인·제출해 보세요!
     </div>
     """, unsafe_allow_html=True)
 
-    # 추가 탐구 대화창 (전문 보건의료 문양 🩺, 💉, 🧬 적용)
-    st.divider()
-    c_head1, c_head2 = st.columns([3, 1])
-    with c_head1:
-        st.markdown(f"##### 💬 [2단계] AI 보건튜터에게 질문하기 【현재 대상: **{selected_disease_name}**】")
-        st.caption(f"선택하신 '{selected_disease_name}'에 대해 더 깊이 알고 싶은 점을 아래 버튼 또는 입력창으로 질문해 보세요.")
-    with c_head2:
-        if st.button("🔄 대화 내용 초기화", use_container_width=True):
+    # 1단계, 2단계 드롭다운 UI (1단계 급수, 2단계 세부 감염병 선택 후에만 종합 리포트 및 AI 튜터 출력)
+    st.markdown("##### 🔍 [1·2단계] 탐구할 법정감염병 선택 (1급~4급 완비)")
+
+    t_keys_all = ["👉 [1단계: 법정감염병 급수를 먼저 선택하세요]"] + list(TIER_DISEASE_MAP.keys())
+    tier_col, disease_col = st.columns(2)
+    with tier_col:
+        selected_tier_name = st.selectbox("📌 1단계: 법정감염병 급수 선택 (1~4급 분리)", options=t_keys_all, index=0, key="tutor_tier_select")
+
+    with disease_col:
+        if selected_tier_name == "👉 [1단계: 법정감염병 급수를 먼저 선택하세요]":
+            selected_disease_name = st.selectbox("🦠 2단계: 세부 감염병 선택", options=["👉 [1단계 급수를 먼저 선택해야 활성화됩니다]"], index=0, disabled=True, key="tutor_disease_select_dis")
+        else:
+            sub_diseases = ["👉 [2단계: 세부 감염병을 선택하세요]"] + TIER_DISEASE_MAP[selected_tier_name]
+            selected_disease_name = st.selectbox(f"🦠 2단계: 세부 감염병 선택 ({len(TIER_DISEASE_MAP[selected_tier_name])}종)", options=sub_diseases, index=0, key="tutor_disease_select")
+
+    if selected_tier_name == "👉 [1단계: 법정감염병 급수를 먼저 선택하세요]":
+        st.info("👆 **[1단계 급수 선택 대기 중]**: 위 1단계 드롭다운에서 탐구할 법정감염병 급수(1급~4급)를 먼저 선택해 주세요.")
+    elif selected_disease_name == "👉 [2단계: 세부 감염병을 선택하세요]":
+        st.info(f"👆 **[2단계 감염병 선택 대기 중]**: 위 2단계 드롭다운에서 탐구할 세부 감염병을 선택해 주세요. 선택 즉시 종합 역학 리포트와 AI 보건 튜터가 활성화됩니다! 🩺")
+    else:
+        dis_info = get_disease_info(selected_tier_name, selected_disease_name)
+
+        # 질병 변경 감지 시 대화창을 즉시 해당 질병 전용으로 실시간 갱신
+        if "tutor_current_disease" not in st.session_state or st.session_state["tutor_current_disease"] != selected_disease_name:
+            st.session_state["tutor_current_disease"] = selected_disease_name
             st.session_state["chat_history"] = [
                 {
                     "role": "assistant",
-                    "content": f"안녕하세요! 지금 선택하신 **{selected_disease_name}**({dis_info['tier']})에 대해 궁금한 점을 질문해 주세요. 👩‍⚕️"
+                    "content": f"안녕하세요! 지금 선택하신 **{selected_disease_name}**({dis_info['tier']})에 대해 궁금한 점이나 역학적 의문이 있다면 질문해 주세요. 아래 추천 질문 버튼을 누르거나 직접 질문을 입력하시면 학교 보건실 관리 지침에 기반하여 실시간 맞춤 분석 답변을 제공합니다. 👩‍⚕️"
                 }
             ]
+
+        # 실제 데이터셋에서 통계 연동
+        stat_df = working_df[working_df["감염병명"] == selected_disease_name]
+        if not stat_df.empty:
+            real_tot = stat_df["신규환자수"].sum()
+            real_youth = stat_df["10-19세"].sum() if "10-19세" in stat_df.columns else stat_df["청소년환자수"].sum()
+            youth_ratio = (real_youth / real_tot * 100) if real_tot > 0 else 0
+            real_cities = ", ".join(stat_df["지역"].unique()[:4])
+            data_stat_text = f"실제 데이터(2019~2025) 기준 총 {real_tot:,}명 발생, 청소년(10-19세) 환자 {real_youth:,}명(비중 {youth_ratio:.1f}%), 주요 발생지: {real_cities}"
+        else:
+            data_stat_text = dis_info["trend"]
+
+        # 종합 리포트 카드 렌더링
+        st.markdown(f"""
+        <div class="report-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                <div class="report-title">📋 [{selected_disease_name}] 종합 역학 및 보건 관리 리포트</div>
+                <span class="badge-tier">{dis_info['tier']}</span>
+            </div>
+            <p><strong>1. 🦠 병원체 및 감염 원인:</strong><br>{dis_info['cause']} (병원체: <code>{dis_info['pathogen']}</code>)</p>
+            <p><strong>2. 🧬 전파 경로:</strong><br>{dis_info['route']}</p>
+            <p><strong>3. 🩺 주요 임상 증상 및 잠복기:</strong><br>{dis_info['symptoms']}</p>
+            <p><strong>4. 📈 최근 발생 추세 및 통계:</strong><br>{data_stat_text}</p>
+            <p><strong>5. 🛡️ 예방법 및 백신 접종:</strong><br>{dis_info['prevention']}</p>
+            <p><strong>6. 🏥 치료 및 학교 보건실 관리 대책:</strong><br>{dis_info['treatment']}</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+        # 추가 탐구 대화창 (전문 보건의료 문양 🩺, 💉, 🧬 적용)
+        st.divider()
+        c_head1, c_head2 = st.columns([3.8, 1.2])
+        with c_head1:
+            st.markdown(f"<div style='font-size:1.15rem; font-weight:700; color:#f8fafc; white-space:nowrap; margin-bottom:4px;'>💬 [2단계] AI 보건튜터에게 질문하기 (현재 대상: <span style='color:#38bdf8;'>{selected_disease_name}</span>)</div>", unsafe_allow_html=True)
+            st.caption(f"선택하신 '{selected_disease_name}'에 대해 더 깊이 알고 싶은 점을 아래 버튼 또는 입력창으로 질문해 보세요.")
+        with c_head2:
+            if st.button("🔄 대화 내용 초기화", use_container_width=True):
+                st.session_state["chat_history"] = [
+                    {
+                        "role": "assistant",
+                        "content": f"안녕하세요! 지금 선택하신 **{selected_disease_name}**({dis_info['tier']})에 대해 궁금한 점을 질문해 주세요. 👩‍⚕️"
+                    }
+                ]
+                st.rerun()
+
+        # 합리적인 전문 문양 칩 버튼들 (현재 선택된 질병명으로 동적 구성)
+        q1, q2, q3 = st.columns(3)
+        quick_q = None
+        with q1:
+            if st.button(f"🩺 {selected_disease_name} 학교 격리/등교중지 기준", use_container_width=True):
+                quick_q = f"{selected_disease_name}에 걸린 학생이 있을 때 학교 보건실에서 취해야 할 등교 중지 기간과 격리 해제 기준을 자세히 설명해 줘."
+        with q2:
+            if st.button(f"💉 {selected_disease_name} 청소년 백신 및 면역 관리", use_container_width=True):
+                quick_q = f"{selected_disease_name}의 예방 백신 접종 차수와 청소년 시기 추가접종의 중요성을 설명해 줘."
+        with q3:
+            if st.button(f"🧬 비말 vs 공기 전파 역학 관리 지침", use_container_width=True):
+                quick_q = f"{selected_disease_name}의 전파 경로 특성과 교실 환경에서의 비말/공기 차단 관리 지침을 알려줘."
+
+        api_k = get_api_key()
+
+        # 1. 수업 활성화 및 접근 권한 점검
+        is_allowed, lock_reason = check_classroom_access(
+            st.session_state.get("teacher_code", "")
+        )
+
+        if quick_q:
+            st.session_state["chat_history"].append({"role": "user", "content": quick_q})
+            if not is_allowed:
+                rep = f"🔒 **[수업 시간 외 사용 제한 안내]**\n\n{lock_reason}\n\n👉 **선생님께 요청하기 바랍니다.**"
+            elif not is_legal_infectious_question(quick_q, selected_disease_name):
+                rep = "해당 질문은 법정감염병과 관련이 없습니다. 선생님께 요청하기 바랍니다."
+            else:
+                rep = ""
+                if api_k:
+                    with st.spinner(f"AI 보건튜터가 질병관리청 최신 역학 데이터 및 교과서 지침을 분석 중입니다..."):
+                        rep = query_gemini_ai(api_k, quick_q, selected_disease_name)
+                if not rep:
+                    rep = generate_detailed_tutor_answer(selected_disease_name, quick_q, dis_info)
+                    if api_k and "관련이 없습니다" not in rep:
+                        rep += "\n\n> 💡 *[보건 교육 지침] 질병관리청(KDCA) 감염병 포털 및 학교감염병 예방관리 매뉴얼 공식 지침을 기반으로 생성된 답변입니다.*"
+            st.session_state["chat_history"].append({"role": "assistant", "content": rep})
             st.rerun()
 
-    # 합리적인 전문 문양 칩 버튼들 (현재 선택된 질병명으로 동적 구성)
-    q1, q2, q3 = st.columns(3)
-    quick_q = None
-    with q1:
-        if st.button(f"🩺 {selected_disease_name} 학교 격리/등교중지 기준", use_container_width=True):
-            quick_q = f"{selected_disease_name}에 걸린 학생이 있을 때 학교 보건실에서 취해야 할 등교 중지 기간과 격리 해제 기준을 자세히 설명해 줘."
-    with q2:
-        if st.button(f"💉 {selected_disease_name} 청소년 백신 및 면역 관리", use_container_width=True):
-            quick_q = f"{selected_disease_name}의 예방 백신 접종 차수와 청소년 시기 추가접종의 중요성을 설명해 줘."
-    with q3:
-        if st.button(f"🧬 비말 vs 공기 전파 역학 관리 지침", use_container_width=True):
-            quick_q = f"{selected_disease_name}의 전파 경로 특성과 교실 환경에서의 비말/공기 차단 관리 지침을 알려줘."
+        for chat in st.session_state["chat_history"]:
+            with st.chat_message(chat["role"]):
+                st.markdown(chat["content"])
 
-    api_k = get_api_key()
+        user_q = st.chat_input(f"{selected_disease_name}에 대해 궁금한 점을 입력하세요...")
+        if user_q:
+            st.session_state["chat_history"].append({"role": "user", "content": user_q})
+            if not is_allowed:
+                rep = f"🔒 **[수업 시간 외 사용 제한 안내]**\n\n{lock_reason}\n\n👉 **선생님께 요청하기 바랍니다.**"
+            elif not is_legal_infectious_question(user_q, selected_disease_name):
+                rep = "해당 질문은 법정감염병과 관련이 없습니다. 선생님께 요청하기 바랍니다."
+            else:
+                rep = ""
+                if api_k:
+                    with st.spinner(f"AI 보건튜터가 {selected_disease_name} 관련 질병관리청 역학 지침을 분석 중입니다..."):
+                        rep = query_gemini_ai(api_k, user_q, selected_disease_name)
+                if not rep:
+                    rep = generate_detailed_tutor_answer(selected_disease_name, user_q, dis_info)
+                    if api_k and "관련이 없습니다" not in rep:
+                        rep += "\n\n> 💡 *[보건 교육 지침] 질병관리청(KDCA) 감염병 포털 및 학교감염병 예방관리 매뉴얼 공식 지침을 기반으로 생성된 답변입니다.*"
+            st.session_state["chat_history"].append({"role": "assistant", "content": rep})
+            st.rerun()
 
-    # 1. 수업 활성화 및 접근 권한 점검
-    is_allowed, lock_reason = check_classroom_access(
-        st.session_state.get("teacher_code", "")
-    )
+    # [디지털 학습지 STEP 5] 학생 직접 기록 활동란
+    st.write("")
+    st.markdown("##### 📝 [5단계 탐구 활동지] AI 보건 튜터 인터뷰 배움 기록장")
+    st.markdown('<div style="color: #94a3b8; font-size: 0.84rem; white-space: nowrap; margin-bottom: 8px;">AI 보건 튜터에게 질의하여 새롭게 알게 된 학교 감염병 격리 기준, 백신 접종 차수, 또는 비말/공기 전파 예방 수칙을 한 줄로 요약해 보세요.</div>', unsafe_allow_html=True)
 
-    if quick_q:
-        st.session_state["chat_history"].append({"role": "user", "content": quick_q})
-        if not is_allowed:
-            rep = f"🔒 **[수업 시간 외 사용 제한 안내]**\n\n{lock_reason}\n\n👉 **선생님께 요청하기 바랍니다.**"
-        elif not is_legal_infectious_question(quick_q, selected_disease_name):
-            rep = "해당 질문은 법정감염병과 관련이 없습니다. 선생님께 요청하기 바랍니다."
-        else:
-            rep = ""
-            if api_k:
-                with st.spinner(f"AI 보건튜터가 질병관리청 최신 역학 데이터 및 교과서 지침을 분석 중입니다..."):
-                    rep = query_gemini_ai(api_k, quick_q, selected_disease_name)
-            if not rep:
-                rep = generate_detailed_tutor_answer(selected_disease_name, quick_q, dis_info)
-                if api_k and "관련이 없습니다" not in rep:
-                    rep += "\n\n> 💡 *[보건 교육 지침] 질병관리청(KDCA) 감염병 포털 및 학교감염병 예방관리 매뉴얼 공식 지침을 기반으로 생성된 답변입니다.*"
-        st.session_state["chat_history"].append({"role": "assistant", "content": rep})
-        st.rerun()
+    memo5_col1, memo5_col2 = st.columns([3.1, 1.7])
+    with memo5_col1:
+        s5_input = st.text_area(
+            "5단계 기록 내용",
+            value=st.session_state.get("wb_step5_note", ""),
+            placeholder="예시: 백일해는 증상 시작 후 항생제 복용 5일까지 등교 중지가 원칙이며, 청소년기 면역력 저하를 막기 위해 Tdap 6차 추가접종이 필수적임을 확인함.",
+            label_visibility="collapsed",
+            key="area_step5_memo",
+            height=70
+        )
+    with memo5_col2:
+        st.write("")
+        if st.button("💾 5단계 저장 & 수행평가 연동", use_container_width=True, type="primary", key="btn_save_step5"):
+            st.session_state["wb_step5_note"] = s5_input
+            st.toast("🎉 5단계까지 모든 탐구 기록이 저장되었으며 수행평가에 자동 연동되었습니다!")
+            st.success("연동 완료! 🟢")
+            st.rerun()
 
-    for chat in st.session_state["chat_history"]:
-        with st.chat_message(chat["role"]):
-            st.markdown(chat["content"])
-
-    user_q = st.chat_input(f"{selected_disease_name}에 대해 궁금한 점을 입력하세요...")
-    if user_q:
-        st.session_state["chat_history"].append({"role": "user", "content": user_q})
-        if not is_allowed:
-            rep = f"🔒 **[수업 시간 외 사용 제한 안내]**\n\n{lock_reason}\n\n👉 **선생님께 요청하기 바랍니다.**"
-        elif not is_legal_infectious_question(user_q, selected_disease_name):
-            rep = "해당 질문은 법정감염병과 관련이 없습니다. 선생님께 요청하기 바랍니다."
-        else:
-            rep = ""
-            if api_k:
-                with st.spinner(f"AI 보건튜터가 {selected_disease_name} 관련 질병관리청 역학 지침을 분석 중입니다..."):
-                    rep = query_gemini_ai(api_k, user_q, selected_disease_name)
-            if not rep:
-                rep = generate_detailed_tutor_answer(selected_disease_name, user_q, dis_info)
-                if api_k and "관련이 없습니다" not in rep:
-                    rep += "\n\n> 💡 *[보건 교육 지침] 질병관리청(KDCA) 감염병 포털 및 학교감염병 예방관리 매뉴얼 공식 지침을 기반으로 생성된 답변입니다.*"
-        st.session_state["chat_history"].append({"role": "assistant", "content": rep})
-        st.rerun()
+    # 사용자 요청: "2022 개정 보건·정보 융합 디지털 탐구 활동지" 중복 블록은 화면에서 제거하고 상단 학생 탐구 활동지 버튼으로 일원화
+    st.write("")
+    st.info("💡 **활동지 최종 완성 안내**: 작성하신 모든 탐구 기록(1~5단계)은 상단의 **`[📋 학생 탐구 활동지]`** 버튼을 누르시면 이전 원본 PDF/인쇄용 양식 및 한글(.HWP) 파일로 언제든 예쁘게 열람하고 다운로드하실 수 있습니다.")
 
 
 # ==========================================
@@ -5299,3 +5546,4 @@ elif menu in ["5. AI 보건 튜터(Q&A)", "5. AI_보건튜터(Q&A)", "5. AI 보�
 # ==========================================
 st.divider()
 st.caption("서울의료보건고등학교 보건간호과  AI 융합 보건 교육 프로젝트")
+
